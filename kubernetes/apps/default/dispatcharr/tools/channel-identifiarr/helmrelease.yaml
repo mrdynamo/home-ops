@@ -52,7 +52,12 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /data
-      cache:
-        type: emptyDir
-        globalMounts:
-          - path: "/app/.cache"
+      database:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/plex
+        advancedMounts:
+          channel-identifiarr:
+            app:
+              - path: "/data/channelidentifiarr.db"
+                subPath: channelidentifarr.db
