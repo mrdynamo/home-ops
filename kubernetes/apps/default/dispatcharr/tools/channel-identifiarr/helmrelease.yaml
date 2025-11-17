@@ -57,11 +57,11 @@ spec:
       database:
         type: nfs
         server: 192.168.20.21
-        path: /mnt/tank/media/plex/channelidentifiarr
+        path: /mnt/tank/media/plex
         advancedMounts:
           channel-identifiarr:
             app:
               - path: "/database"
-                subPath: channelidentifarr
+                subPath: channel-identifarr
       tmp:
         type: emptyDir
