@@ -1,0 +1,58 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: channel-identifiarr
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: channel-identifiarr
+  interval: 1h
+  values:
+    controllers:
+      channel-identifiarr:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/egyptiangio/channel-identifiarr
+              tag: v0.6.4@sha256:11158a2d311a510b77b33f5772e39e3f0296e3cae3a5850c4d79bf2afdb435a5
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 1Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: 9192
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /data
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: "/app/.cache"
