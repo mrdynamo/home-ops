@@ -15,7 +15,7 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/egyptiangio/channel-identifiarr
+              repository: ghcr.io/egyptiangio/channelidentifiarr
               tag: v0.6.4@sha256:11158a2d311a510b77b33f5772e39e3f0296e3cae3a5850c4d79bf2afdb435a5
             securityContext:
               allowPrivilegeEscalation: false
