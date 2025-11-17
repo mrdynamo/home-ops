@@ -55,7 +55,7 @@ spec:
       database:
         type: nfs
         server: 192.168.20.21
-        path: /mnt/tank/plex
+        path: /mnt/tank/media/plex
         advancedMounts:
           channel-identifiarr:
             app:
