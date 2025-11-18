@@ -66,7 +66,7 @@ spec:
           bypass:
             image:
               repository: ghcr.io/sarperavci/cloudflarebypassforscraping
-              tag: latest@sha256:37ef0669d4ffc24b2cea3e0b3be62dc5bf72cad3750fe592483b1398aae810da
+              tag: latest@sha256:f113570afd4924f10338890571a75e662d5d1b7deed7696ac40f7e063688eb48
               pullPolicy: IfNotPresent
             resources:
               requests:
