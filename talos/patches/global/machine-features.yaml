@@ -1,0 +1,8 @@
+machine:
+  features:
+    kubernetesTalosAPIAccess:
+      allowedKubernetesNamespaces:
+        - system-upgrade # Tuppr namespace
+      allowedRoles:
+        - os:admin
+      enabled: true
