@@ -1,0 +1,81 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: multiview
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: multiview
+  interval: 1h
+  values:
+    controllers:
+      multiview:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/kikootwo/multiview
+              tag: latest@sha256:89eb9d4f6fdb0be148eab63ccb42d79d1f1c57847dbd67bfd16793318173260d
+            env:
+              M3U_SOURCE: http://dispatcharr.default.svc:9191/output/m3u
+              IDLE_TIMEOUT: 3000
+              PORT: &port 9292
+            probes:
+              liveness: &probes
+                enabled: false
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+                # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+    defaultPodOptions:
+      # runtimeClassName: nvidia
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: nvidia.com/gpu.count
+      #               operator: Gt
+      #               values: ["0"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+    # persistence:
+    #   config:
+    #     existingClaim: "{{ .Release.Name }}"
+    #     globalMounts:
+    #       - path: /data
