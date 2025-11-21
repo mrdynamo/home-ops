@@ -24,7 +24,7 @@ spec:
       hostLegacyRouting: true
     bgpControlPlane:
       enabled: true
-      secretsNamespace: kube-system
+      #secretsNamespace: kube-system
     cni:
       # Required for pairing with Multus CNI
       exclusive: false
