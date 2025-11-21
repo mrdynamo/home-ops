@@ -22,6 +22,9 @@ spec:
       masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
       hostLegacyRouting: true
+    bgpControlPlane:
+      enabled: true
+      secretsNamespace: kube-system
     cni:
       # Required for pairing with Multus CNI
       exclusive: false
