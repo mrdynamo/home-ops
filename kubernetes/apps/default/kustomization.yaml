@@ -13,8 +13,6 @@ resources:
   - ./calibre-web-automated/ks.yaml
   - ./calibre-web-downloader/ks.yaml
   - ./dispatcharr/ks.yaml
-  # - ./echo/ks.yaml
-  # - ./echo-internal/ks.yaml
   - ./emby/ks.yaml
   - ./homepage/ks.yaml
   - ./invoiceninja/ks.yaml
