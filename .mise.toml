@@ -8,7 +8,7 @@ MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
 [tools]
 "python" = "3.14.0"
 "pipx:makejinja" = "2.8.1"
-"aqua:budimanjojo/talhelper" = "3.0.40"
+"aqua:budimanjojo/talhelper" = "3.0.41"
 "aqua:cilium/cilium-cli" = "0.18.8"
 "aqua:cli/cli" = "2.83.1"
 "aqua:cloudflare/cloudflared" = "2025.11.1"
