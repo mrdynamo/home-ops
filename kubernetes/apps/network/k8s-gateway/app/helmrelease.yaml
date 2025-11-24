@@ -25,6 +25,7 @@ spec:
       port: 53
       annotations:
         lbipam.cilium.io/ips: "192.168.20.210"
-        cilium.io/no-bgp: "true"
-      externalTrafficPolicy: Cluster
+      # labels:
+      #   cilium.io/no-bgp: "true"
+      externalTrafficPolicy: Local
     watchedResources: ["HTTPRoute", "Service"]
