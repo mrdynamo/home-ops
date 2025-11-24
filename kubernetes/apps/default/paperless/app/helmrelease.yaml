@@ -148,7 +148,7 @@ spec:
           - subPath: tmp
             path: /tmp
         advancedMounts:
-          app:
+          paperless:
             app:
               - subPath: "run"
                 path: "/run"
