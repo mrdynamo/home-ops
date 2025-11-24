@@ -21,6 +21,8 @@ spec:
               repository: ghcr.io/paperless-ngx/paperless-ngx
               tag: 2.20.0@sha256:8ffd737c69a569bbdadc118e7f54b0b1050ffac2868fdf9e390a68cb7c82a79d
             env:
+              USERMAP_UID: &uid 1000
+              USERMAP_GID: *uid
               PAPERLESS_TIME_ZONE: America/Chicago
               PAPERLESS_APP_TITLE: "Document Archive"
               PAPERLESS_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
@@ -55,11 +57,10 @@ spec:
                 spec:
                   failureThreshold: 30
                   periodSeconds: 5
-            ## I HATE S6 USERS
-            # securityContext:
-            #   allowPrivilegeEscalation: false
-            #   readOnlyRootFilesystem: true
-            #   capabilities: {drop: ["ALL"]}
+            securityContext: &sc
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 100m
@@ -74,19 +75,22 @@ spec:
               tag: 8.17.3
             env:
               DISABLE_GOOGLE_CHROME: "1"
+            securityContext: *sc
       tika:
         containers:
           app:
             image:
               repository: docker.io/apache/tika
               tag: 3.2.3.0-full
+            securityContext: *sc
     defaultPodOptions:
       securityContext:
-        # runAsNonRoot: true
-        # runAsUser: 1000
-        # runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        runAsUser: *uid
+        runAsGroup: *uid
+        fsGroup: *uid
+        fsGroupChangePolicy: Always
+        seccompProfile: { type: "RuntimeDefault" }
     service:
       paperless:
         controller: *app
