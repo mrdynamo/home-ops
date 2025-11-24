@@ -30,9 +30,9 @@ spec:
                   name: "{{ .Release.Name }}-secret"
             probes: &probes
               liveness:
-                enabled: true
+                enabled: false
               readiness:
-                enabled: true
+                enabled: false
               startup:
                 enabled: false
             securityContext: &securityContext
