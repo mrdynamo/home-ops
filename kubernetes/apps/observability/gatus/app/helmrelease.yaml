@@ -39,9 +39,7 @@ spec:
               TZ: America/Chicago
               GATUS_CONFIG_PATH: /config
               GATUS_WEB_PORT: &port 80
-              ## Sleep Gatus for 2 minutes on start to see if it resolves keys being
-              ## nuked out of DB when endpoints are not populated when app starts.
-              GATUS_DELAY_START_SECONDS: 120
+              GATUS_DELAY_START_SECONDS: 15
             # envFrom:
             #   - secretRef:
             #       name: "{{ .Release.Name }}-secret"
