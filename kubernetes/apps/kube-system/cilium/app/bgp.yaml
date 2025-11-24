@@ -24,10 +24,10 @@ spec:
           - LoadBalancerIP
       selector:
         matchExpressions:
-          - key: fakeSelector
+          - key: cilium.io/no-bgp
             operator: NotIn
             values:
-              - will-match-and-announce-all-services
+              - "true"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
