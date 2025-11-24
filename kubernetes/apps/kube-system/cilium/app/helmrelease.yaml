@@ -23,7 +23,7 @@ spec:
       # Ref: https://github.com/siderolabs/talos/issues/10002
       hostLegacyRouting: true
     bgpControlPlane:
-      enabled: false
+      enabled: true
     cni:
       # Required for pairing with Multus CNI
       exclusive: false
@@ -54,7 +54,7 @@ spec:
     kubeProxyReplacement: true
     kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
     l2announcements:
-      enabled: true
+      enabled: false
     loadBalancer:
       algorithm: maglev
       mode: "dsr"

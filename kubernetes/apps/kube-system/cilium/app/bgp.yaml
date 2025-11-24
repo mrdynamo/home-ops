@@ -65,6 +65,6 @@ spec:
       peers:
         - name: unifi
           peerASN: 65100
-          peerAddress: 192.168.5.1
+          peerAddress: 192.168.20.1
           peerConfigRef:
             name: bgp-peer-config
