@@ -34,7 +34,7 @@ spec:
               readiness:
                 enabled: true
               startup:
-                enabled: true
+                enabled: false
             securityContext: &securityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
