@@ -140,3 +140,17 @@ spec:
                 subPath: consume
               - path: "/usr/src/paperless/export"
                 subPath: export
+      tmp:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 16Mi
+        globalMounts:
+          - subPath: tmp
+            path: /tmp
+        advancedMounts:
+          app:
+            app:
+              - subPath: "run"
+                path: "/run"
+              - subPath: "apt"
+                path: "/var/lib/apt"
