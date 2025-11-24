@@ -68,7 +68,7 @@ spec:
         scrapeConfigSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
         retention: 30d
-        retentionSize: 24GB
+        retentionSize: 20GB
         resources:
           requests:
             cpu: 100m
