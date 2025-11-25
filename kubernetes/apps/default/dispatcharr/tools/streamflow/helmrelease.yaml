@@ -19,14 +19,14 @@ spec:
               tag: 1.2.2@sha256:531d5681c0ba759a41dab036e16d14901869327424f1e75d22f1aee1a9ac6120
             env:
               TZ: America/Chicago
-              API_PORT: &port 3000
+              API_PORT: &port 5000
               DISPATCHARR_BASE_URL: http://dispatcharr.default.svc:9191
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
             probes:
               liveness: &probes
-                enabled: false
+                enabled: true
                 custom: true
                 spec:
                   httpGet:
