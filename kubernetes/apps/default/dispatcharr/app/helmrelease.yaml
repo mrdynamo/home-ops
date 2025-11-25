@@ -92,5 +92,12 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /data
+      exports:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/media/plex
+        globalMounts:
+          - path: /data/exports
+            subPath: dispatcharr/exports
       tmp:
         type: emptyDir
