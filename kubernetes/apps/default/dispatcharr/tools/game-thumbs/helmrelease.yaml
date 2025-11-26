@@ -20,7 +20,7 @@ spec:
             env:
               TZ: America/Chicago
               XC_PROXY: true
-              XC_PROXY_UPSTREAM: http://dispatcharr.default.svc:9191
+              XC_PROXY_UPSTREAM: local=http://dispatcharr.default.svc:9191
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
