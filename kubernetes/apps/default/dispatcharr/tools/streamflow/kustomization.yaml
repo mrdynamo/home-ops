@@ -6,6 +6,10 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: streamflow
+    files:
+      - automation_config.json=./resources/autosmation_config.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

@@ -1,0 +1,15 @@
+{
+  "playlist_update_interval_minutes": 1440,
+  "enabled_m3u_accounts": [
+    3
+  ],
+  "autostart_automation": false,
+  "enabled_features": {
+    "auto_playlist_update": true,
+    "auto_quality_reordering": true,
+    "auto_stream_discovery": true,
+    "changelog_tracking": true
+  },
+  "global_check_interval_hours": 24,
+  "concurrent_stream_checks": 2
+}

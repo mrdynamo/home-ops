@@ -3,15 +3,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: streamflow
+  name: &app streamflow
 spec:
   chartRef:
     kind: OCIRepository
-    name: streamflow
+    name: *app
   interval: 1h
   values:
     controllers:
       streamflow:
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
@@ -72,3 +74,11 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/data
+      configmap:
+        type: configMap
+        name: *app
+        advancedMounts:
+          streamflow:
+            app:
+              - path: /app/data/automation_config.json
+                subPath: automation_config.json
