@@ -9,7 +9,7 @@ resources:
 configMapGenerator:
   - name: streamflow
     files:
-      - automation_config.json=./resources/autosmation_config.json
+      - automation_config.json=./resources/automation_config.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
