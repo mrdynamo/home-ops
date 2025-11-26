@@ -5,7 +5,7 @@
   ],
   "autostart_automation": false,
   "enabled_features": {
-    "auto_playlist_update": false,
+    "auto_playlist_update": true,
     "auto_quality_reordering": true,
     "auto_stream_discovery": false,
     "changelog_tracking": true
