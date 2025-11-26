@@ -50,6 +50,10 @@
         href: https://longhorn.${INTERNAL_SECRET_DOMAIN}
         description: Distributed k3s block storage
         icon: longhorn.svg
+    - Kopia:
+        href: https://kopia.${INTERNAL_SECRET_DOMAIN}/
+        description: Kopia backup management
+        icon: kopia.svg
     - Backblaze B2:
         href: https://secure.backblaze.com/b2_buckets.htm
         description: Backblaze B2 cloud storage
