@@ -13,7 +13,7 @@
   "stream_analysis": {
     "ffmpeg_duration": 10,
     "idet_frames": 500,
-    "timeout": 15,
+    "timeout": 10,
     "retries": 1,
     "retry_delay": 10,
     "user_agent": "VLC/3.0.14"
