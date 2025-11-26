@@ -21,10 +21,15 @@ spec:
               tag: 0.12.0@sha256:510829d3d4dba6b690e6afeb9b31da6549e3dc23950e71d2bc877608acf7cb7d
             env:
               TZ: America/Chicago
-              # DISPATCHARR_LOG_LEVEL: DEBUG
+              DISPATCHARR_LOG_LEVEL: DEBUG
               DISPATCHARR_ENV: aio
               REDIS_HOST: localhost
               CELERY_BROKER_URL: redis://localhost:6379/0
+              # Process Priority Configuration (Optional)
+              # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
+              # Negative values require cap_add: SYS_NICE
+              UWSGI_NICE_LEVEL: -10   # uWSGI/FFmpeg/Streaming (default: 0, recommended: -5 for high priority)
+              CELERY_NICE_LEVEL: 15   # Celery/EPG/Background tasks (default: 5, low priority)
             probes:
               liveness: &probes
                 enabled: false
@@ -38,10 +43,11 @@ spec:
                   timeoutSeconds: 1
                   failureThreshold: 3
               readiness: *probes
-            # securityContext:
-            #   allowPrivilegeEscalation: false
-            #   readOnlyRootFilesystem: true
-            #   capabilities: {drop: ["ALL"]}
+            securityContext:
+              # allowPrivilegeEscalation: false
+              # readOnlyRootFilesystem: true
+              # capabilities: {drop: ["ALL"]}
+              capabilities: { add: ["SYS_NICE"] }
             resources:
               requests:
                 cpu: 100m
@@ -101,3 +107,7 @@ spec:
             subPath: dispatcharr/exports
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
+          # - path: /app/media/cached_epg
+          # - path: /app/media/cached_m3u
