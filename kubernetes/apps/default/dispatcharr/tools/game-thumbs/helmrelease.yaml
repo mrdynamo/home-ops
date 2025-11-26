@@ -20,7 +20,7 @@ spec:
             env:
               TZ: America/Chicago
               XC_PROXY: true
-              XC_PROXY_UPSTREAM: "dispatcharr=https://dispatcharr.internal.dynamiclab.org"
+              XC_PROXY_UPSTREAM: "dispatcharr=http://dispatcharr.default.svc:9191"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
