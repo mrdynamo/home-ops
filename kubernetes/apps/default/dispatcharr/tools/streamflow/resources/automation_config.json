@@ -5,9 +5,9 @@
   ],
   "autostart_automation": false,
   "enabled_features": {
-    "auto_playlist_update": true,
+    "auto_playlist_update": false,
     "auto_quality_reordering": true,
-    "auto_stream_discovery": true,
+    "auto_stream_discovery": false,
     "changelog_tracking": true
   },
   "global_check_interval_hours": 24,
