@@ -1,0 +1,15 @@
+{
+  "patterns": {
+    "911": {
+      "name": "Vice HD",
+      "regex": [
+        "^US: VICELAND HD$"
+      ],
+      "enabled": true
+    }
+  },
+  "global_settings": {
+    "case_sensitive": false,
+    "require_exact_match": false
+  }
+}

@@ -10,6 +10,8 @@ configMapGenerator:
   - name: streamflow
     files:
       - automation_config.json=./resources/automation_config.json
+      - channel_regex_config.json=./resources/channel_regex_config.json
+      - stream_checker_config.json=./resources/stream_checker_config.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

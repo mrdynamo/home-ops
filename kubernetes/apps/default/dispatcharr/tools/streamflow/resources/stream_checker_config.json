@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "check_interval": 300,
+  "check_interval": 30,
   "pipeline_mode": "pipeline_1",
   "global_check_schedule": {
     "enabled": true,
@@ -34,6 +34,6 @@
   "queue": {
     "max_size": 1000,
     "check_on_update": true,
-    "max_channels_per_run": 50
+    "max_channels_per_run": 500
   }
 }

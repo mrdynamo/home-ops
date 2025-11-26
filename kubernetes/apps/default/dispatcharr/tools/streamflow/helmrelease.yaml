@@ -82,3 +82,5 @@ spec:
             app:
               - path: /app/data/automation_config.json
                 subPath: automation_config.json
+              - path: /app/data/stream_checker_config.json
+                subPath: stream_checker_config.json
