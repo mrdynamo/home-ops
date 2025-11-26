@@ -1,5 +1,5 @@
 {
-  "playlist_update_interval_minutes": 1440,
+  "playlist_update_interval_minutes": 30,
   "enabled_m3u_accounts": [
     3
   ],
