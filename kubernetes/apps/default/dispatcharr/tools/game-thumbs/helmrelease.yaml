@@ -16,7 +16,11 @@ spec:
           app:
             image:
               repository: ghcr.io/sethwv/game-thumbs
-              tag: v0.5.2@sha256:6c55c3c917f53f259313671e4bd90fa07101676b6222908fb1d59162c0693513
+              tag: dev@sha256:7b7bbda4f5a1af630526b9b14bb20cc77e29f12b442bf9a35c6f2fb25d671e75
+            env:
+              TZ: America/Chicago
+              XC_PROXY: true
+              XC_PROXY_UPSTREAM: http://dispatcharr.default.svc:9191
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
