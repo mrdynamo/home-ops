@@ -1,0 +1,39 @@
+{
+  "enabled": true,
+  "check_interval": 300,
+  "pipeline_mode": "pipeline_1",
+  "global_check_schedule": {
+    "enabled": true,
+    "cron_expression": "0 3 * * *",
+    "frequency": "daily",
+    "hour": 3,
+    "minute": 0,
+    "day_of_month": 1
+  },
+  "stream_analysis": {
+    "ffmpeg_duration": 10,
+    "idet_frames": 500,
+    "timeout": 15,
+    "retries": 1,
+    "retry_delay": 10,
+    "user_agent": "VLC/3.0.14"
+  },
+  "scoring": {
+    "weights": {
+      "bitrate": 0.3,
+      "resolution": 0.25,
+      "fps": 0.15,
+      "codec": 0.1,
+      "errors": 0.2
+    },
+    "min_score": 0,
+    "prefer_h265": true,
+    "penalize_interlaced": true,
+    "penalize_dropped_frames": true
+  },
+  "queue": {
+    "max_size": 1000,
+    "check_on_update": true,
+    "max_channels_per_run": 50
+  }
+}
