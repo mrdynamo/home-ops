@@ -74,11 +74,11 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/data
-      # configmap:
-      #   type: configMap
-      #   name: *app
-      #   advancedMounts:
-      #     streamflow:
-      #       app:
-      #         - path: /app/data/automation_config.json
-      #           subPath: automation_config.json
+      configmap:
+        type: configMap
+        name: *app
+        advancedMounts:
+          streamflow:
+            app:
+              - path: /app/data/automation_config.json
+                subPath: automation_config.json
