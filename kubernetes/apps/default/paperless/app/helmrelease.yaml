@@ -57,10 +57,10 @@ spec:
                 spec:
                   failureThreshold: 30
                   periodSeconds: 5
-            securityContext: &sc
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
+            # securityContext: &sc
+            #   allowPrivilegeEscalation: false
+            #   readOnlyRootFilesystem: true
+            #   capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 100m
@@ -75,7 +75,7 @@ spec:
               tag: 8.17.3
             env:
               DISABLE_GOOGLE_CHROME: "1"
-            securityContext: *sc
+            # securityContext: *sc
       tika:
         containers:
           app:
@@ -84,14 +84,14 @@ spec:
               tag: 3.2.3.0-full
             securityContext: *sc
     defaultPodOptions:
-      hostUsers: false
+      # hostUsers: false
       securityContext:
-        runAsNonRoot: true
-        runAsUser: *uid
-        runAsGroup: *uid
+        # runAsNonRoot: true
+        # runAsUser: *uid
+        # runAsGroup: *uid
         fsGroup: *uid
-        fsGroupChangePolicy: Always
-        seccompProfile: { type: "RuntimeDefault" }
+        fsGroupChangePolicy: OnRootMismatch
+        # seccompProfile: { type: "RuntimeDefault" }
     service:
       paperless:
         controller: *app
@@ -141,17 +141,17 @@ spec:
                 subPath: consume
               - path: "/usr/src/paperless/export"
                 subPath: export
-      tmp:
-        type: emptyDir
-        medium: Memory
-        sizeLimit: 16Mi
-        globalMounts:
-          - subPath: tmp
-            path: /tmp
-        advancedMounts:
-          paperless:
-            app:
-              - subPath: "run"
-                path: "/run"
-              - subPath: "apt"
-                path: "/var/lib/apt"
+      # tmp:
+      #   type: emptyDir
+      #   medium: Memory
+      #   sizeLimit: 16Mi
+      #   globalMounts:
+      #     - subPath: tmp
+      #       path: /tmp
+      #   advancedMounts:
+      #     paperless:
+      #       app:
+      #         - subPath: "run"
+      #           path: "/run"
+      #         - subPath: "apt"
+      #           path: "/var/lib/apt"
