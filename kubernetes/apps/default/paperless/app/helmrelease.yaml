@@ -84,7 +84,7 @@ spec:
               tag: 3.2.3.0-full
             # securityContext: *sc
     defaultPodOptions:
-      # hostUsers: false
+      hostUsers: true
       securityContext:
         # runAsNonRoot: true
         # runAsUser: *uid
