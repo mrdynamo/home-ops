@@ -18,8 +18,6 @@ spec:
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "external.${SECRET_DOMAIN}"
-    labels:
-      cilium.io/no-bgp: "false"
   listeners:
     - name: http
       protocol: HTTP
