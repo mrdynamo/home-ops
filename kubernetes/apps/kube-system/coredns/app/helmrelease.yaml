@@ -45,6 +45,8 @@ spec:
             configBlock: |-
               pods verified
               fallthrough in-addr.arpa ip6.arpa
+          - name: rewrite
+            parameters: "name game-thumbs.${INTERNAL_SECRET_DOMAIN} game-thumbs.default.svc.cluster.local"
           - name: autopath
             parameters: "@kubernetes"
           - name: forward
