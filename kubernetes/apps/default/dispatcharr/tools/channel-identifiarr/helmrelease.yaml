@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/egyptiangio/channelidentifiarr
-              tag: 0.6.4@sha256:11158a2d311a510b77b33f5772e39e3f0296e3cae3a5850c4d79bf2afdb435a5
+              tag: 0.6.5@sha256:d883c0eb43e369fd78d59f11aaf1dcef8783ae663d92a088c7c07050b48adc23
             env:
               DATABASE_PATH: /database/channelidentifiarr.db
             securityContext:
