@@ -62,6 +62,6 @@ spec:
           channel-identifiarr:
             app:
               - path: "/database"
-                subPath: channel-identifiarr
+                subPath: dispatcharr/channel-identifiarr
       tmp:
         type: emptyDir
