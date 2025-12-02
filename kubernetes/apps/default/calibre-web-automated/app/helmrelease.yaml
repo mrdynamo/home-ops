@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/crocodilestick/calibre-web-automated
-              tag: dev@sha256:0e386f615977199add67ead94f90e9c13f172cbc46a9a170c414759fcb97d739
+              tag: dev@sha256:3c70507f1be2ccbe3e1748d083939f1fdc521a9b27f442eab83f91bd952e2af2
             env:
               TZ: America/Chicago
               PUID: 1000
