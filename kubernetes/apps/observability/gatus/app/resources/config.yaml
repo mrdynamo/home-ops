@@ -1,7 +1,4 @@
 ---
-client:
-  timeout: 15s
-
 connectivity:
   checker:
     target: 1.1.1.1:53

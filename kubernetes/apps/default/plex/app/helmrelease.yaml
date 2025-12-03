@@ -81,7 +81,7 @@ spec:
       app:
         annotations:
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == 401"]
+            conditions: ["[STATUS] == any(401, 530)"]
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
