@@ -75,4 +75,6 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
+            subPath: tmp
           - path: /opt/app/server/dist/ui
+            subPath: ui
