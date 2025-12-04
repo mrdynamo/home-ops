@@ -83,4 +83,5 @@ spec:
       cache:
         type: emptyDir
         globalMounts:
+          - path: /tmp
           - path: /streaming-app/cache
