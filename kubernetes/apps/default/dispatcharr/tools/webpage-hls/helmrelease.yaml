@@ -20,6 +20,10 @@ spec:
             env:
               PORT: &port 3000
               WS4KP_EXTERNAL_PORT: &webport 8080
+              DEFAULT_FPS: 30
+              SCREENSHOT_FORMAT: jpeg
+              SCREENSHOT_QUALITY: 95
+              DEBUG_MODE: true
             probes:
               liveness: &probes
                 enabled: false
