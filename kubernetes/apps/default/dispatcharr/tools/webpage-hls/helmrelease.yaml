@@ -1,0 +1,80 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: webpage-hls
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: webpage-hls
+  interval: 1h
+  values:
+    controllers:
+      webpage-hls:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/sethwv/ws4kp-to-hls
+              tag: latest@sha256:c272c18a5eee75dc74909d8d29725d02ed93fb7d5596e225c8457b6da8e1b7f4
+            env:
+              PORT: &port 3000
+              WS4KP_EXTERNAL_PORT: &webport 8080
+            probes:
+              liveness: &probes
+                enabled: false
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 1Gi
+                # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+    defaultPodOptions:
+      # runtimeClassName: nvidia
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: nvidia.com/gpu.count
+      #               operator: Gt
+      #               values: ["0"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+    persistence:
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /streaming-app/cache
