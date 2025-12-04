@@ -63,8 +63,10 @@ spec:
     service:
       app:
         ports:
-          http:
+          stream:
             port: *port
+          http:
+            port: *webport
     route:
       app:
         hostnames:
@@ -73,6 +75,10 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *webport
     persistence:
       cache:
         type: emptyDir
