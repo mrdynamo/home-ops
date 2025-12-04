@@ -27,7 +27,7 @@ spec:
             name: &secret cloudflare-dns-secret
             key: *name
     extraArgs:
-      - --interval=5m
+      # - --interval=5m
       - --cloudflare-dns-records-per-page=1000
       - --cloudflare-proxied
       - --cloudflare-record-comment="Managed by k8s cloudflare-dns"
