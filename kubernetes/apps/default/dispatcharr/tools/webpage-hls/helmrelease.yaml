@@ -89,3 +89,4 @@ spec:
         globalMounts:
           - path: /tmp
           - path: /streaming-app/cache
+          - path: /home/node/.cache
