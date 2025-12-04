@@ -23,9 +23,9 @@ spec:
               DEFAULT_FPS: 30
               SCREENSHOT_FORMAT: jpeg
               SCREENSHOT_QUALITY: 95
-              DEBUG_MODE: true
               XDG_CONFIG_HOME: /tmp
               XDG_CACHE_HOME: /tmp
+              # DEBUG_MODE: true
             probes:
               liveness: &probes
                 enabled: false
