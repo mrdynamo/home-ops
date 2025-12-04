@@ -250,7 +250,7 @@ spec:
     - name: dispatcharr
       namespace: default
   interval: 1h
-  path: ./kubernetes/apps/default/dispatcharr/tools/webpage
+  path: ./kubernetes/apps/default/dispatcharr/tools/webpage-hls
   postBuild:
     substitute:
       APP: *app
