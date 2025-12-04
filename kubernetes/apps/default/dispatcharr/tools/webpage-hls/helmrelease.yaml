@@ -88,4 +88,5 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
+          - path: /music
           - path: /streaming-app/cache
