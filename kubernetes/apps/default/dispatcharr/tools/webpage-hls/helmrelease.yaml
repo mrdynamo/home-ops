@@ -24,6 +24,8 @@ spec:
               SCREENSHOT_FORMAT: jpeg
               SCREENSHOT_QUALITY: 95
               DEBUG_MODE: true
+              XDG_CONFIG_HOME: /tmp
+              XDG_CACHE_HOME: /tmp
             probes:
               liveness: &probes
                 enabled: false
