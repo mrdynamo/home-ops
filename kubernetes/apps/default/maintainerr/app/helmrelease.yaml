@@ -76,5 +76,5 @@ spec:
         globalMounts:
           - path: /tmp
             subPath: tmp
-          - path: /opt/app
-            subPath: app
+          - path: /opt/app/server/dist/ui
+            subPath: ui
