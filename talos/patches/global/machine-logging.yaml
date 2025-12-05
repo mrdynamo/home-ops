@@ -6,5 +6,3 @@ machine:
     destinations:
       - endpoint: "udp://127.0.0.1:12345/"
         format: "json_lines"
-        # extraTags:
-        #   server: '{{ .MachineConfig.Network.Hostname }}'
