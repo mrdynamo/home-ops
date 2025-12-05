@@ -18,10 +18,8 @@ spec:
     - apiVersion: longhorn.io/v1beta2
       kind: Volume
       expr: |-
-        # Longhorn health: there must be no volumes in the "degraded" robustness state
-        items.filter(v, v.status.robustness == "degraded").size() == 0
+        not items.exists(v, v.status.robustness == "degraded")
     - apiVersion: longhorn.io/v1beta2
       kind: Volume
       expr: |-
-        # Longhorn health (alternate): assert every volume's robustness is not 'degraded'
         items.all(v, v.status.robustness != "degraded")
