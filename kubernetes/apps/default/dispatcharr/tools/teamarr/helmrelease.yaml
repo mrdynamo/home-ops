@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/egyptiangio/teamarr
-              tag: dev@sha256:a224d4a6cbf000b81f38377cc2dd2f758541f1b44a16c709268f149a5a43c0e9
+              tag: dev@sha256:be8afada011cc4f6da720dae7b46b231affc9794d2125f3a05d0f611ba83929d
             env:
               TZ: America/Chicago
               PORT: &port 9195
