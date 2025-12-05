@@ -80,16 +80,13 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /opt/data
-      tmp:
+      ui:
         type: emptyDir
-        globalMounts:
-          - path: /tmp
-            subPath: tmp
         advancedMounts:
           maintainerr:
             init-ui:
               - path: /ui
-                subPath: ui
             app:
-              - path: /opt/app/server/dist
-                subPath: ui
+              - path: /opt/app/server/dist/ui
+      tmp:
+        type: emptyDir
