@@ -16,8 +16,4 @@ spec:
     - apiVersion: longhorn.io/v1beta2
       kind: Volume
       expr: |-
-        not items.exists(v, v.status.robustness == "degraded")
-    - apiVersion: longhorn.io/v1beta2
-      kind: Volume
-      expr: |-
-        items.all(v, v.status.robustness != "degraded")
+        status.robustness != "degraded"
