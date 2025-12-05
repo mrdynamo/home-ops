@@ -22,7 +22,7 @@ spec:
             command:
               - sh
               - -c
-              - cp -r /opt/app/server/dist/ui /ui/
+              - cp -rv /opt/app/server/dist/ui/* /ui
         containers:
           app:
             image:
