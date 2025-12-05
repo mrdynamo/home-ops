@@ -13,14 +13,6 @@ spec:
         kind: HelmRepository
         name: nvidia-k8s-device-plugin
       version: 0.17.4
-  install:
-    remediation:
-      retries: -1
-  upgrade:
-    cleanupOnFail: true
-    remediation:
-      strategy: rollback
-      retries: 3
   values:
     config:
       name: nvidia-k8s-device-plugin-configmap
