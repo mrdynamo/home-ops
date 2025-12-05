@@ -3,9 +3,12 @@
 *.key
 *.decrypted~*.yaml
 /age.key
+/age.key.tpl
 /cloudflare-tunnel.json
 /github-deploy.key
+/github-deploy.key.tpl
 /github-deploy.key.pub
+/github-deploy.key.pub.tpl
 /github-push-token.txt
 # Template config files
 /cluster.yaml
