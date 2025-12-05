@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/10mfox/gethomepage-custom-css
-              tag: latest@sha256:50f0307571215dde0ecd2de7a78b2c303d6d99692718e0baa6821ca4fc1f105c
+              tag: latest@sha256:d41bade44bbb3d3e128fdb1f7848a983a25e6335cc72cb729fc9aa0fa56c911a
             env:
               PORT: &port 5556
             securityContext:
