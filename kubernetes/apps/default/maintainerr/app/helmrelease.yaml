@@ -14,6 +14,15 @@ spec:
       maintainerr:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-ui:
+            image:
+              repository: ghcr.io/maintainerr/maintainerr
+              tag: 2.22.1@sha256:54390936bd6e3579f1a32e4d00fee9a61c8b373a37012789580e0778c8d11269
+            command:
+              - sh
+              - -c
+              - cp -r /opt/app/server/dist/ui /ui/
         containers:
           app:
             image:
@@ -76,5 +85,11 @@ spec:
         globalMounts:
           - path: /tmp
             subPath: tmp
-          # - path: /opt/app/server/dist/ui
-          #   subPath: ui
+        advancedMounts:
+          maintainerr:
+            init-ui:
+              - path: /ui
+                subPath: ui
+            app:
+              - path: /opt/app/server/dist/ui
+                subPath: ui
