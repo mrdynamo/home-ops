@@ -1,0 +1,58 @@
+mediaType: MOVIES
+rules:
+  - "0":
+      - firstValue: Jellyseerr.isRequested
+        action: EQUALS
+        customValue:
+          type: boolean
+          value: "true"
+      - operator: AND
+        firstValue: Jellyseerr.mediaAddedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "180"
+      - operator: AND
+        firstValue: Tautulli.viewCount
+        action: SMALLER
+        customValue:
+          type: number
+          value: 1
+  - "1":
+      - operator: OR
+        firstValue: Tautulli.lastViewedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "365"
+      - operator: OR
+        firstValue: Tautulli.viewCount
+        action: SMALLER
+        customValue:
+          type: number
+          value: 1
+      - operator: AND
+        firstValue: Radarr.releaseDate
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "730"
+      - operator: AND
+        firstValue: Jellyseerr.isRequested
+        action: EQUALS
+        customValue:
+          type: boolean
+          value: "true"
+      - operator: AND
+        firstValue: Jellyseerr.mediaAddedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "180"
+  - "2":
+      - operator: AND
+        firstValue: Radarr.tags
+        action: NOT_CONTAINS_PARTIAL
+        customValue:
+          type: text
+          value: pmm_universe

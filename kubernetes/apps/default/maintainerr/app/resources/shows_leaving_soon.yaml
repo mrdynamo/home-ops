@@ -1,0 +1,45 @@
+mediaType: SHOWS
+rules:
+  - "0":
+      - firstValue: Jellyseerr.isRequested
+        action: EQUALS
+        customValue:
+          type: boolean
+          value: "true"
+      - operator: AND
+        firstValue: Jellyseerr.mediaAddedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "180"
+      - operator: AND
+        firstValue: Tautulli.sw_viewedEpisodes
+        action: SMALLER
+        customValue:
+          type: number
+          value: 1
+  - "1":
+      - operator: OR
+        firstValue: Tautulli.lastViewedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "365"
+      - operator: OR
+        firstValue: Tautulli.sw_amountOfViews
+        action: SMALLER
+        customValue:
+          type: number
+          value: 1
+      - operator: AND
+        firstValue: Plex.sw_lastEpisodeAiredAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "365"
+      - operator: AND
+        firstValue: Jellyseerr.mediaAddedAt
+        action: BEFORE
+        customValue:
+          type: custom_days
+          value: "180"
