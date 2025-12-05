@@ -14,7 +14,7 @@ spec:
     secretRef:
       name: sops-age
   interval: 1h
-  path: ./kubernetes/apps/network/unifi-dns
+  path: ./kubernetes/apps/network/unifi-dns/app
   postBuild:
     substituteFrom:
       - name: cluster-secrets
