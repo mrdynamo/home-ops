@@ -91,5 +91,5 @@ spec:
               - path: /ui
                 subPath: ui
             app:
-              - path: /opt/app/server/dist/ui
+              - path: /opt/app/server/dist
                 subPath: ui
