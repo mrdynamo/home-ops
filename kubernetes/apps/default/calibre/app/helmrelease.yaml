@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: lscr.io/linuxserver/calibre
-              tag: 8.15.0@sha256:364083f5bee4290a8decf0d3a0480260eb24347509e82a79d08e1c2c723ed431
+              tag: 8.16.1@sha256:52ed42bdec2b05b2b2d7a00610e94b958a9031444ae99d62266ff0c7be7125ac
             env:
               TZ: America/Chicago
               PUID: 1000
