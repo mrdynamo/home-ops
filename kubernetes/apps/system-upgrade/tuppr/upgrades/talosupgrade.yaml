@@ -15,7 +15,13 @@ spec:
       kind: ReplicationSource
       expr: |-
         status.conditions.filter(c, c.type == "Synchronizing").all(c, c.status == "False")
-    # - apiVersion: ceph.rook.io/v1
-    #   kind: CephCluster
-    #   expr: |-
-    #     status.ceph.health in ['HEALTH_OK']
+    - apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      expr: |-
+        # Longhorn health: there must be no volumes in the "degraded" robustness state
+        items.filter(v, v.status.robustness == "degraded").size() == 0
+    - apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      expr: |-
+        # Longhorn health (alternate): assert every volume's robustness is not 'degraded'
+        items.all(v, v.status.robustness != "degraded")
