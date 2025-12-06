@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/krinkuto11/streamflow
-              tag: 1.2.2@sha256:531d5681c0ba759a41dab036e16d14901869327424f1e75d22f1aee1a9ac6120
+              tag: pr-test@sha256:e1273c85eab5db43d88c7d933aff927d7464d156ea9abf7f51c9584f50d8b86c
             env:
               TZ: America/Chicago
               API_PORT: &port 5000
@@ -74,13 +74,13 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/data
-      configmap:
-        type: configMap
-        name: *app
-        advancedMounts:
-          streamflow:
-            app:
-              - path: /app/data/automation_config.json
-                subPath: automation_config.json
-              - path: /app/data/stream_checker_config.json
-                subPath: stream_checker_config.json
+      # configmap:
+      #   type: configMap
+      #   name: *app
+      #   advancedMounts:
+      #     streamflow:
+      #       app:
+      #         - path: /app/data/automation_config.json
+      #           subPath: automation_config.json
+      #         - path: /app/data/stream_checker_config.json
+      #           subPath: stream_checker_config.json
