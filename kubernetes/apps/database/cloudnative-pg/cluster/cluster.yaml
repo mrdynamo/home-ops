@@ -35,6 +35,11 @@ spec:
           barmanObjectName: *store
           serverName: *name
 
+  ##### RECOVERY #####
+
+  ## Uncomment the below section to enable recovery from r2.
+  ## Complete this prior to bootstrapping the cluster.
+
   # bootstrap:
   #   recovery:
   #     source: *src

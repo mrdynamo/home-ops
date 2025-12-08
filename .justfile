@@ -17,4 +17,4 @@ log lvl msg *args:
 
 [private]
 template file *args:
-    minijinja-cli "{{ file }}" {{ args }} | /mnt/c/Users/Walker/AppData/Local/Microsoft/WindowsApps/op.exe inject
+    minijinja-cli "{{ file }}" {{ args }} | /mnt/c/Users/Walker/AppData/Local/Microsoft/WinGet/Links/op.exe inject
