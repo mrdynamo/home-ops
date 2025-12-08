@@ -22,7 +22,6 @@ spec:
             command: ["sh", "-c", "chown -R 1000:1000 /app/config"]
             securityContext:
               runAsUser: 0
-              runAsRoot: true
               allowPrivilegeEscalation: true
         containers:
           app:
@@ -61,7 +60,7 @@ spec:
                 memory: 1Gi
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: true
+        # runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
