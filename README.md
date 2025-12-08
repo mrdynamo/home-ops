@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏠 Home Operations
+# 🏠 Home Operations 🏠
 
 🚧 _My homelab Kubernetes cluster managed with GitOps_ 🚧
 
