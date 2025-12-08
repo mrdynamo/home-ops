@@ -7,3 +7,4 @@ resources:
   - ./external-cf.yaml
   - ./external.yaml
   - ./internal.yaml
+  - ./pushsecret.yaml
