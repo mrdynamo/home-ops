@@ -7,7 +7,8 @@ metadata:
 spec:
   allowFirstLastIPs: "No"
   blocks:
-    - cidr: "192.168.20.0/24"
+    - start: 192.168.30.100
+      stop: 192.168.30.203
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgpadvertisement_v2.json
 apiVersion: cilium.io/v2
@@ -64,7 +65,7 @@ spec:
       peers:
         - name: unifi
           peerASN: 65100
-          peerAddress: 192.168.20.1
+          peerAddress: 192.168.30.1
           peerConfigRef:
             name: bgp-peer-config
 ---
