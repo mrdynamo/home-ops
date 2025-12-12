@@ -24,7 +24,7 @@ rules:
         action: BEFORE
         customValue:
           type: custom_days
-          value: "365"
+          value: "180"
       - operator: OR
         firstValue: Tautulli.sw_amountOfViews
         action: SMALLER
