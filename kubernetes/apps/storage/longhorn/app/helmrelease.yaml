@@ -34,6 +34,7 @@ spec:
       allowRecurringJobsWhileVolumeDetached: "true"
       createDefaultDiskLabeledNodes: "true"
       defaultDataLocality: "best-effort"
+      defaultDataPath: "/var/mnt/longhorn"
       defaultLonghornStaticStorageClass: "longhorn-static"
       defaultReplicaCount: "3"
       # guaranteedInstanceManagerCPU: 20
