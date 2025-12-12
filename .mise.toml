@@ -7,6 +7,7 @@ MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
 
 [tools]
 "python" = "3.14.2"
+"pipx" = "1.8.0"
 "pipx:makejinja" = "2.8.2"
 "aqua:budimanjojo/talhelper" = "3.0.41"
 "aqua:cilium/cilium-cli" = "0.18.9"
@@ -29,4 +30,4 @@ MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
 "gum" = "0.17.0"
 "rust" = "1.92.0"
 "cargo:minijinja-cli" = "2.13.0"
-k9s = "0.50.16"
+"k9s" = "0.50.16"
