@@ -9,6 +9,9 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+  dependsOn:
+    - name: longhorn
+      namespace: storage
   interval: 1h
   path: ./kubernetes/apps/database/dragonfly/app
   postBuild:
