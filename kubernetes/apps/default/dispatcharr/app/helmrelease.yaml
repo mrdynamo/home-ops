@@ -14,16 +14,6 @@ spec:
       dispatcharr:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-chmod-data:
-            image:
-              repository: busybox
-              tag: latest
-            command:
-              - sh
-              - -c
-              - |
-                chmod -R 750 /data/db
         containers:
           app:
             image:
