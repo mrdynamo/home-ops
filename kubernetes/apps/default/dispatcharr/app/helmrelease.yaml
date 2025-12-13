@@ -21,6 +21,7 @@ spec:
               tag: 0.14.0@sha256:430916afb02bc748cfba780bc331a80ffbc1b00eeb78919626e27a8652e03e3f
             env:
               TZ: America/Chicago
+              DISPATCHARR_PORT: 9191
               DISPATCHARR_LOG_LEVEL: DEBUG
               DISPATCHARR_ENV: aio
               REDIS_HOST: localhost
