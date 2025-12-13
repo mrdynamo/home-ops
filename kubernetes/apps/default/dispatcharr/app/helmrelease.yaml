@@ -14,16 +14,6 @@ spec:
       dispatcharr:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          init-chmod-data:
-            image:
-              repository: busybox
-              tag: latest
-            command:
-              - sh
-              - -c
-              - |
-                chmod -R 750 /data/db
         containers:
           app:
             image:
@@ -31,8 +21,7 @@ spec:
               tag: 0.14.0@sha256:430916afb02bc748cfba780bc331a80ffbc1b00eeb78919626e27a8652e03e3f
             env:
               TZ: America/Chicago
-              DISPATCHARR_PORT: 9191
-              DISPATCHARR_LOG_LEVEL: DEBUG
+              # DISPATCHARR_LOG_LEVEL: DEBUG
               DISPATCHARR_ENV: aio
               REDIS_HOST: localhost
               CELERY_BROKER_URL: redis://localhost:6379/0
@@ -122,5 +111,3 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
-          # - path: /app/media/cached_epg
-          # - path: /app/media/cached_m3u
