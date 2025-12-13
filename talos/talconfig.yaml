@@ -167,4 +167,4 @@ worker:
   patches:
     - "@./patches/worker/machine-kubelet.yaml"
     - "@./patches/worker/machine-labels.yaml"
-    - "@./patches/worker/node-volumes.yaml"
+    # - "@./patches/worker/node-volumes.yaml"

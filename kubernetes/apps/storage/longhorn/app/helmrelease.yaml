@@ -34,7 +34,7 @@ spec:
       allowRecurringJobsWhileVolumeDetached: "true"
       createDefaultDiskLabeledNodes: "true"
       defaultDataLocality: "best-effort"
-      defaultDataPath: "/var/mnt/longhorn"
+      defaultDataPath: "/var/lib/longhorn"
       defaultLonghornStaticStorageClass: "longhorn-static"
       defaultReplicaCount: "3"
       # guaranteedInstanceManagerCPU: 20
@@ -43,7 +43,7 @@ spec:
       orphanAutoDeletion: "true"
       replicaAutoBalance: "least-effort"
       storageMinimalAvailablePercentage: "5"
-      storageReservedPercentageForDefaultDisk: "0"
+      storageReservedPercentageForDefaultDisk: "15"
     ingress:
       enabled: false
     metrics:
