@@ -43,6 +43,7 @@ spec:
       orphanAutoDeletion: "true"
       replicaAutoBalance: "least-effort"
       storageMinimalAvailablePercentage: "5"
+      storageReservedPercentageForDefaultDisk: "0"
     ingress:
       enabled: false
     metrics:
