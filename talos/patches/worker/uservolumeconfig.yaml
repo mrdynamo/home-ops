@@ -1,8 +1,0 @@
-apiVersion: v1alpha1
-kind: UserVolumeConfig
-name: longhorn
-provisioning:
-  diskSelector:
-    match: system_disk
-  minSize: 256GiB
-  grow: true
