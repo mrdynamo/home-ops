@@ -28,11 +28,11 @@ spec:
                   name: "{{ .Release.Name }}-secret"
             probes:
               liveness: &probes
-                enabled: true
+                enabled: false
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/stream-checker/status
+                    path: /api/health
                     port: *port
                   initialDelaySeconds: 0
                   periodSeconds: 10
