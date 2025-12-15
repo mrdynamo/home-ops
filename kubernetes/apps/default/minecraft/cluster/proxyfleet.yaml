@@ -1,10 +1,10 @@
 apiVersion: shulkermc.io/v1alpha1
 kind: ProxyFleet
 metadata:
-  name: public
+  name: mc-proxy-public
 spec:
   clusterRef:
-    name: getting-started
+    name: mc-cluster
   replicas: 1
   service:
     type: LoadBalancer

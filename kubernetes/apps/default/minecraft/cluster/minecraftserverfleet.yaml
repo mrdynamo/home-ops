@@ -4,12 +4,12 @@ metadata:
   name: lobby
 spec:
   clusterRef:
-    name: getting-started
+    name: mc-cluster
   replicas: 1
   template:
     spec:
       clusterRef:
-        name: getting-started
+        name: mc-cluster
       tags:
         - lobby
       version:
@@ -25,4 +25,4 @@ spec:
           - name: OVERRIDE_SERVER_PROPERTIES
             value: "true"
           - name: MOTD
-            value: "Shulker test"
+            value: "Shulker Test"

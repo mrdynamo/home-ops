@@ -1,7 +1,7 @@
 apiVersion: shulkermc.io/v1alpha1
 kind: MinecraftCluster
 metadata:
-  name: getting-started
+  name: mc-cluster
 spec:
   networkAdmins:
     - 23a76f7d-bb21-4f6b-8d55-d70f58dd6642
