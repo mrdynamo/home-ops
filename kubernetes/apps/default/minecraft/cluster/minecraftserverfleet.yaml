@@ -1,7 +1,7 @@
 apiVersion: shulkermc.io/v1alpha1
 kind: MinecraftServerFleet
 metadata:
-  name: lobby
+  name: mc-lobby
 spec:
   clusterRef:
     name: mc-cluster
