@@ -9,4 +9,4 @@ components:
   - ../../components/namespace
 resources:
   - ./agones/ks.yaml
- #  - ./shulker/ks.yaml
+  - ./shulker/ks.yaml
