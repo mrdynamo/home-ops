@@ -17,4 +17,4 @@ spec:
       config: {}
       podOverrides:
         image:
-          name: "ghcr.io/itzg/mc-proxy:2025.10.0@sha256:28a4f84f538cee00099cee8370b075594b258f93c5feeaefb0fde736aa9636ab"
+          name: "ghcr.io/itzg/mc-proxy:latest@sha256:d361e2c1cbe14d9ccf349322c7674b89967af015cde0d721698be7be3bd2c471"
