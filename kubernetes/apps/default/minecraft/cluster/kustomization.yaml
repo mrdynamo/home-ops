@@ -5,7 +5,7 @@ kind: Kustomization
 resources:
   - ./cluster.yaml
   # - ./minecraftserver.yaml
-  # - ./proxy.yaml
+  - ./proxy.yaml
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
