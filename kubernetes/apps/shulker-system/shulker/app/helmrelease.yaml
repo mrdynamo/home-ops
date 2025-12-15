@@ -17,6 +17,6 @@ spec:
     operator:
       agones:
         allocator:
-          host: agones-alocator.shulker-system.svc
+          host: agones-allocator.shulker-system.svc
           grpcPort: 443
           mtlsSecretName: allocator-client.default
