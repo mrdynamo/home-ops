@@ -16,3 +16,8 @@ spec:
         channel: Paper
         name: '1.21.1'
       config: {}
+      pod_overrides:
+        env:
+          MEMORY: 2G
+          OVERRIDE_SERVER_PROPERTIES: true
+          MOTD: "Shulker test"
