@@ -23,7 +23,7 @@ spec:
               TZ: America/Chicago
               API_PORT: &port 5000
               DISPATCHARR_BASE_URL: http://dispatcharr.default.svc:9191
-              DEBUG_MODE: true
+              # DEBUG_MODE: true
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
