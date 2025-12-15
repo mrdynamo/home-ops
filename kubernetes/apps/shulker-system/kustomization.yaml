@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: shulker-system
+components:
+  - ../../components/alerts
+  - ../../components/common
+  - ../../components/namespace
+resources:
+  - ./agones/ks.yaml
+ #  - ./shulker/ks.yaml

@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: agones
+  interval: 1h
+  chart:
+    spec:
+      chart: agones
+      sourceRef:
+        kind: HelmRepository
+        name: agones
+      version: 1.54.0
+  values:
+    agones:
+      allocator:
+        install: true
+    gameservers:
+      namespaces: ["default", "shulker-system"]
+
