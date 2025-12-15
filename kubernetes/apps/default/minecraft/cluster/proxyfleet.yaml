@@ -18,3 +18,6 @@ spec:
       podOverrides:
         image:
           name: "ghcr.io/itzg/mc-proxy:latest@sha256:d361e2c1cbe14d9ccf349322c7674b89967af015cde0d721698be7be3bd2c471"
+        probes:
+          readiness:
+            enabled: false
