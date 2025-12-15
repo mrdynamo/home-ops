@@ -17,7 +17,9 @@ spec:
         name: '1.21.1'
       config: {}
       podOverrides:
-        image: ghcr.io/itzg/minecraft-server:latest@sha256:ae77caa9920f0a0e83a8ba403fc9e8005d9e4e82bae3056f55520a147be6553c
+        image:
+          repository: ghcr.io/itzg/minecraft-server
+          tag: latest@sha256:ae77caa9920f0a0e83a8ba403fc9e8005d9e4e82bae3056f55520a147be6553c
         env:
           MEMORY: 2G
           OVERRIDE_SERVER_PROPERTIES: true
