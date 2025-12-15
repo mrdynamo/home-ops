@@ -18,7 +18,7 @@ spec:
       config: {}
       podOverrides:
         image:
-          name: "ghcr.io/itzg/minecraft-server:latest@sha256:ae77caa9920f0a0e83a8ba403fc9e8005d9e4e82bae3056f55520a147be6553c"
+          name: "ghcr.io/itzg/minecraft-server:2025.12.0@sha256:4eb78cc5f3f4e87e281d38590deca2a4a74afaa9f351210059cb2786443994f2"
         env:
           - name: MEMORY
             value: "2G"

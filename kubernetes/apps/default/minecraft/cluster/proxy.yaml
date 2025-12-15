@@ -15,3 +15,6 @@ spec:
         channel: Velocity
         name: latest
       config: {}
+      podOverrides:
+        image:
+          name: "ghcr.io/itzg/mc-proxy:2025.10.0@sha256:28a4f84f538cee00099cee8370b075594b258f93c5feeaefb0fde736aa9636ab"
