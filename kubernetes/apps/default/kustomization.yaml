@@ -20,6 +20,7 @@ resources:
   - ./lubelogger/ks.yaml
   - ./maintainerr/ks.yaml
   - ./mealie/ks.yaml
+  - ./minecraft/ks.yaml
   - ./open-webui/ks.yaml
   - ./paperless/ks.yaml
   - ./plex/ks.yaml
