@@ -344,6 +344,9 @@
         widget:
             type: minecraft
             url: {{HOMEPAGE_VAR_MINECRAFT_SA_URL}}
+    - Secret Alliance Map:
+        href: https://sa-map.${SECRET_DOMAIN}/
+        icon: minecraft.svg
     - GT New Horizons:
         icon: minecraft.svg
         widget:
