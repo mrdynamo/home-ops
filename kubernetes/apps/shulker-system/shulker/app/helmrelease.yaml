@@ -8,11 +8,11 @@ spec:
   interval: 1h
   chart:
     spec:
-      chart: shulker-operator
+      chart: ./kube/helm
       sourceRef:
-        kind: HelmRepository
+        kind: GitRepository
         name: shulker
-      version: 0.13.0
+        namespace: shulker-system
   values:
     operator:
       agones:
