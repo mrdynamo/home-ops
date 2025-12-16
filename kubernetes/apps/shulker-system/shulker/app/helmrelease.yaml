@@ -20,3 +20,6 @@ spec:
           host: agones-allocator.shulker-system.svc
           grpcPort: 443
           mtlsSecretName: allocator-client.default
+      metrics:
+        serviceMonitor:
+          enabled: true
