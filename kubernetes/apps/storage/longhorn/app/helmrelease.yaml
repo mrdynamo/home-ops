@@ -27,6 +27,7 @@ spec:
       enabled: true
       createPrometheusRules: true
     persistence:
+      defaultClass: false
       defaultDataLocality: best-effort
     # defaultBackupStore:
     #   backupTarget: ''
