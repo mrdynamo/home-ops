@@ -2,10 +2,10 @@
 # yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - ./minecraftcluster.yaml
-  - ./minecraftserverfleet.yaml
-  - ./proxyfleet.yaml
+resources: []
+  # - ./minecraftcluster.yaml
+  # - ./minecraftserverfleet.yaml
+  # - ./proxyfleet.yaml
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
