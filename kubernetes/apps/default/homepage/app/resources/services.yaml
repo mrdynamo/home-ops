@@ -142,7 +142,7 @@
     - Flux:
         href: https://flux.${INTERNAL_SECRET_DOMAIN}/
         description: Kubernetes GitOps dashboards
-        icon: flux.svg
+        icon: flux-cd.svg
     - Gatus:
         href: https://status.${SECRET_DOMAIN}/
         description: Uptime monitoring dashboard
