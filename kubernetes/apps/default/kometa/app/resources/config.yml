@@ -29,8 +29,8 @@ libraries:
           imdb_list_veteran: https://www.imdb.com/list/ls565595526/
           emoji_veteran: "🪖 "
           exclude: aapi,disabilities,black_history,lgbtq,latinx,women
-          item_radarr_tag: pmm_seasonal,pmm_seasonal_<<key>>
-          radarr_tag: pmm_seasonal_missing,pmm_seasonal_<<key>>_missing
+          item_radarr_tag: kometa-seasonal,kometa-seasonal-<<key>>
+          radarr_tag: kometa-seasonal-missing,kometa-seasonal-<<key>>-missing
           radarr_add_missing: false # Search for items missing from seasonal collection
           radarr_quality: HD Blueray + WEB # Override default quality profile for adding missing seasonal movies
           visible_library: true
@@ -52,27 +52,27 @@ libraries:
           #trakt_list_monster: https://trakt.tv/users/rzepkowski/lists/monsterverse-movies
           #exclude: dca
           #radarr_add_missing_XXX: true                      # Add missing to complete the XXXX universe
-          item_radarr_tag: pmm_universe,pmm_universe_<<key>>
-          radarr_tag: pmm_universe_missing,pmm_universe_<<key>>_missing
-          radarr_add_missing_dcu: true # Add missing to complete the DC Extended universe
-          radarr_add_missing_mcu: true # Add missing to complete the Marvel Cinematic universe
-          radarr_add_missing_marvel: true # Add missing to complete the In Assoc. w Marvel universe
-          radarr_add_missing_fast: true # Add missing to complete the Fast and Furious universe
-          radarr_add_missing_avp: true # Add missing to complete the Alien vs Predator universe
-          radarr_add_missing_askew: true # Add missing to complete the View Askew universe
-          radarr_add_missing_middle: true # Add missing to complete the Middle Eath universe
-          radarr_add_missing_mummy: true # Add missing to complete the Mummy universe
-          radarr_add_missing_rocky: true # Add missing to complete the Rocky / Creed universe
-          radarr_add_missing_trek: true # Add missing to complete the Star Trek universe
-          radarr_add_missing_star: true # Add missing to complete the Star Wars universe
-          radarr_add_missing_wizard: true # Add missing to complete the Wizarding World (HP) universe
-          radarr_add_missing_xmen: true # Add missing to complete the X-Men universe
-          #radarr_add_missing_monster: true                  # Add missing to complete the Monster (Godzilla/Kong) universe
+          item_radarr_tag: kometa-universe,kometa-universe-<<key>>
+          radarr_tag: kometa-universe-missing,kometa-universe-<<key>>-missing
+          radarr_add_missing_dcu: false # Add missing to complete the DC Extended universe
+          radarr_add_missing_mcu: false # Add missing to complete the Marvel Cinematic universe
+          radarr_add_missing_marvel: false # Add missing to complete the In Assoc. w Marvel universe
+          radarr_add_missing_fast: false # Add missing to complete the Fast and Furious universe
+          radarr_add_missing_avp: false # Add missing to complete the Alien vs Predator universe
+          radarr_add_missing_askew: false # Add missing to complete the View Askew universe
+          radarr_add_missing_middle: false # Add missing to complete the Middle Eath universe
+          radarr_add_missing_mummy: false # Add missing to complete the Mummy universe
+          radarr_add_missing_rocky: false # Add missing to complete the Rocky / Creed universe
+          radarr_add_missing_trek: false # Add missing to complete the Star Trek universe
+          radarr_add_missing_star: false # Add missing to complete the Star Wars universe
+          radarr_add_missing_wizard: false # Add missing to complete the Wizarding World (HP) universe
+          radarr_add_missing_xmen: false # Add missing to complete the X-Men universe
+          #radarr_add_missing_monster: false                  # Add missing to complete the Monster (Godzilla/Kong) universe
       - default: franchise
         template_variables:
-          item_radarr_tag: pmm_franchise,pmm_franchise_<<key>>
-          radarr_tag: pmm_franchise_missing,pmm_franchise_<<key>>_missing
-          radarr_add_missing: true # Add missing movies from a franchise if at least one exists in library already
+          item_radarr_tag: kometa-franchise,kometa-franchise-<<key>>
+          radarr_tag: kometa-franchise-missing,kometa-franchise-<<key>>-missing
+          radarr_add_missing: false # Add missing movies from a franchise if at least one exists in library already
       - default: genre
         template_variables:
           collection_mode: hide
@@ -285,7 +285,7 @@ radarr:
   monitor: true
   availability: released
   quality_profile: HD Bluray + WEB
-  tag: pmm
+  tag: kometa
   search: true
   radarr_path:
   plex_path:
@@ -302,7 +302,7 @@ sonarr:
   language_profile: English
   series_type: standard
   season_folder: true
-  tag: pmm
+  tag: kometa
   search: true
   cutoff_search: false
   sonarr_path:
