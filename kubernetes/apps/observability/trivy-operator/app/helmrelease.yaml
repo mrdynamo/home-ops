@@ -31,7 +31,7 @@ spec:
       slow: true # flag is to use less CPU/memory for scanning though it takes more time than normal scanning
       ignoreUnfixed: true
       mode: ClientServer
-      severity: HIGH,CRITICAL
+      # severity: HIGH,CRITICAL
       storageClassEnabled: false # ephemeral storage
       resources:
         requests:
