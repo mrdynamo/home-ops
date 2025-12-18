@@ -10,45 +10,62 @@ spec:
     name: trivy-operator
   interval: 1h
   values:
+    excludeNamespaces: "kube-system,flux-system,cert-manager"
     operator:
+      replicas: 1
       scanJobsConcurrentLimit: 3
+      scanJobTTL: 300s
+      scanJobTimeout: 20m
+      builtInTrivyServer: true
       vulnerabilityScannerScanOnlyCurrentRevisions: true
       configAuditScannerScanOnlyCurrentRevisions: true
+      annotations:
+        reloader.stakater.com/auto: "true"
     serviceMonitor:
       enabled: true
+    # policiesBundle:
+    #   registry: ghcr.io
+    #   repository: mrdynamo/trivy-checks
+    #   tag: 1
     trivy:
+      slow: true # flag is to use less CPU/memory for scanning though it takes more time than normal scanning
       ignoreUnfixed: true
-    policiesBundle:
-      registry: ghcr.io
-      repository: mrdynamo/trivy-checks
-      tag: 1
+      mode: ClientServer
+      severity: HIGH,CRITICAL
+      storageClassEnabled: false # ephemeral storage
+      resources:
+        requests:
+          cpu: 15m
+          memory: 512M
+        limits:
+          memory: 1Gi
+    trivyOperator:
+      excludeImages: "quay.io/backube/*"
+      skipResourceByLabels: "app.kubernetes.io/created-by=volsync"
+      resources:
+        requests:
+          cpu: 15m
+          memory: 672M
+        limits:
+          memory: 1500Mi
+
+    # https://github.com/aquasecurity/trivy-operator/issues/2566
+    # Configure node collector for Talos Linux (only mount writable /var paths)
     nodeCollector:
+      useNodeSelector: false
       volumeMounts:
-        - name: var-lib-etcd
-          mountPath: /var/lib/etcd
+        - mountPath: /var/lib/etcd
+          name: var-lib-etcd
           readOnly: true
-        - name: var-lib-kubelet
-          mountPath: /var/lib/kubelet
+        - mountPath: /var/lib/kubelet
+          name: var-lib-kubelet
           readOnly: true
-        - name: var-lib-kube-scheduler
-          mountPath: /var/lib/kube-scheduler
+        - mountPath: /var/lib/kube-scheduler
+          name: var-lib-kube-scheduler
           readOnly: true
-        - name: var-lib-kube-controller-manager
-          mountPath: /var/lib/kube-controller-manager
+        - mountPath: /var/lib/kube-controller-manager
+          name: var-lib-kube-controller-manager
           readOnly: true
-        # - name: etc-systemd
-        #   mountPath: /etc/systemd
-        #   readOnly: true
-        # - name: lib-systemd
-        #   mountPath: /lib/systemd/
-        #   readOnly: true
-        - name: etc-kubernetes
-          mountPath: /etc/kubernetes
-          readOnly: true
-        - name: etc-cni-netd
-          mountPath: /etc/cni/net.d/
-          readOnly: true
-      # -- node-collector pod volumes definition for collecting config files information
       volumes:
         - name: var-lib-etcd
           hostPath:
@@ -62,15 +79,5 @@ spec:
         - name: var-lib-kube-controller-manager
           hostPath:
             path: /var/lib/kube-controller-manager
-        # - name: etc-systemd
-        #   hostPath:
-        #     path: /etc/systemd
-        # - name: lib-systemd
-        #   hostPath:
-        #     path: /lib/systemd
-        - name: etc-kubernetes
-          hostPath:
-            path: /etc/kubernetes
-        - name: etc-cni-netd
-          hostPath:
-            path: /etc/cni/net.d/
+      serviceMonitor:
+        enabled: true
