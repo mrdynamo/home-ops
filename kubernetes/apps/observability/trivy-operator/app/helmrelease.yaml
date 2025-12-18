@@ -18,6 +18,10 @@ spec:
       enabled: true
     trivy:
       ignoreUnfixed: true
+    policiesBundle:
+      registry: ghcr.io
+      repository: mrdynamo/trivy-checks
+      tag: v1.11.2-talos
     nodeCollector:
       volumeMounts:
         - name: var-lib-etcd
