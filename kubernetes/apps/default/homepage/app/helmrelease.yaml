@@ -107,7 +107,7 @@ spec:
     rbac:
       roles:
         homepage:
-          type: Role
+          type: ClusterRole
           rules:
             - apiGroups:
                 - ""
@@ -154,7 +154,7 @@ spec:
           type: RoleBinding
           roleRef:
             apiGroup: rbac.authorization.k8s.io
-            kind: Role
+            kind: ClusterRole
             name: *app
           subjects:
             - kind: ServiceAccount
