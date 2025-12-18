@@ -154,7 +154,7 @@ spec:
           type: RoleBinding
           roleRef:
             apiGroup: rbac.authorization.k8s.io
-            kind: ClusterRole
+            kind: Role
             name: *app
           subjects:
             - kind: ServiceAccount
