@@ -6,6 +6,7 @@ resources:
   - ./ca.yaml
   - ./cluster.yaml
   - ./externalsecret.yaml
+  - ./grafanadashboard.yaml
   - ./objectstore.yaml
   ## https://github.com/cloudnative-pg/cloudnative-pg/issues/2841
   # - ./pooler.yaml
