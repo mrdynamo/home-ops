@@ -23,6 +23,7 @@ spec:
       repository: mrdynamo/trivy-checks
       tag: v1.11.2-talos
     nodeCollector:
+      useNodeSelector: false
       volumeMounts:
         - name: var-lib-etcd
           mountPath: /var/lib/etcd
