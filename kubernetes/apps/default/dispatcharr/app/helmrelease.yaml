@@ -85,6 +85,9 @@ spec:
           http:
             appProtocol: kubernetes.io/ws
             port: *port
+          metrics:
+            appProtocol: http
+            port: 9192
     route:
       app:
         hostnames:
@@ -97,7 +100,9 @@ spec:
       app:
         enabled: true
         endpoints:
-          - port: "9192"
+          - port: metrics
+            path: /metrics
+            interval: 30s
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
