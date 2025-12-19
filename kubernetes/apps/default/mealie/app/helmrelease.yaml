@@ -22,7 +22,7 @@ spec:
             env:
               TZ: America/Chicago
               PUID: 1000
-              PGIOD: 1000
+              PGID: 1000
               BASE_URL: "recipes.${SECRET_DOMAIN}"
               DEFAULT_GROUP: Home
               SMTP_FROM_NAME: Mealie
