@@ -22,7 +22,7 @@ spec:
             env:
               TZ: America/Chicago
               # DISPATCHARR_LOG_LEVEL: DEBUG
-              DISPATCHARR_ENV: aio
+              # DISPATCHARR_ENV: aio
               REDIS_HOST: dragonfly.database.svc
               CELERY_BROKER_URL: redis://dragonfly.database.svc:6379/5
               # Process Priority Configuration (Optional)
