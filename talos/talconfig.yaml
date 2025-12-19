@@ -79,24 +79,26 @@ nodes:
         mtu: 1500
         vip:
           ip: "192.168.30.10"
-  # - hostname: "k8s-04"
-  #   ipAddress: "192.168.30.24"
-  #   installDisk: "/dev/sda"
-  #   machineSpec:
-  #     secureboot: false
-  #   # Worker Base
-  #   talosImageURL: factory.talos.dev/installer/f9af9a87b26042e714d80c06ae619b25e81b16da5842cc64285e44e144229688
-  #   controlPlane: false
-  #   networkInterfaces:
-  #     - deviceSelector:
-  #         hardwareAddr: "00:50:56:9e:46:17"
-  #       dhcp: false
-  #       addresses:
-  #         - "192.168.30.24/24"
-  #       routes:
-  #         - network: "0.0.0.0/0"
-  #           gateway: "192.168.30.1"
-  #       mtu: 1500
+  - hostname: "k8s-04"
+    ipAddress: "192.168.30.24"
+    installDisk: "/dev/nvme0n1"
+    machineSpec:
+      secureboot: false
+    # Worker GPU - Intel UHD 750 iGPU
+    talosImageURL: factory.talos.dev/installer/a136249a65aba383e76cc6d826140662fa848bf5876d62025a7cf34454b625f1
+    # patches:
+    #   - "@./patches/intel-gpu/machine-files.yaml"
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "84:a9:38:9d:b9:f3"
+        dhcp: false
+        addresses:
+          - "192.168.30.24/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.30.1"
+        mtu: 1500
   - hostname: "k8s-05"
     ipAddress: "192.168.30.25"
     installDisk: "/dev/sda"
@@ -123,8 +125,8 @@ nodes:
     # Worker GPU - Nvidia Production Proprietary (570.172.08)
     talosImageURL: factory.talos.dev/installer/8ecd8e08742f85d1181333f71fa291714e32fe51df7c0b6348703c9b34b17a3f
     patches:
-      - "@./patches/gpu/machine-kernel.yaml"
-      - "@./patches/gpu/machine-sysctls.yaml"
+      - "@./patches/nvidia-gpu/machine-kernel.yaml"
+      - "@./patches/nvidia-gpu/machine-sysctls.yaml"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
