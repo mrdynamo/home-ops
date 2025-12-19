@@ -53,7 +53,7 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 6Gi
-                nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+                # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
       resourceClaims:
         - name: gpu
