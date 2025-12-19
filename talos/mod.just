@@ -16,8 +16,8 @@ apply-node node *args:
 [doc('Download Talos machine image')]
 download-image version schematic:
     gum spin --title "Downloading Talos {{ version }} ..." -- \
-    curl -sfL --remove-on-error --retry 5 --retry-delay 5 --retry-all-errors \
-        -o "{{ talos_dir }}/talos-{{ version }}-{{ replace_regex(schematic, '^(.{8}).*', '$1') }}.iso" \
+    curl -sSLo "{{ talos_dir }}/talos-{{ version }}-{{ replace_regex(schematic, '^(.{8}).*', '$1') }}.iso" \
+        --retry 5 --retry-delay 5 \
         "https://factory.talos.dev/image/{{ schematic }}/{{ version }}/metal-amd64.iso"
     just log info "Downloaded Talos" version "{{ version }}" schematic "{{ schematic }}"
 
