@@ -24,6 +24,9 @@ spec:
               # DISPATCHARR_LOG_LEVEL: DEBUG
               # DISPATCHARR_ENV: aio
               REDIS_HOST: dragonfly.database.svc
+              REDIS_PORT: 6379
+              REDIS_DB: 5
+              REDIS_URL: redis://dragonfly.database.svc:6379/5
               CELERY_BROKER_URL: redis://dragonfly.database.svc:6379/5
               # Process Priority Configuration (Optional)
               # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
