@@ -119,6 +119,8 @@ spec:
             subPath: dispatcharr/exports
           - path: /data/recordings
             subPath: dispatcharr/recordings
+          - path: /data/backups
+            subPath: dispatcharr/backups
       tmp:
         type: emptyDir
         globalMounts:
