@@ -46,8 +46,8 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
             resources:
-              claims:
-                - name: gpu
+              # claims:
+              #   - name: gpu
               requests:
                 cpu: 1000m
                 memory: 512Mi
@@ -55,18 +55,18 @@ spec:
                 memory: 6Gi
                 nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
-      resourceClaims:
-        - name: gpu
-          resourceClaimTemplateName: plex
-      # runtimeClassName: nvidia
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #         - matchExpressions:
-      #             - key: nvidia.com/gpu.count
-      #               operator: Gt
-      #               values: ["0"]
+      # resourceClaims:
+      #   - name: gpu
+      #     resourceClaimTemplateName: plex
+      runtimeClassName: nvidia
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.count
+                    operator: Gt
+                    values: ["0"]
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
