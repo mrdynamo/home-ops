@@ -18,11 +18,10 @@ spec:
           app:
             image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: dev@sha256:7abfd96983da1b5518913696bdb06e2742eefd8e6e21e8205d318c8b63763bb3
+              tag: 0.15.0@sha256:2794b537aebeb30f5173bc186e99238106b95a62b50453cf62bd7a09c90ab434
             env:
               TZ: America/Chicago
               # DISPATCHARR_LOG_LEVEL: DEBUG
-              # DISPATCHARR_ENV: aio
               REDIS_HOST: dragonfly.database.svc
               REDIS_PORT: 6379
               REDIS_DB: 5
