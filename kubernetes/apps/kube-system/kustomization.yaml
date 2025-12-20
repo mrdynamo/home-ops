@@ -11,6 +11,7 @@ resources:
   - ./coredns/ks.yaml
   - ./descheduler/ks.yaml
   # - ./gateway-api-crds/ks.yaml
+  - ./intel-device-plugins/ks.yaml
   - ./intel-gpu-resource-driver/ks.yaml
   - ./ksgate/ks.yaml
   - ./nvidia-k8s-device-plugin/ks.yaml
