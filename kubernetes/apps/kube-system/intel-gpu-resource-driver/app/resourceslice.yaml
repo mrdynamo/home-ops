@@ -4,70 +4,21 @@ metadata:
   name: counter-slice
 spec:
   driver: gpu.intel.com
-  pool:
-    generation: 1
-    name: "my-pool"
-    resourceSliceCount: 2
-  sharedCounters:
-  - name: gpu-0-counter-set
-    counters:
-      millicores:
-        value: 100
----
-apiVersion: resource.k8s.io/v1
-kind: ResourceSlice
-metadata:
-  name: device-slice
-spec:
-  driver: gpu.intel.com
-  pool:
-    generation: 1
-    name: "my-pool"
-    resourceSliceCount: 2
-  nodeName: "my-node"
+  nodeName: k8s-04
   devices:
-  - name: gpu-0
-    capacity:
-      millicores:
-        value: 100
-    consumesCounters:
-    - counterSet: gpu-0-counter-set
-      counters:
-        millicores:
-        value: 100
-  - name: gpu-0-partition-0
-    capacity:
-      millicores:
-        value: 100
-    consumesCounters:
-    - counterSet: gpu-0-counter-set
-      counters:
-        millicores:
-        value: 100
-  - name: gpu-0-partition-1
-    capacity:
-      millicores:
-        value: 100
-    consumesCounters:
-    - counterSet: gpu-0-counter-set
-      counters:
-        millicores:
-        value: 100
-  - name: gpu-0-partition-2
-    capacity:
-      millicores:
-        value: 100
-    consumesCounters:
-    - counterSet: gpu-0-counter-set
-      counters:
-        millicores:
-        value: 100
-  - name: gpu-0-partition-3
-    capacity:
-      millicores:
-        value: 100
-    consumesCounters:
-    - counterSet: gpu-0-counter-set
-      counters:
-        millicores:
-        value: 100
+  - basic:
+    name: gpu-0
+  - basic:
+    name: gpu-1
+  - basic:
+    name: gpu-2
+  - basic:
+    name: gpu-3
+  - basic:
+    name: gpu-4
+  - basic:
+    name: gpu-5
+  - basic:
+    name: gpu-6
+  - basic:
+    name: gpu-7
