@@ -1,0 +1,10 @@
+piVersion: resource.k8s.io/v1
+kind: ResourceSlice
+metadata:
+  name: intel-gpu
+spec:
+  driver: gpu.intel.com
+  pool:
+    generation: 1
+    name: k8s-04
+    resourceSliceCount: 10
