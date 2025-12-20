@@ -3,6 +3,7 @@ machine:
     extraConfig:
       featureGates:
         ResourceHealthStatus: true
+        DRAExtendedResource: true
       serializeImagePulls: false
     nodeIP:
       validSubnets:
