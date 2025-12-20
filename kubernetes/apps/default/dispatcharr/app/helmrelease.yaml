@@ -51,27 +51,27 @@ spec:
               # capabilities: {drop: ["ALL"]}
               capabilities: { add: ["SYS_NICE"] }
             resources:
-              claims:
-                - name: gpu
+              # claims:
+              #   - name: gpu
               requests:
                 cpu: 100m
                 memory: 256Mi
               limits:
                 memory: 4Gi
-                # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+                nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
-      resourceClaims:
-        - name: gpu
-          resourceClaimTemplateName: dispatcharr
-      # runtimeClassName: nvidia
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #         - matchExpressions:
-      #             - key: nvidia.com/gpu.count
-      #               operator: Gt
-      #               values: ["0"]
+      # resourceClaims:
+      #   - name: gpu
+      #     resourceClaimTemplateName: dispatcharr
+      runtimeClassName: nvidia
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: nvidia.com/gpu.count
+                    operator: Gt
+                    values: ["0"]
     #   securityContext:
     #     runAsNonRoot: true
     #     runAsUser: 1000
