@@ -30,7 +30,7 @@ spec:
       namespace: kube-system
     - apiVersion: deviceplugin.intel.com/v1
       kind: GpuDevicePlugin
-      name: i915
+      name: intel-gpu-plugin
   healthCheckExprs:
     - apiVersion: deviceplugin.intel.com/v1
       kind: GpuDevicePlugin
