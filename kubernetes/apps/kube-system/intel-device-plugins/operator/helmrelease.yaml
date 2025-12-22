@@ -14,7 +14,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: intel
-        namespace: flux-system
+        namespace: kube-system
   values:
     manager:
       devices:
