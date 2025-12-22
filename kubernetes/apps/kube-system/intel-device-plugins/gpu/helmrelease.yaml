@@ -14,7 +14,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: intel
-        namespace: flux-system
   values:
     name: intel-gpu-plugin
     sharedDevNum: 10
