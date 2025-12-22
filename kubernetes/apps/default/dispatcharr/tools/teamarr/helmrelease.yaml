@@ -20,6 +20,7 @@ spec:
             env:
               TZ: America/Chicago
               PORT: &port 9195
+              LOG_LEVEL: INFO
             probes:
               liveness: &probes
                 enabled: false
