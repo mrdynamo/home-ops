@@ -100,6 +100,7 @@ A wide array of self-hosted applications including media management (Plex, Radar
 | Dell PowerEdge R710 | 1 | 2x Intel Xeon E5-2649 @ 2.53 GHz | 96 GB | 1 TB Consumer SSD | vSphere Hypervisor (Secondary) |
 | Control Planes (VMs) | 3     | 4 vCPU    | 6 GB   | 16 GB SSD       | Kubernetes control plane |
 | Worker Nodes (VMs)                | 2     | 8 vCPU    | 24 GB  | 256 GB SSD      | Kubernetes workers      |
+| Lenovo M90q | 1 | Intel i5-11500 | 16 GB | 512 GB NVMe | Kubernetes worker (iGPU)
 | TrueNAS Core (VM) | 1 | 16 vCPU | 64 GB | 6x 8 TB HDD (RAID-Z2) | NAS - Bulk storage (NFS, SMB, Backups, etc) |
 
 ## 🙏 Acknowledgments
