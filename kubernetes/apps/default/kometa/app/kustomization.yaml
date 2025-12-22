@@ -12,6 +12,7 @@ configMapGenerator:
       - config.yml=./resources/config.yml
       - movies.yaml=./resources/movies.yaml
       - tv.yaml=./resources/tv.yaml
+      - remove-overlays.yaml=./resources/remove-overlays.yaml
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

@@ -1,0 +1,9 @@
+collections:
+  Remove Overlay Labels:
+    build_collection: false
+    builder_level: episode
+    item_label.remove: Overlay
+    plex_search:
+      all:
+        episode_label: Overlay
+        title: "Kingdom (2025)"

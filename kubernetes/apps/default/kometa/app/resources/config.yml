@@ -103,6 +103,7 @@ libraries:
 
     collection_files:
       #- file: config/tv.yaml
+      - file: config/remove-overlays.yaml
       - default: separator_chart
         template_variables:
           collection_section: "010"

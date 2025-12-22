@@ -37,14 +37,11 @@ spec:
               TZ: *TZ
               ##### Targeted runs - Uncomment to activate
               ## Run only testing libraries
-              # - name: KOMETA_RUN_LIBRARIES
-              #   value: "pmm_mov|pmm_tv"
+              # KOMETA_RUN_LIBRARIES: "pmm_mov|pmm_tv"
               ## Run only collections on all libraries
-              # - name: KOMETA_COLLECTIONS_ONLY
-              #   value: "true"
+              KOMETA_COLLECTIONS_ONLY: true
               ## Run only overlays on all libraries
-              # - name: KOMETA_OVERLAYS_ONLY
-              #   value: "true"
+              # KOMETA_OVERLAYS_ONLY: true
               #####
             envFrom:
               - secretRef:
@@ -84,5 +81,7 @@ spec:
                 subPath: movies.yaml
               - path: /config/tv.yaml
                 subPath: tv.yaml
+              - path: /config/remove-overlays.yaml
+                subPath: remove-overlays.yaml
       tmp:
         type: emptyDir
