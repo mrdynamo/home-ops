@@ -16,6 +16,8 @@ spec:
   values:
     config:
       name: nvidia-k8s-device-plugin-configmap
+    nfd:
+      enabled: false
     gfd:
       enabled: true
     runtimeClassName: nvidia
