@@ -59,7 +59,7 @@ spec:
                 memory: 4Gi
                 gpu.intel.com/i915: 1 # Request portion of share iGPU
                 nvidia.com/gpu.shared: 1 # Request portion of shared GPU
-    defaultPodOptions: []
+    # defaultPodOptions:
       # resourceClaims:
       #   - name: gpu
       #     resourceClaimTemplateName: dispatcharr
