@@ -68,7 +68,7 @@ spec:
         scrapeConfigSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
         retention: 30d
-        retentionSize: 20GB
+        retentionSize: 24GB
         resources:
           requests:
             cpu: 100m
@@ -80,7 +80,7 @@ spec:
               storageClassName: longhorn-fast
               resources:
                 requests:
-                  storage: 24Gi
+                  storage: 32Gi
     prometheus-node-exporter:
       # extraArgs:
       #   - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($|/)
