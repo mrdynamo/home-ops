@@ -27,7 +27,7 @@ spec:
           nodeSelectorTerms:
           - matchExpressions:
             # Quadro P400 is not automatically detected by NFD, so add additional explict rule.
-            - key: feature.node.kubernetes.io/pci-0300_10de.present=true
+            - key: feature.node.kubernetes.io/pci-0300_10de.present
               operator: In
               values:
               - "true"
