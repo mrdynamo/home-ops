@@ -17,5 +17,5 @@ spec:
         namespace: flux-system
   values:
     name: intel-gpu-plugin
-    sharedDevNum: 5
+    sharedDevNum: 10
     nodeFeatureRule: true
