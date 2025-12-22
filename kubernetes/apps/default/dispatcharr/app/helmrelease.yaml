@@ -57,7 +57,7 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 4Gi
-                gpu.intel.com/i915: 1 # Request portion of share iGPU
+                gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     # defaultPodOptions:
       # resourceClaims:

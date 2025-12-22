@@ -86,8 +86,9 @@ nodes:
       secureboot: false
     # Worker GPU - Intel UHD 750 iGPU
     talosImageURL: factory.talos.dev/installer/a136249a65aba383e76cc6d826140662fa848bf5876d62025a7cf34454b625f1
-    # patches:
-    #   - "@./patches/intel-gpu/machine-files.yaml"
+    patches:
+      # - "@./patches/intel-gpu/machine-files.yaml"
+      - "@./patches/intel-gpu/machine-udevd.yaml"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
