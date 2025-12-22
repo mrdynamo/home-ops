@@ -53,11 +53,12 @@ spec:
                 memory: 512Mi
               limits:
                 memory: 6Gi
+                gpu.intel.com/i915: 1 # Request portion of share iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
-      resourceClaims:
-        - name: gpu
-          resourceClaimTemplateName: plex
+      # resourceClaims:
+      #   - name: gpu
+      #     resourceClaimTemplateName: plex
       # runtimeClassName: nvidia
       # affinity:
       #   nodeAffinity:
