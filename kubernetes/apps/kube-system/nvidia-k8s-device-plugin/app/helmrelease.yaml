@@ -13,7 +13,7 @@ spec:
         kind: HelmRepository
         name: nvidia-k8s-device-plugin
         namespace: kube-system
-      version: 0.17.4
+      version: 0.18.0
   values:
     config:
       name: nvidia-k8s-device-plugin-configmap
