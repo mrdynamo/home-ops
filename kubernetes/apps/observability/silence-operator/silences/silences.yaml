@@ -19,4 +19,4 @@ metadata:
 spec:
   matchers:
     - name: alertname
-      value: etcdDatabaseHighFramentationRatio
+      value: etcdDatabaseHighFragmentationRatio
