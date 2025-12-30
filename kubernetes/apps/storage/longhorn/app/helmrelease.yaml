@@ -40,7 +40,7 @@ spec:
       defaultReplicaCount: "3"
       # guaranteedInstanceManagerCPU: 20
       nodeDownPodDeletionPolicy: "delete-both-statefulset-and-deployment-pod"
-      offlineReplicaRebuilding: "true"
+      offlineReplicaRebuilding: "enabled"
       orphanAutoDeletion: "true"
       replicaAutoBalance: "least-effort"
       storageMinimalAvailablePercentage: "5"
