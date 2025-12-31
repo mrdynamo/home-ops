@@ -66,10 +66,6 @@ spec:
           "refId": "A"
         }
       ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Vc-zI2snz"
-      },
       "options": {
         "reduceOptions": {
           "values": false,
