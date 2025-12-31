@@ -15,7 +15,7 @@
 | lubelogger           | 1 Gi  | Monday @ 13:00               | `0 13 * * 1`    | `0 18 * * 1`       | `0 19 * * 1`       |
 | maintainerr          | 1 Gi  | Tuesday @ 08:00              | `0 8 * * 2`     | `0 13 * * 2`       | `0 14 * * 2`       |
 | mealie               | 1 Gi  | Thursday @ 06:00             | `0 6 * * 4`     | `0 11 * * 4`       | `0 12 * * 4`       |
-| open-webui           | 2 Gi  | Thursday @ 08:00             | `0 8 * * 4`     | `0 13 * * 4`       | `0 14 * * 4`       |
+| open-webui           | 3 Gi  | Thursday @ 08:00             | `0 8 * * 4`     | `0 13 * * 4`       | `0 14 * * 4`       |
 | paperless            | 2 Gi  | Friday @ 11:00               | `0 11 * * 5`    | `0 16 * * 5`       | `0 17 * * 5`       |
 | paperless-ai         | 2 Gi  | Friday @ 11:00               | `0 11 * * 5`    | `0 16 * * 5`       | `0 17 * * 5`       |
 | pgamdin              | 1 Gi  | Tuesday @ 11:00              | `0 11 * * 2`    | `0 16 * * 2`       | `0 17 * * 2`       |
