@@ -23,8 +23,8 @@ spec:
               - sh
               - -c
               - |
-                find /opt/app/server/dist/ui -type f -not -path '*/node_modules/*' -print0 | xargs -0 sed -i "s,/__PATH_PREFIX__,${BASE_PATH_REPLACE},g"
-                cp -rv /opt/app/server/dist/ui/* /ui
+                find /opt/app/apps/server/dist/ui -type f -not -path '*/node_modules/*' -print0 | xargs -0 sed -i "s,/__PATH_PREFIX__,${BASE_PATH_REPLACE},g"
+                cp -rv /opt/app/apps/server/dist/ui/* /ui
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -38,7 +38,7 @@ spec:
             command:
               - /bin/sh
               - -c
-              - exec npm run --prefix /opt/app/server start
+              - exec npm run --prefix /opt/app/apps/server start
             env:
               TZ: America/Chicago
               UI_PORT: &port 80
@@ -98,6 +98,6 @@ spec:
             init-ui:
               - path: /ui
             app:
-              - path: /opt/app/server/dist/ui
+              - path: /opt/app/apps/server/dist/ui
       tmp:
         type: emptyDir
