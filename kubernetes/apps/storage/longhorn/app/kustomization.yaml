@@ -9,6 +9,7 @@ resources:
   - ./httproute.yaml
   - ./ocirepository.yaml
   - ./prometheusrule.yaml
+  - ./recurringjob.yaml
   - ./storageclass-fast.yaml
   - ./storageclass-single.yaml
   - ./storageclass-single-local.yaml
