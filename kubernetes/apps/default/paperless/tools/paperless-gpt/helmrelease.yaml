@@ -1,0 +1,75 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: paperless-gpt
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: paperless-gpt
+  interval: 1h
+  values:
+    controllers:
+      paperless-gpt:
+        containers:
+          app:
+            image:
+              repository: docker.io/icereed/paperless-gpt
+              tag: v0.23.0@sha256:90766d15d541162129d0fa47dad5ffb33a02a0c77cbc4cee9007b24b656ba6ce
+            env:
+              TZ: America/Chicago
+              PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
+              LLM_PROVIDER: ollama
+              LLM_LANGUAGE: English
+              OCR_PROVIDER: llm
+              VISION_LLM_PROVIDER: ollama
+              VISION_LLM_MODEL: minicpm-v:8b
+              OCR_LIMIT_PAGES: 5
+              OCR_PROCESS_MODE: image
+              PDF_SKIP_EXISTING_OCR: false
+              PDF_OCR_TAGGING: false
+              PDF_UPLOAD: true
+              PDF_COPY_METADATA: true
+              AUTO_GENERATE_TAGS: false
+              AUTO_TAG: _paperless-gpt_auto_
+              AUTO_OCR_TAG: _paperless-gpt_ocr_
+              MANUAL_TAG: _paperless-gpt_
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 2Gi
+    defaultPodOptions:
+      securityContext:
+        # runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: &port 8080
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /app/data
