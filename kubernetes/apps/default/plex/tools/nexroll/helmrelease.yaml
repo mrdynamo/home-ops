@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/jflxcloud/nexroll
-              tag: 1.5.12@sha256:8a117a845e3795588a7ff2a5543ef79e142224939a4829e494e56d2bdcc7a148
+              repository: docker.io/jbrns/nexroll
+              tag: 1.9.6@sha256:0c62765fd122ea20ba7f42886b90f5ec5161d8a16754f5a076d9839600511fe3
             env:
               TZ: America/Chicago
               NEXROLL_PORT: &port 9393
