@@ -22,7 +22,7 @@ spec:
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
               LLM_LANGUAGE: English
               LLM_PROVIDER: ollama
-              LLM_MODEL: gemma3:27b-it-qat
+              LLM_MODEL: llama3.2:latest
               OCR_PROVIDER: llm
               VISION_LLM_PROVIDER: ollama
               VISION_LLM_MODEL: minicpm-v:8b
@@ -30,11 +30,12 @@ spec:
               OCR_PROCESS_MODE: image
               PDF_SKIP_EXISTING_OCR: false
               PDF_OCR_TAGGING: false
+              PDF_OCR_COMPLETE_TAG: _paperless-gpt_ocr-complete_
               PDF_UPLOAD: true
               PDF_COPY_METADATA: true
               AUTO_GENERATE_TAGS: false
               AUTO_TAG: _paperless-gpt_auto_
-              AUTO_OCR_TAG: _paperless-gpt_ocr_
+              AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               MANUAL_TAG: _paperless-gpt_
             envFrom:
               - secretRef:
