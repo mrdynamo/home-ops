@@ -71,5 +71,10 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-        globalMounts:
-          - path: /app
+        advancedMounts:
+          paperless-gpt:
+            app:
+              - path: /app/db
+                subPath: db
+              - path: /app/prompts
+                subPath: prompts
