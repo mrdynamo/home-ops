@@ -80,6 +80,12 @@
         icon: paperless-ngx.svg
         namespace: default # The kubernetes namespace the app resides in
         app: paperless-ai # The name of the deployed app
+    - Paperless GPT:
+        href: https://paperless-gpt.${INTERNAL_SECRET_DOMAIN}/
+        description: AI interface for paperless
+        icon: paperless-ngx.svg
+        namespace: default # The kubernetes namespace the app resides in
+        app: paperless-gpt # The name of the deployed app
     - Syncthing:
         href: https://syncthing.${INTERNAL_SECRET_DOMAIN}/
         description: Syncthing Server on k8s
@@ -257,6 +263,12 @@
             icon: maintainerr.svg
             namespace: default
             app: maintainerr
+        - Nexroll:
+            href: https://nexroll.${INTERNAL_SECRET_DOMAIN}/
+            description: Plex pre-roll configuration
+            # icon: maintainerr.svg
+            namespace: default
+            app: nexroll
         - Your Spotify:
             href: https://spotty.${SECRET_DOMAIN}/
             description: Spotify stats
