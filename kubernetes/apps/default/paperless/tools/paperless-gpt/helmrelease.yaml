@@ -36,7 +36,7 @@ spec:
               AUTO_GENERATE_TAGS: false
               AUTO_TAG: _paperless-gpt_auto_
               AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
-              MANUAL_TAG: _paperless-gpt_
+              MANUAL_TAG: _paperless-gpt_manual_
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
