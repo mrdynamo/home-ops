@@ -20,8 +20,9 @@ spec:
             env:
               TZ: America/Chicago
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
-              LLM_PROVIDER: ollama
               LLM_LANGUAGE: English
+              LLM_PROVIDER: ollama
+              LLM_MODEL: gemma3:27b-it-qat
               OCR_PROVIDER: llm
               VISION_LLM_PROVIDER: ollama
               VISION_LLM_MODEL: minicpm-v:8b
