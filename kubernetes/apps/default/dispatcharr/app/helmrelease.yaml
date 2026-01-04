@@ -31,8 +31,6 @@ spec:
               # Negative values require cap_add: SYS_NICE
               UWSGI_NICE_LEVEL: -10   # uWSGI/FFmpeg/Streaming (default: 0, recommended: -5 for high priority)
               CELERY_NICE_LEVEL: 15   # Celery/EPG/Background tasks (default: 5, low priority)
-              # Fix for root-owned pycache dir for plugins upon delete/import
-              PYTHONDONTWRITEBYTECODE: 1
             probes:
               liveness: &probes
                 enabled: false
