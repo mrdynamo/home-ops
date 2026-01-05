@@ -96,7 +96,12 @@ spec:
             ]
           },
           "transformations": [
-            { "id": "labelsToFields", "options": { "mode": "columns" } },
+            {
+              "id": "labelsToFields",
+              "options": {
+                "mode": "columns"
+              }
+            },
             {
               "id": "organize",
               "options": {
@@ -111,11 +116,31 @@ spec:
                   "job": true,
                   "process": true,
                   "profile_id": true,
+                  "profile_name": false,
+                  "provider": false,
                   "provider_type": true,
+                  "resolution": false,
                   "stream_id": true,
                   "stream_name": true,
                   "stream_profile": true,
                   "video_codec": true
+                },
+                "includeByName": {},
+                "indexByName": {
+                  "Time": 8,
+                  "Value": 6,
+                  "channel_name": 2,
+                  "channel_number": 0,
+                  "channel_uuid": 9,
+                  "group": 10,
+                  "instance": 11,
+                  "job": 12,
+                  "logo_url": 1,
+                  "process": 13,
+                  "profile_name": 5,
+                  "provider": 4,
+                  "resolution": 3,
+                  "state": 7
                 },
                 "renameByName": {
                   "Value": "Uptime",
@@ -132,14 +157,24 @@ spec:
               "id": "convertFieldType",
               "options": {
                 "conversions": [
-                  { "targetField": "Channel", "destinationType": "number" }
-                ]
+                  {
+                    "destinationType": "number",
+                    "targetField": "Channel"
+                  }
+                ],
+                "fields": {}
               }
             },
             {
               "id": "sortBy",
               "options": {
-                "sort": [{ "field": "Uptime", "desc": true }]
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": true,
+                    "field": "Uptime"
+                  }
+                ]
               }
             }
           ],
