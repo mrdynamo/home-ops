@@ -73,7 +73,7 @@ spec:
           "targets": [],
           "datasource": {
             "type": "prometheus",
-            "uid": "Vc-zI2snz"
+            "uid": "${datasource}"
           },
           "options": {
             "showHeader": false,
@@ -98,7 +98,7 @@ spec:
           "targets": [],
           "datasource": {
             "type": "prometheus",
-            "uid": "Vc-zI2snz"
+            "uid": "${datasource}"
           },
           "options": {
             "showHeader": false,
@@ -122,7 +122,7 @@ spec:
           "targets": [],
           "datasource": {
             "type": "prometheus",
-            "uid": "Vc-zI2snz"
+            "uid": "${datasource}"
           },
           "options": {}
         },
@@ -136,7 +136,7 @@ spec:
           "targets": [],
           "datasource": {
             "type": "prometheus",
-            "uid": "Vc-zI2snz"
+            "uid": "${datasource}"
           },
           "options": {}
         }
