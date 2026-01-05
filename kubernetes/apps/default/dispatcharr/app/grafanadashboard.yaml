@@ -13,43 +13,21 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  json: |
+  json: >-
     {
-      "annotations": {
-        "list": [
-          {
-            "builtIn": 1,
-            "datasource": {
-              "type": "grafana",
-              "uid": "-- Grafana --"
-            },
-            "enable": true,
-            "hide": true,
-            "iconColor": "rgba(0, 211, 255, 1)",
-            "name": "Annotations & Alerts",
-            "target": {
-              "limit": 100,
-              "matchAny": false,
-              "tags": [],
-              "type": "dashboard"
-            },
-            "type": "dashboard"
-          }
-        ]
-      },
-      "description": "Visualize metrics provided by KEDA",
-      "editable": true,
-      "fiscalYearStartMonth": 0,
-      "graphTooltip": 0,
-      "id": 1653,
-      "links": [],
-      "liveNow": false,
+      "uid": "dispatcharr-overview",
+      "title": "Dispatcharr Overview",
+      "tags": ["dispatcharr", "exporter"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "30s",
       "panels": [
         {
-          "id": 104,
+          "id": 103,
           "type": "table",
-          "title": "Clients",
-          "gridPos": { "x": 0, "y": 15, "h": 5, "w": 8 },
+          "title": "Streams",
+          "gridPos": { "x": 0, "y": 9, "h": 6, "w": 24 },
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -67,92 +45,184 @@ spec:
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "Channel" },
+                "properties": [
+                  { "id": "custom.width", "value": 100 },
+                  { "id": "decimals", "value": 0 }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Logo" },
+                "properties": [
+                  { "id": "custom.cellOptions", "value": { "type": "image" } },
+                  { "id": "custom.width", "value": 200 }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Uptime" },
+                "properties": [
+                  { "id": "unit", "value": "s" },
+                  { "id": "decimals", "value": 0 },
+                  { "id": "custom.width", "value": 100 },
+                  { "id": "custom.filterable", "value": false }
+                ]
+              },
+              {
+                "matcher": { "id": "byName", "options": "state" },
+                "properties": [
+                  {
+                    "id": "custom.cellOptions",
+                    "value": { "applyToRow": true, "type": "color-background" }
+                  },
+                  { "id": "custom.hidden", "value": true },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "type": "value",
+                        "options": {
+                          "active": { "color": "#55a64b52", "index": 0 },
+                          "buffering": { "color": "#ff780a52", "index": 1 },
+                          "waiting_for_clients": { "color": "#1f61c452", "index": 2 },
+                          "error": { "color": "#e02f4452", "index": 3 }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           },
-          "transformations": [],
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
+          "transformations": [
+            { "id": "labelsToFields", "options": { "mode": "columns" } },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Value #A": true,
+                  "__name__": true,
+                  "channel_group": true,
+                  "channel_uuid": true,
+                  "group": true,
+                  "instance": true,
+                  "job": true,
+                  "process": true,
+                  "profile_id": true,
+                  "provider_type": true,
+                  "stream_id": true,
+                  "stream_name": true,
+                  "stream_profile": true,
+                  "video_codec": true
+                },
+                "renameByName": {
+                  "Value": "Uptime",
+                  "channel_name": "Name",
+                  "channel_number": "Channel",
+                  "logo_url": "Logo",
+                  "profile_name": "Profile",
+                  "provider": "Provider",
+                  "resolution": "Resolution"
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  { "targetField": "Channel", "destinationType": "number" }
+                ]
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "sort": [{ "field": "Uptime", "desc": true }]
+              }
+            }
+          ],
+          "targets": [
+            {
+              "refId": "A",
+              "format": "table",
+              "instant": true,
+              "expr": "dispatcharr_stream_uptime_seconds * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution) dispatcharr_stream_metadata"
+            }
+          ],
+          "datasource": "${datasource}",
           "options": {
             "showHeader": false,
             "cellHeight": "sm",
-            "footer": {
-              "show": false,
-              "reducer": ["count"],
-              "countRows": false,
-              "fields": "",
-              "enablePagination": false
-            }
+            "footer": { "show": false, "countRows": true }
           }
         },
+
         {
-          "id": 103,
+          "id": 104,
           "type": "table",
-          "title": "Streams",
-          "gridPos": { "x": 0, "y": 9, "h": 6, "w": 24 },
-          "fieldConfig": {
-            "defaults": {},
-            "overrides": []
-          },
-          "transformations": [],
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "options": {
-            "showHeader": false,
-            "cellHeight": "sm",
-            "footer": {
-              "show": false,
-              "reducer": ["count"],
-              "countRows": true,
-              "fields": "",
-              "enablePagination": false
+          "title": "Clients",
+          "gridPos": { "x": 0, "y": 15, "h": 5, "w": 8 },
+          "datasource": "${datasource}",
+          "targets": [
+            {
+              "refId": "A",
+              "format": "table",
+              "instant": true,
+              "expr": "dispatcharr_client_connection_duration_seconds * on(client_id, channel_uuid) group_left(ip_address) dispatcharr_client_info * on(channel_uuid) group_left(channel_name) dispatcharr_stream_metadata"
+            },
+            {
+              "refId": "B",
+              "format": "table",
+              "instant": true,
+              "expr": "dispatcharr_client_bytes_sent * on(client_id, channel_uuid) group_left(ip_address) dispatcharr_client_info * on(channel_uuid) group_left(channel_name) dispatcharr_stream_metadata"
+            },
+            {
+              "refId": "C",
+              "format": "table",
+              "instant": true,
+              "expr": "dispatcharr_client_current_transfer_rate_bps * on(client_id, channel_uuid) group_left(ip_address) dispatcharr_client_info * on(channel_uuid) group_left(channel_name) dispatcharr_stream_metadata"
             }
-          }
+          ]
         },
+
         {
           "id": 101,
           "type": "bargauge",
           "title": "Usage",
           "gridPos": { "x": 8, "y": 15, "h": 5, "w": 8 },
-          "fieldConfig": {
-            "defaults": {},
-            "overrides": []
-          },
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "options": {}
+          "datasource": "${datasource}",
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "dispatcharr_profile_connection_usage unless on(profile_id, profile_name, account_name) (dispatcharr_profile_days_to_expiry == 0)",
+              "legendFormat": "{{account_name}} {{profile_name}}"
+            },
+            {
+              "refId": "B",
+              "instant": true,
+              "expr": "sum(dispatcharr_profile_connections unless on(profile_id, profile_name, account_name) (dispatcharr_profile_days_to_expiry == 0)) / sum(dispatcharr_profile_max_connections unless on(profile_id, profile_name, account_name) (dispatcharr_profile_days_to_expiry == 0))",
+              "legendFormat": "Total"
+            }
+          ]
         },
+
         {
           "id": 102,
           "type": "bargauge",
           "title": "Expiry",
           "gridPos": { "x": 16, "y": 15, "h": 5, "w": 8 },
-          "fieldConfig": {
-            "defaults": {},
-            "overrides": []
-          },
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "options": {}
+          "datasource": "${datasource}",
+          "targets": [
+            {
+              "refId": "A",
+              "instant": true,
+              "expr": "dispatcharr_profile_days_to_expiry != -1",
+              "legendFormat": "{{account_name}} {{profile_name}}"
+            }
+          ]
         }
-      ],
-      "schemaVersion": 38,
-      "style": "dark",
-      "tags": ["keda", "prometheus"],
-      "templating": { "list": [] },
-      "time": { "from": "now-1h", "to": "now" },
-      "timezone": "browser",
-      "title": "Dispatcharr Overview",
-      "version": 1
+      ]
     }
