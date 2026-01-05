@@ -16,6 +16,7 @@ resources:
   - ./emby/ks.yaml
   - ./homepage/ks.yaml
   - ./invoiceninja/ks.yaml
+  - ./karakeep/ks.yaml
   - ./kometa/ks.yaml
   - ./lubelogger/ks.yaml
   - ./maintainerr/ks.yaml
