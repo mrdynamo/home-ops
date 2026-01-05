@@ -35,6 +35,7 @@ spec:
               INFERENCE_IMAGE_MODEL: llava:7b
               INFERENCE_TEXT_MODEL: llama3.2:3b
               INFERENCE_JOB_TIMEOUT_SEC: 600 # 10 minutes
+              INFERENCE_ENABLE_AUTO_SUMMARIZATION: true
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
