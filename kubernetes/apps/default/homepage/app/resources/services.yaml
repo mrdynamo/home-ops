@@ -86,6 +86,12 @@
         icon: paperless-ngx.svg
         namespace: default # The kubernetes namespace the app resides in
         app: paperless-gpt # The name of the deployed app
+    - Harakeep:
+        href: https://karakeep.${INTERNAL_SECRET_DOMAIN}/
+        description: Bookmark management
+        icon: karakeep.svg
+        namespace: default # The kubernetes namespace the app resides in
+        app: karakeep # The name of the deployed app
     - Syncthing:
         href: https://syncthing.${INTERNAL_SECRET_DOMAIN}/
         description: Syncthing Server on k8s
