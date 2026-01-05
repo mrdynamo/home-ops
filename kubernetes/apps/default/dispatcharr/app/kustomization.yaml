@@ -7,6 +7,10 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./resourceclaimtemplate.yaml
+configMapGenerator:
+  - name: dispatcharr
+    files:
+      - dashboard.json=./resources/dashboard.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
