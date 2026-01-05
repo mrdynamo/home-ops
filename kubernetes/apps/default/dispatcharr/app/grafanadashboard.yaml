@@ -46,102 +46,194 @@ spec:
       "liveNow": false,
       "panels": [
         {
-          "id": 104,
-          "type": "table",
-          "title": "Clients",
-          "gridPos": { "x": 0, "y": 15, "h": 5, "w": 8 },
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "center",
-                "cellOptions": { "type": "auto", "wrapText": false },
-                "inspect": false,
-                "filterable": false
+          "annotations": {
+            "list": [
+              {
+                "builtIn": 1,
+                "datasource": {
+                  "type": "grafana",
+                  "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "target": {
+                  "limit": 100,
+                  "matchAny": false,
+                  "tags": [],
+                  "type": "dashboard"
+                },
+                "type": "dashboard"
+              }
+            ]
+          },
+          "description": "Visualize metrics provided by KEDA",
+          "editable": true,
+          "fiscalYearStartMonth": 0,
+          "graphTooltip": 0,
+          "id": 1653,
+          "links": [],
+          "liveNow": false,
+          "panels": [
+            {
+              "id": 104,
+              "type": "table",
+              "title": "Clients",
+              "gridPos": {
+                "x": 0,
+                "y": 15,
+                "h": 5,
+                "w": 8
               },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "red", "value": 80 }
-                ]
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "center",
+                    "cellOptions": {
+                      "type": "auto",
+                      "wrapText": false
+                    },
+                    "inspect": false,
+                    "filterable": false
+                  },
+                  "mappings": [],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "transformations": [],
+              "targets": [],
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Vc-zI2snz"
+              },
+              "options": {
+                "showHeader": false,
+                "cellHeight": "sm",
+                "footer": {
+                  "show": false,
+                  "reducer": [
+                    "count"
+                  ],
+                  "countRows": false,
+                  "fields": "",
+                  "enablePagination": false
+                }
               }
             },
-            "overrides": []
-          },
-          "transformations": [],
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "options": {
-            "showHeader": false,
-            "cellHeight": "sm",
-            "footer": {
-              "show": false,
-              "reducer": ["count"],
-              "countRows": false,
-              "fields": "",
-              "enablePagination": false
+            {
+              "id": 103,
+              "type": "table",
+              "title": "Streams",
+              "gridPos": {
+                "x": 0,
+                "y": 9,
+                "h": 6,
+                "w": 24
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "transformations": [],
+              "targets": [],
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Vc-zI2snz"
+              },
+              "options": {
+                "showHeader": false,
+                "cellHeight": "sm",
+                "footer": {
+                  "show": false,
+                  "reducer": [
+                    "count"
+                  ],
+                  "countRows": true,
+                  "fields": "",
+                  "enablePagination": false
+                }
+              }
+            },
+            {
+              "id": 101,
+              "type": "bargauge",
+              "title": "Usage",
+              "gridPos": {
+                "x": 8,
+                "y": 15,
+                "h": 5,
+                "w": 8
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "targets": [],
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Vc-zI2snz"
+              },
+              "options": {}
+            },
+            {
+              "id": 102,
+              "type": "bargauge",
+              "title": "Expiry",
+              "gridPos": {
+                "x": 16,
+                "y": 15,
+                "h": 5,
+                "w": 8
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "targets": [],
+              "datasource": {
+                "type": "prometheus",
+                "uid": "Vc-zI2snz"
+              },
+              "options": {}
             }
-          }
-        },
-
-        {
-          "id": 103,
-          "type": "table",
-          "title": "Streams",
-          "gridPos": { "x": 0, "y": 9, "h": 6, "w": 24 },
-          "fieldConfig": { "defaults": {}, "overrides": [] },
-          "transformations": [],
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
+          ],
+          "schemaVersion": 38,
+          "style": "dark",
+          "tags": [
+            "keda",
+            "prometheus"
+          ],
+          "templating": {
+            "list": []
           },
-          "options": {
-            "showHeader": false,
-            "cellHeight": "sm",
-            "footer": {
-              "show": false,
-              "reducer": ["count"],
-              "countRows": true,
-              "fields": "",
-              "enablePagination": false
-            }
-          }
-        },
-
-        {
-          "id": 101,
-          "type": "bargauge",
-          "title": "Usage",
-          "gridPos": { "x": 8, "y": 15, "h": 5, "w": 8 },
-          "fieldConfig": { "defaults": {}, "overrides": [] },
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
+          "time": {
+            "from": "now-1h",
+            "to": "now"
           },
-          "options": {}
-        },
-
-        {
-          "id": 102,
-          "type": "bargauge",
-          "title": "Expiry",
-          "gridPos": { "x": 16, "y": 15, "h": 5, "w": 8 },
-          "fieldConfig": { "defaults": {}, "overrides": [] },
-          "targets": [],
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "options": {}
+          "timezone": "browser",
+          "title": "Dispatcharr Overview",
+          "version": 1
         }
       ],
 
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["keda", "prometheus"],
+      "templating": { "list": [] },
       "time": { "from": "now-1h", "to": "now" },
       "timezone": "browser",
       "title": "Dispatcharr Overview",
