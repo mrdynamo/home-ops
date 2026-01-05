@@ -13,7 +13,7 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  json: >-
+  json: >
     {
       "uid": "dispatcharr-overview",
       "title": "Dispatcharr Overview",
