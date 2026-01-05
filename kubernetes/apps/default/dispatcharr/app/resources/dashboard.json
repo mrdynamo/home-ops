@@ -1,21 +1,30 @@
 {
-  "uid": "dispatcharr-overview",
-  "title": "Dispatcharr Overview",
-  "tags": ["dispatcharr", "exporter"],
-  "timezone": "browser",
-  "schemaVersion": 38,
-  "version": 1,
-  "refresh": "30s",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 115,
+  "links": [],
   "panels": [
     {
-      "id": 103,
-      "type": "table",
-      "title": "Streams",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "h": 6,
-        "w": 24
+      "datasource": {
+        "type": "prometheus",
+        "uid": ""
       },
       "fieldConfig": {
         "defaults": {
@@ -25,8 +34,8 @@
               "type": "auto",
               "wrapText": false
             },
-            "inspect": false,
-            "filterable": false
+            "filterable": false,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -34,7 +43,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -203,6 +212,38 @@
           }
         ]
       },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 103,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": ["count"],
+          "show": false
+        },
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_stream_uptime_seconds * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution) dispatcharr_stream_metadata",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Streams",
       "transformations": [
         {
           "id": "labelsToFields",
@@ -219,24 +260,25 @@
               "__name__": true,
               "channel_group": true,
               "channel_uuid": true,
+              "endpoint": true,
               "group": true,
               "instance": true,
               "job": true,
+              "namespace": true,
+              "pod": true,
               "process": true,
               "profile_id": true,
               "profile_name": false,
               "provider": false,
               "provider_type": true,
               "resolution": false,
+              "service": true,
               "stream_id": true,
               "stream_name": true,
               "stream_profile": true,
-              "video_codec": true,
-              "endpoint": true,
-              "namespace": true,
-              "pod": true,
-              "service": true
+              "video_codec": true
             },
+            "includeByName": {},
             "indexByName": {
               "Time": 8,
               "Value": 6,
@@ -261,8 +303,7 @@
               "profile_name": "Profile",
               "provider": "Provider",
               "resolution": "Resolution"
-            },
-            "includeByName": {}
+            }
           }
         },
         {
@@ -290,228 +331,12 @@
           }
         }
       ],
-      "pluginVersion": "12.1.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_stream_uptime_seconds * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution) dispatcharr_stream_metadata",
-          "format": "table",
-          "instant": true,
-          "range": false,
-          "refId": "A"
-        }
-      ],
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": ""
-      },
-      "options": {
-        "showHeader": false,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": ["count"],
-          "countRows": true,
-          "fields": "",
-          "enablePagination": false
-        },
-        "sortBy": []
-      }
-    },
-
-    {
-      "id": 101,
-      "type": "bargauge",
-      "title": "Usage",
-      "gridPos": {
-        "x": 8,
-        "y": 15,
-        "h": 5,
-        "w": 8
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
-          "decimals": 0,
-          "fieldMinMax": false,
-          "max": 1,
-          "min": 0,
-          "unit": "percentunit"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-blue",
-                  "mode": "shades"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "pluginVersion": "",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(\n  dispatcharr_profile_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)\n/\nsum(\n  dispatcharr_profile_max_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)",
-          "hide": false,
-          "instant": true,
-          "legendFormat": "Total",
-          "range": false,
-          "refId": "B"
-        },
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_profile_connection_usage\n  unless on(profile_id, profile_name, account_name)\n  (dispatcharr_profile_days_to_expiry == 0)",
-          "instant": true,
-          "legendFormat": "{{account_name}} {{profile_name}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "horizontal",
-        "legend": {
-          "showLegend": false,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "displayMode": "basic",
-        "valueMode": "color",
-        "namePlacement": "auto",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizWidth": 8,
-        "minVizHeight": 16,
-        "maxVizHeight": 300
-      }
-    },
-
-    {
-      "id": 102,
-      "type": "bargauge",
-      "title": "Expiry",
-      "gridPos": {
-        "x": 16,
-        "y": 15,
-        "h": 5,
-        "w": 8
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "continuous-RdYlGr"
-          },
-          "decimals": 0,
-          "fieldMinMax": false,
-          "min": -1,
-          "unit": "d"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": ""
-            },
-            "properties": []
-          }
-        ]
-      },
-      "pluginVersion": "",
-      "targets": [
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_profile_days_to_expiry != -1",
-          "instant": true,
-          "legendFormat": "{{account_name}} {{profile_name}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "horizontal",
-        "legend": {
-          "showLegend": false,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "displayMode": "basic",
-        "valueMode": "color",
-        "namePlacement": "auto",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizWidth": 8,
-        "minVizHeight": 16,
-        "maxVizHeight": 300
-      }
-    },
-
-    {
-      "id": 104,
-      "type": "table",
-      "title": "Clients",
-      "gridPos": {
-        "x": 0,
-        "y": 6,
-        "h": 5,
-        "w": 8
       },
       "fieldConfig": {
         "defaults": {
@@ -521,8 +346,8 @@
               "type": "auto",
               "wrapText": false
             },
-            "inspect": false,
-            "filterable": false
+            "filterable": false,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -530,7 +355,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -689,100 +514,26 @@
           }
         ]
       },
-      "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {
-            "mode": "columns"
-          }
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      },
+      "id": 104,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": ["count"],
+          "show": false
         },
-        {
-          "id": "merge",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "Value #A": false,
-              "Value #C": false,
-              "__name__": true,
-              "channel_group": true,
-              "channel_name": true,
-              "channel_uuid": true,
-              "client_id": true,
-              "group": true,
-              "instance": true,
-              "job": true,
-              "process": true,
-              "profile_id": true,
-              "profile_name": false,
-              "provider": false,
-              "provider_type": true,
-              "resolution": true,
-              "stream_id": true,
-              "stream_name": true,
-              "stream_profile": true,
-              "video_codec": true,
-              "endpoint": true,
-              "namespace": true,
-              "pod": true,
-              "service": true
-            },
-            "indexByName": {
-              "Time": 5,
-              "Value": 2,
-              "channel_name": 4,
-              "channel_number": 3,
-              "channel_uuid": 6,
-              "client_id": 0,
-              "group": 7,
-              "instance": 8,
-              "ip_address": 1,
-              "job": 9,
-              "process": 10
-            },
-            "renameByName": {
-              "Value": "Duration",
-              "Value #A": "Duration",
-              "Value #B": "Sent",
-              "Value #C": "Rate",
-              "channel_name": "Name",
-              "channel_number": "Channel",
-              "ip_address": "Client",
-              "logo_url": "Logo",
-              "profile_name": "Profile",
-              "provider": "Provider"
-            },
-            "includeByName": {}
-          }
-        },
-        {
-          "id": "convertFieldType",
-          "options": {
-            "conversions": [
-              {
-                "destinationType": "number",
-                "targetField": "Channel"
-              }
-            ],
-            "fields": {}
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "desc": true,
-                "field": "Duration"
-              }
-            ]
-          }
-        }
-      ],
+        "frameIndex": 1,
+        "showHeader": false,
+        "sortBy": []
+      },
       "pluginVersion": "12.1.0",
       "targets": [
         {
@@ -831,23 +582,299 @@
           "refId": "C"
         }
       ],
+      "title": "Clients",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value #A": false,
+              "Value #C": false,
+              "__name__": true,
+              "channel_group": true,
+              "channel_name": true,
+              "channel_uuid": true,
+              "client_id": true,
+              "endpoint": true,
+              "group": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "process": true,
+              "profile_id": true,
+              "profile_name": false,
+              "provider": false,
+              "provider_type": true,
+              "resolution": true,
+              "service": true,
+              "stream_id": true,
+              "stream_name": true,
+              "stream_profile": true,
+              "video_codec": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "Time": 5,
+              "Value": 2,
+              "channel_name": 4,
+              "channel_number": 3,
+              "channel_uuid": 6,
+              "client_id": 0,
+              "group": 7,
+              "instance": 8,
+              "ip_address": 1,
+              "job": 9,
+              "process": 10
+            },
+            "renameByName": {
+              "Value": "Duration",
+              "Value #A": "Duration",
+              "Value #B": "Sent",
+              "Value #C": "Rate",
+              "channel_name": "Name",
+              "channel_number": "Channel",
+              "ip_address": "Client",
+              "logo_url": "Logo",
+              "profile_name": "Profile",
+              "provider": "Provider"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "Channel"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "desc": true,
+                "field": "Duration"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": ""
       },
-      "options": {
-        "showHeader": false,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": ["count"],
-          "countRows": false,
-          "fields": "",
-          "enablePagination": false
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "decimals": 0,
+          "fieldMinMax": false,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percentunit"
         },
-        "frameIndex": 1,
-        "sortBy": []
-      }
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "shades"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 6
+      },
+      "id": 101,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": ""
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum(\n  dispatcharr_profile_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)\n/\nsum(\n  dispatcharr_profile_max_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "Total",
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_profile_connection_usage\n  unless on(profile_id, profile_name, account_name)\n  (dispatcharr_profile_days_to_expiry == 0)",
+          "instant": true,
+          "legendFormat": "{{account_name}} {{profile_name}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Usage",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": ""
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "decimals": 0,
+          "fieldMinMax": false,
+          "mappings": [],
+          "min": -1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "d"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": ""
+            },
+            "properties": []
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 6
+      },
+      "id": 102,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_profile_days_to_expiry != -1",
+          "instant": true,
+          "legendFormat": "{{account_name}} {{profile_name}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Expiry",
+      "type": "bargauge"
     }
-  ]
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["dispatcharr", "exporter"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Dispatcharr Overview",
+  "uid": "dispatcharr-overview",
+  "version": 7
 }
