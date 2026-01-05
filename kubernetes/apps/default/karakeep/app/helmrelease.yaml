@@ -11,6 +11,7 @@ spec:
     name: karakeep
   values:
     controllers:
+
       karakeep:
         pod:
           annotations:
@@ -28,11 +29,6 @@ spec:
               DATA_DIR: /data
               DISABLE_SIGNUPS: true
               MEILI_ADDR: http://karakeep-meilisearch.selfhosted.svc.cluster.local:7700
-              MEILI_MASTER_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: karakeep-secret
-                    key: meilisearch_master_key
               DISABLE_NEW_RELEASE_CHECK: true
               COREPACK_INTEGRITY_KEYS: 0
             envFrom:
