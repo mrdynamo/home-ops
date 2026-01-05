@@ -219,7 +219,97 @@ spec:
               "instant": true,
               "expr": "dispatcharr_client_current_transfer_rate_bps * on(client_id, channel_uuid) group_left(ip_address) dispatcharr_client_info * on(channel_uuid) group_left(channel_name) dispatcharr_stream_metadata"
             }
-          ]
+          ],
+          "transformations": [
+            {
+              "id": "labelsToFields",
+              "options": {
+                "mode": "columns"
+              }
+            },
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Value #A": false,
+                  "Value #C": false,
+                  "__name__": true,
+                  "channel_group": true,
+                  "channel_name": true,
+                  "channel_uuid": true,
+                  "client_id": true,
+                  "group": true,
+                  "instance": true,
+                  "job": true,
+                  "process": true,
+                  "profile_id": true,
+                  "profile_name": false,
+                  "provider": false,
+                  "provider_type": true,
+                  "resolution": true,
+                  "stream_id": true,
+                  "stream_name": true,
+                  "stream_profile": true,
+                  "video_codec": true
+                },
+                "includeByName": {},
+                "indexByName": {
+                  "Time": 5,
+                  "Value": 2,
+                  "channel_name": 4,
+                  "channel_number": 3,
+                  "channel_uuid": 6,
+                  "client_id": 0,
+                  "group": 7,
+                  "instance": 8,
+                  "ip_address": 1,
+                  "job": 9,
+                  "process": 10
+                },
+                "renameByName": {
+                  "Value": "Duration",
+                  "Value #A": "Duration",
+                  "Value #B": "Sent",
+                  "Value #C": "Rate",
+                  "channel_name": "Name",
+                  "channel_number": "Channel",
+                  "ip_address": "Client",
+                  "logo_url": "Logo",
+                  "profile_name": "Profile",
+                  "provider": "Provider"
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "number",
+                    "targetField": "Channel"
+                  }
+                ],
+                "fields": {}
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": true,
+                    "field": "Duration"
+                  }
+                ]
+              }
+            }
+          ],
         },
 
         {
