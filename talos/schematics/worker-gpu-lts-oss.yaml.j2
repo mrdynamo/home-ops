@@ -16,6 +16,7 @@ customization:
     - security=none # Less security, faster puter
     - sysctl.kernel.kexec_load_disabled=1 # Meteor Lake CPU & Intel iGPU
     - talos.auditd.disabled=1 # Less security, faster puter
+    - talos.logging.kernel=tcp://127.0.0.1:12345/ # Logging
   systemExtensions:
     officialExtensions:
       - siderolabs/intel-ucode # Intel CPU Microcode Binaries

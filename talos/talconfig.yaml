@@ -25,7 +25,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/0d16f4518a8f8f40e51d2c64c455f4afe246b6c847b35fa540f4be0793d03be1
+    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -45,7 +45,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/0d16f4518a8f8f40e51d2c64c455f4afe246b6c847b35fa540f4be0793d03be1
+    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -65,7 +65,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/0d16f4518a8f8f40e51d2c64c455f4afe246b6c847b35fa540f4be0793d03be1
+    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -85,7 +85,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker GPU - Intel UHD 750 iGPU
-    talosImageURL: factory.talos.dev/installer/a136249a65aba383e76cc6d826140662fa848bf5876d62025a7cf34454b625f1
+    talosImageURL: factory.talos.dev/installer/a5665c8fbe92c3b490954be0fef443f5422e54259e982aff11ddb4c9a1f2ce66
     patches:
       # - "@./patches/intel-gpu/machine-files.yaml"
       - "@./patches/intel-gpu/machine-udevd.yaml"
@@ -106,7 +106,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker Base
-    talosImageURL: factory.talos.dev/installer/f9af9a87b26042e714d80c06ae619b25e81b16da5842cc64285e44e144229688
+    talosImageURL: factory.talos.dev/installer/af91b17d2b54f60f5075048be5e8f9b3205bf6108a3e2df0c753a3c9a7b122ef
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -124,7 +124,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker GPU - Nvidia Production Proprietary (570.172.08)
-    talosImageURL: factory.talos.dev/installer/8ecd8e08742f85d1181333f71fa291714e32fe51df7c0b6348703c9b34b17a3f
+    talosImageURL: factory.talos.dev/installer/77a84503d103409d135d25befe735271c871b87bdad025807a1ddad6fb01e222
     patches:
       - "@./patches/nvidia-gpu/machine-kernel.yaml"
       - "@./patches/nvidia-gpu/machine-sysctls.yaml"
@@ -144,19 +144,10 @@ nodes:
 patches:
   - "@./patches/global/machine-files.yaml"
   - "@./patches/global/machine-kubelet.yaml"
-  - "@./patches/global/machine-logging.yaml"
+  # - "@./patches/global/machine-logging.yaml" # Moved to schematics
   - "@./patches/global/machine-network.yaml"
-  # - "@./patches/global/machine-schematic.yaml"
   - "@./patches/global/machine-sysctls.yaml"
   - "@./patches/global/machine-time.yaml"
-  # - |-
-  #   machine:
-  #     logging:
-  #       destinations:
-  #         - endpoint: "udp://127.0.0.1:12345/"
-  #           format: "json_lines"
-  #           extraTags:
-  #             server: '{{ .Node.Hostname }}'
 
 # Controller patches
 controlPlane:
@@ -170,4 +161,3 @@ worker:
   patches:
     - "@./patches/worker/machine-kubelet.yaml"
     - "@./patches/worker/machine-labels.yaml"
-    # - "@./patches/worker/node-volumes.yaml"
