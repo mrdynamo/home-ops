@@ -41,6 +41,14 @@ spec:
       #   - name: k8s.ksgate.org/postgres-ready
       #   - name: k8s.ksgate.org/postgres-service
       #   - name: k8s.ksgate.org/database-applied
+      volumes:
+        - name: postgres-certs
+          secret:
+            secretName: postgres-authentik-cert
+      volumeMounts:
+        - name: postgres-certs
+          mountPath: /var/run/secrets/postgresql
+          readOnly: true
       deploymentStrategy:
         type: RollingUpdate
       env:
@@ -70,14 +78,6 @@ spec:
           cpu: 200m
         limits:
           memory: 1Gi
-      volumes:
-        - name: postgres-certs
-          secret:
-            secretName: postgres-authentik-cert
-      volumeMounts:
-        - name: postgres-certs
-          mountPath: /var/run/secrets/postgresql
-          readOnly: true
       metrics:
         prometheus:
           serviceMonitor:
