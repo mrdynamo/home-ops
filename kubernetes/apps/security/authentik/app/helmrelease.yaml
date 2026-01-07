@@ -91,6 +91,13 @@ spec:
             - name: external
               namespace: kube-system
               sectionName: https
+      initContainers:
+        - name: change-cert-ownership
+          image: busybox:1.36
+          command: ["sh", "-c", "chown -R 1000:1000 /var/run/secrets/postgresql"]
+          volumeMounts:
+          - name: postgres-certs
+            mountPath: /var/run/secrets/postgresql
     worker:
       autoscaling:
         enabled: true
@@ -100,3 +107,10 @@ spec:
           cpu: 200m
         limits:
           memory: 1Gi
+      initContainers:
+        - name: change-cert-ownership
+          image: busybox:1.36
+          command: ["sh", "-c", "chown -R 1000:1000 /var/run/secrets/postgresql"]
+          volumeMounts:
+          - name: postgres-certs
+            mountPath: /var/run/secrets/postgresql
