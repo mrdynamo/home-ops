@@ -73,6 +73,12 @@ spec:
   managed:
     roles:
 
+      - name: authentik
+        ensure: present
+        login: true
+        superuser: false
+        disablePassword: true
+
       - name: paperless
         ensure: present
         login: true
@@ -84,3 +90,4 @@ spec:
         login: true
         superuser: false
         disablePassword: true
+

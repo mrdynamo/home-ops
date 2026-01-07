@@ -9,12 +9,9 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  # components:
-  #   - ../../../../components/database
-  #   - ../../../../components/dragonfly
+  components:
+    - ../../../../components/database
   dependsOn:
-    - name: longhorn
-      namespace: storage
     - name: cloudnative-pg
       namespace: database
   interval: 1h

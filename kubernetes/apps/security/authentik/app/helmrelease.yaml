@@ -17,21 +17,18 @@ spec:
       deploymentStrategy:
         type: RollingUpdate
       env:
-        - name: AUTHENTIK_POSTGRESQL__NAME
-          value: *app
-        - name: AUTHENTIK_POSTGRESQL__HOST
-          value: authentik-pgbouncer.security.svc #Authentik requires transaction for pgBouncer
-        - name: AUTHENTIK_POSTGRESQL__USER
-          value: *app
-        - name: AUTHENTIK_POSTGRESQL__PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: authentik-pguser-authentik
-              key: password
-        - name: AUTHENTIK_POSTGRESQL__USE_PGBOUNCER
-          value: "true"
-        - name: AUTHENTIK_POSTGRESQL__SSLMODE
-          value: require
+        AUTHENTIK_POSTGRESQL__NAME: *app
+        AUTHENTIK_POSTGRESQL__HOST: postgres-rw.database.svc
+        AUTHENTIK_POSTGRESQL__USER: *app
+        # AUTHENTIK_POSTGRESQL__PASSWORD:
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: authentik-pguser-authentik
+        #       key: password
+        AUTHENTIK_POSTGRESQL__SSLMODE: verify-full
+        AUTHENTIK_POSTGRESQL__SSLROOTCERT: /var/run/secrets/postgresql/ca.crt
+        AUTHENTIK_POSTGRESQL__SSLCERT: /var/run/secrets/postgresql/tls.crt
+        AUTHENTIK_POSTGRESQL__SSLKEY: /var/run/secrets/postgresql/tls.key
       envFrom:
         - secretRef:
             name: authentik-secret
@@ -51,7 +48,7 @@ spec:
       route:
         main:
           enabled: true
-          hostnames: ["authentik.${SECRET_DOMAIN}"]
+          hostnames: "{{ .Release.Name }}.${SECRET_DOMAIN}"
           parentRefs:
             - name: external
               namespace: kube-system
