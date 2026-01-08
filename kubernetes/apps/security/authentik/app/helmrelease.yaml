@@ -97,14 +97,14 @@ spec:
             - -c
             - |
               # Copy and rename certificates for Postgres SSL connection
-              cp /pg-certs/ca.crt /certs/postgres/ca.crt
-              cp /pg-certs/tls.crt /certs/postgres/tls.crt
-              cp /pg-certs/tls.key /certs/postgres/tls.key
+              cp /pg-certs/ca.crt /certs/postgres/pg-ca.crt
+              cp /pg-certs/tls.crt /certs/postgres/pg-tls.crt
+              cp /pg-certs/tls.key /certs/postgres/pg-tls.key
               # Set proper ownership and permissions for authentik user (uid=1000)
-              chown 1000:1000 /certs/postgres/ca.crt /certs/postgres/tls.crt /certs/postgres/tls.key
-              chmod 644 /certs/postgres/ca.crt
-              chmod 644 /certs/postgres/tls.crt
-              chmod 600 /certs/postgres/tls.key
+              chown 1000:1000 /certs/postgres/pg-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
+              chmod 644 /certs/postgres/pg-ca.crt
+              chmod 644 /certs/postgres/pg-tls.crt
+              chmod 600 /certs/postgres/pg-tls.key
           volumeMounts:
             - name: postgres-certs-source
               mountPath: /pg-certs
