@@ -18,7 +18,7 @@ spec:
           fix-permissions:
             image:
               repository: alpine
-              tag: 3.18
+              tag: 3.23
             command:
               - sh
               - -c
