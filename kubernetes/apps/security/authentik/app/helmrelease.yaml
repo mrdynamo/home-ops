@@ -77,7 +77,7 @@ spec:
       route:
         main:
           enabled: true
-          hostnames: ["authentik.${SECRET_DOMAIN}"]
+          hostnames: ["auth.${SECRET_DOMAIN}"]
           parentRefs:
             - name: external
               namespace: kube-system
