@@ -82,9 +82,9 @@ spec:
             - name: external
               namespace: kube-system
               sectionName: https
-      initContainers:
+      initContainers: &initContainer
         - name: copy-certs
-          image: busybox:1.36
+          image: busybox:1.36.1sha256:4059babd1b7f9ad15525d28c5cdc7243eb75b4e4131aca2b4232c66eadce2250
           command:
             - sh
             - -c
@@ -104,13 +104,13 @@ spec:
               readOnly: true
             - name: postgres-certs
               mountPath: /certs/postgres
-      volumes:
+      volumes: &volumes
         - name: postgres-tls-source
           secret:
             secretName: postgres-authentik-cert
         - name: postgres-certs
           emptyDir: {}
-      volumeMounts:
+      volumeMounts: &volumeMounts
         - name: postgres-certs
           mountPath: /certs/postgres
           readOnly: true
@@ -123,35 +123,6 @@ spec:
           cpu: 200m
         limits:
           memory: 1Gi
-      initContainers:
-        - name: copy-certs
-          image: busybox:1.36
-          command:
-            - sh
-            - -c
-            - |
-              # Copy and rename certificates for Postgres SSL connection
-              cp /tmp-certs/ca.crt /certs/postgres/ca.crt
-              cp /tmp-certs/tls.crt /certs/postgres/tls.crt
-              cp /tmp-certs/tls.key /certs/postgres/tls.key
-              # Set proper ownership and permissions for authentik user (uid=1000)
-              chown 1000:1000 /certs/postgres/ca.crt /certs/postgres/tls.crt /certs/postgres/tls.key
-              chmod 644 /certs/postgres/ca.crt
-              chmod 644 /certs/postgres/tls.crt
-              chmod 600 /certs/postgres/tls.key
-          volumeMounts:
-            - name: postgres-tls-source
-              mountPath: /tmp-certs
-              readOnly: true
-            - name: postgres-certs
-              mountPath: /certs/postgres
-      volumes:
-        - name: postgres-tls-source
-          secret:
-            secretName: postgres-authentik-cert
-        - name: postgres-certs
-          emptyDir: {}
-      volumeMounts:
-        - name: postgres-certs
-          mountPath: /certs/postgres
-          readOnly: true
+      initContainers: *initContainer
+      volumes: *volumes
+      volumeMounts: *volumeMounts
