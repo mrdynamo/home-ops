@@ -28,5 +28,6 @@
 | syncthing            | 1 Gi  | Monday @ 12:00               | `0 12 * * 1`    | `0 17 * * 1`       | `0 18 * * 1`       |
 | tautulli             | 4 Gi  | Friday @ 04:00               | `0 4 * * 5`     | `0 9 * * 5`        | `0 10 * * 5`       |
 | teamarr              | 1 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
+| twitchpoints         | 1 Gi  | Friday @ 12:00               | `0 12 * * 5`    | `0 17 * * 5`       | `0 18 * * 5`       |
 | wizarr               | 1 Gi  | Friday @ 08:00               | `0 8 * * 5`     | `0 13 * * 5`       | `0 14 * * 5`       |
 | your-spotify         | 2 Gi  | Wednesday @ 11:00            | `0 11 * * 3`    | `0 16 * * 3`       | `0 17 * * 3`       |
