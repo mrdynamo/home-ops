@@ -71,8 +71,17 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-        globalMounts:
-          - path: /usr/src/app
+        advancedMounts:
+          twitchpoints:
+            app:
+              - path: /usr/src/app/analytics
+                subPath: analytics
+              - path: /usr/src/app/cookies
+                subPath: cookies
+              - path: /usr/src/app/logs
+                subPath: logs
+              - path: /usr/src/app/assets
+                subPath: assets
       configmap:
         type: configMap
         name: *app
