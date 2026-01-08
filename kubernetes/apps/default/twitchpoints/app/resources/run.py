@@ -41,6 +41,7 @@ twitch_miner = TwitchChannelPointsMiner(
         save=True,  # If you want to save logs in a file (suggested)
         console_level=logging.INFO,  # Level of logs - use logging.DEBUG for more info
         file_level=logging.INFO,  # Level of logs - If you think the log file it's too big, use logging.INFO
+        time_zone="America/Chicago",  # Timezone for the log timestamps
         emoji=True,  # On Windows, we have a problem printing emoji. Set to false if you have a problem
         less=False,  # If you think that the logs are too verbose, set this to True
         colored=True,  # If you want to print colored text
@@ -58,13 +59,6 @@ twitch_miner = TwitchChannelPointsMiner(
             BET_GENERAL=Fore.BLUE,
             BET_FAILED=Fore.RED,
         ),
-        telegram=None,
-        # Telegram(                                                          # You can omit or leave None if you don't want to receive updates on Telegram
-        # chat_id=123456789,                                                      # Chat ID to send messages @GiveChatId
-        # token="",                          # Telegram API token @BotFather
-        # events=[Events.STREAMER_ONLINE, Events.STREAMER_OFFLINE, "BET_LOSE"],   # Only these events will be sent to the chat
-        # disable_notification=True,                                              # Revoke the notification (sound/vibration)
-        # ),
         discord=Discord(
             webhook_api=DISCORD_WEBHOOK,  # Discord Webhook URL
             events=[
