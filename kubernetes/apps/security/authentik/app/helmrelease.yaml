@@ -91,7 +91,7 @@ spec:
               sectionName: https
       initContainers: &initContainer
         - name: copy-certs
-          image: busybox:1.36.1@sha256:4059babd1b7f9ad15525d28c5cdc7243eb75b4e4131aca2b4232c66eadce2250
+          image: busybox:1.37.0@sha256:2383baad1860bbe9d8a7a843775048fd07d8afe292b94bd876df64a69aae7cb1
           command:
             - sh
             - -c
