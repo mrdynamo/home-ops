@@ -25,6 +25,7 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+            tty: true
             probes:
               liveness: &probes
                 enabled: false
