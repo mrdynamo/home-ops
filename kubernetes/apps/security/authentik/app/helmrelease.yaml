@@ -45,7 +45,7 @@ spec:
         - name: postgres-certs
           secret:
             secretName: postgres-authentik-cert
-            # defaultMode: 0440
+            defaultMode: 0640
       volumeMounts:
         - name: postgres-certs
           mountPath: /var/run/secrets/postgresql
