@@ -70,6 +70,10 @@ spec:
       envFrom:
         - secretRef:
             name: authentik-secret
+    postgresql:
+      enabled: false
+    redis:
+      enabled: false
     server:
       autoscaling:
         enabled: true
