@@ -14,21 +14,6 @@ spec:
       twitchpoints:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          fix-permissions:
-            image:
-              repository: alpine
-              tag: 3.18
-            command:
-              - sh
-              - -c
-              - |
-                # chown the directories/files created by advancedMounts
-                chown -R 1000:1000 /perms || true
-            securityContext:
-              runAsUser: 0
-              runAsGroup: 0
-              runAsNonRoot: false
         containers:
           app:
             image:
@@ -88,8 +73,6 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         advancedMounts:
           twitchpoints:
-            fix-permissions:
-              - path: /perms
             app:
               - path: /usr/src/app/analytics
                 subPath: analytics
