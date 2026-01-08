@@ -25,6 +25,7 @@ from TwitchChannelPointsMiner.classes.entities.Streamer import (
 import os
 
 TWITCH_USERNAME = os.environ.get("TWITCH_USERNAME")
+DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 
 twitch_miner = TwitchChannelPointsMiner(
     username=TWITCH_USERNAME,
@@ -64,11 +65,16 @@ twitch_miner = TwitchChannelPointsMiner(
         # events=[Events.STREAMER_ONLINE, Events.STREAMER_OFFLINE, "BET_LOSE"],   # Only these events will be sent to the chat
         # disable_notification=True,                                              # Revoke the notification (sound/vibration)
         # ),
-        discord=None,
-        # Discord(
-        # webhook_api="",  # Discord Webhook URL
-        # events=[Events.STREAMER_ONLINE, Events.STREAMER_OFFLINE, Events.BET_LOSE],       # Only these events will be sent to the chat
-        # )
+        discord=Discord(
+            webhook_api=DISCORD_WEBHOOK,  # Discord Webhook URL
+            events=[
+                Events.STREAMER_ONLINE,
+                Events.STREAMER_OFFLINE,
+                Events.BET_LOSE,
+                Events.DROP_CLAIM,
+                Events.CHAT_MENTION,
+            ],  # Only these events will be sent to the chat
+        ),
     ),
     streamer_settings=StreamerSettings(
         make_predictions=False,  # If you want to Bet / Make prediction
