@@ -71,7 +71,7 @@ spec:
       config:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
-          - /usr/src/app
+          - path: /usr/src/app
       configmap:
         type: configMap
         name: *app
