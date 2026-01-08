@@ -49,11 +49,11 @@ spec:
         - name: AUTHENTIK_POSTGRESQL__SSLMODE
           value: verify-full
         - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
-          value: /certs/postgres/ca.crt
+          value: /certs/postgres/pg-ca.crt
         - name: AUTHENTIK_POSTGRESQL__SSLCERT
-          value: /certs/postgres/tls.crt
+          value: /certs/postgres/pg-tls.crt
         - name: AUTHENTIK_POSTGRESQL__SSLKEY
-          value: /certs/postgres/tls.key
+          value: /certs/postgres/pg-tls.key
       envFrom:
         - secretRef:
             name: authentik-secret
