@@ -71,7 +71,7 @@ spec:
             - name: config
               storageClass: longhorn-fast
               accessMode: ReadWriteOnce
-              size: 2Gi
+              size: 1Gi
     defaultPodOptions:
       hostUsers: false
     service:
