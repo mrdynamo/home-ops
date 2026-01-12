@@ -135,6 +135,7 @@ twitch_miner.mine(
         Streamer("jokehow"),
         # Streamer("saggdad"),
         Streamer("trinityviolette"),
+        Streamer("saltyteemo"),
     ],  # Array of streamers (order = priority)
     followers=False,  # Automatic download the list of your followers
     followers_order=FollowersOrder.ASC,  # Sort the followers list by follow date (ASC or DESC)
