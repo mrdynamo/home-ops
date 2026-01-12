@@ -82,14 +82,15 @@ twitch_miner = TwitchChannelPointsMiner(
                 Events.JOIN_RAID,
                 Events.DROP_CLAIM,
                 Events.DROP_STATUS,
-            ],  # Only these events will be sent to the chat
-        ),
-        discord_chat=Discord(
-            webhook_api=DISCORD_CHAT_MENTION_WEBHOOK,  # Discord Chat Mention Webhook URL
-            events=[
                 Events.CHAT_MENTION,
             ],  # Only these events will be sent to the chat
         ),
+        # discord_chat=Discord(
+        #     webhook_api=DISCORD_CHAT_MENTION_WEBHOOK,  # Discord Chat Mention Webhook URL
+        #     events=[
+        #         Events.CHAT_MENTION,
+        #     ],  # Only these events will be sent to the chat
+        # ),
     ),
     streamer_settings=StreamerSettings(
         make_predictions=False,  # If you want to Bet / Make prediction
