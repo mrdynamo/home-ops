@@ -77,13 +77,13 @@
     - Paperless AI:
         href: https://paperless-ai.${INTERNAL_SECRET_DOMAIN}/
         description: AI interface for paperless
-        icon: paperless-ngx.svg
+        icon: https://raw.githubusercontent.com/clusterzx/paperless-ai/refs/heads/main/icon.png
         namespace: default # The kubernetes namespace the app resides in
         app: paperless-ai # The name of the deployed app
     - Paperless GPT:
         href: https://paperless-gpt.${INTERNAL_SECRET_DOMAIN}/
         description: AI interface for paperless
-        icon: paperless-ngx.svg
+        icon: https://raw.githubusercontent.com/icereed/paperless-gpt/f986842fe82a289aab0ed93c9877f4ef63208fd0/web-app/src/assets/logo.svg
         namespace: default # The kubernetes namespace the app resides in
         app: paperless-gpt # The name of the deployed app
     - Karakeep:
