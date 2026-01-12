@@ -272,7 +272,7 @@
         - Nexroll:
             href: https://nexroll.${INTERNAL_SECRET_DOMAIN}/
             description: Plex pre-roll configuration
-            # icon: maintainerr.svg
+            icon: https://raw.githubusercontent.com/JFLXCLOUD/NeXroll/refs/heads/main/NeXroll/icon_1758297097_256x256.png
             namespace: default
             app: nexroll
         - Your Spotify:
