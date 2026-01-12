@@ -342,7 +342,7 @@
         - Shelfmark:
             href: https://shelfmark.${INTERNAL_SECRET_DOMAIN}/
             description: E-Book downloader web interface
-            icon: https://github.com/calibrain/shelfmark/blob/main/src/frontend/public/logo.png
+            icon: https://raw.githubusercontent.com/calibrain/shelfmark/refs/heads/main/src/frontend/public/logo.png
             namespace: default
             app: shelfmark
 
