@@ -339,12 +339,12 @@
                 type: bazarr
                 url: http://bazarr.default.svc.cluster.local:80
                 key: {{HOMEPAGE_VAR_BAZARR_API_KEY}}
-        - Calibre Downloader:
-            href: https://calibre-downloader.${INTERNAL_SECRET_DOMAIN}/
+        - Shelfmark:
+            href: https://shelfmark.${INTERNAL_SECRET_DOMAIN}/
             description: E-Book downloader web interface
-            icon: calibre-web.svg
+            icon: https://github.com/calibrain/shelfmark/blob/main/src/frontend/public/logo.png
             namespace: default
-            app: calibre-web-automated
+            app: shelfmark
 
 - Database:
     - PGAdmin:
