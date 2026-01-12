@@ -108,6 +108,8 @@
         href: https://lubelogger.${INTERNAL_SECRET_DOMAIN}/
         description: Vehicle maintenance tracker
         icon: lubelogger.png
+        namespace: default
+        app: lubelogger
     - Twitch Points:
         href: https://twitchpoints.${INTERNAL_SECRET_DOMAIN}/
         description: Twitch Points tracking and management
