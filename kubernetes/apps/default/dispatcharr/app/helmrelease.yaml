@@ -39,7 +39,10 @@ spec:
                   httpGet:
                     path: /api/core/version
                     port: &port 9191
-                  initialDelaySeconds: 0
+                    httpHeaders:
+                      - name: Accept
+                        value: application/json
+                  initialDelaySeconds: 15
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
