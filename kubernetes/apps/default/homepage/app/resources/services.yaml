@@ -350,7 +350,7 @@
     - PGAdmin:
         href: https://pgadmin.local.${SECRET_DOMAIN}/
         description: PostgreSQL management
-        icon: pgadmin4.svg
+        icon: pgadmin.svg
         namespace: database # The kubernetes namespace the app resides in
         app: pgadmin # The name of the deployed app
     - InfluxDB:
