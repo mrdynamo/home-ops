@@ -107,7 +107,7 @@
     - Lube Logger:
         href: https://lubelogger.${INTERNAL_SECRET_DOMAIN}/
         description: Vehicle maintenance tracker
-        icon: lubelogger.svg
+        icon: lubelogger.png
 
 - Network:
     - Unifi Cloud Gateway:
