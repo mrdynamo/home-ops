@@ -84,7 +84,7 @@ twitch_miner = TwitchChannelPointsMiner(
                 Events.DROP_STATUS,
             ],  # Only these events will be sent to the chat
         ),
-        discord=Discord(
+        discord_chat=Discord(
             webhook_api=DISCORD_CHAT_MENTION_WEBHOOK,  # Discord Chat Mention Webhook URL
             events=[
                 Events.CHAT_MENTION,
