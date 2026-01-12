@@ -266,7 +266,7 @@
         - Wizarr:
             href: https://joinplex.${SECRET_DOMAIN}/
             description: Plex user management
-            icon: wizarr.svg # TODO: Submit for Wizaar icon on walkxcode/dashboard-icons
+            icon: wizarr.svg
             namespace: default
             app: wizarr
         - Maintainerr:
