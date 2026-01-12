@@ -33,11 +33,11 @@ spec:
               CELERY_NICE_LEVEL: 15   # Celery/EPG/Background tasks (default: 5, low priority)
             probes:
               liveness: &probes
-                enabled: false
+                enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /ping
+                    path: /api/core/version
                     port: &port 9191
                   initialDelaySeconds: 0
                   periodSeconds: 10
