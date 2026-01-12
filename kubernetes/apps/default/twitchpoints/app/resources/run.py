@@ -37,6 +37,7 @@ twitch_miner = TwitchChannelPointsMiner(
         Priority.ORDER,  # - When we have all of the drops claimed and no watch-streak available, use the order priority (POINTS_ASCENDING, POINTS_DESCEDING)
     ],
     enable_analytics=True,
+    disable_at_in_nickname=True,
     logger_settings=LoggerSettings(
         save=True,  # If you want to save logs in a file (suggested)
         console_level=logging.INFO,  # Level of logs - use logging.DEBUG for more info
