@@ -33,7 +33,7 @@ spec:
               CELERY_NICE_LEVEL: 15   # Celery/EPG/Background tasks (default: 5, low priority)
             probes:
               liveness: &probes
-                enabled: true
+                enabled: false
                 custom: true
                 spec:
                   httpGet:
