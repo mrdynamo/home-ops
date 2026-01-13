@@ -108,3 +108,5 @@ spec:
         type: nfs
         server: 192.168.20.21
         path: /mnt/tank/media/books/ingest
+      tmp:
+        type: emptyDir
