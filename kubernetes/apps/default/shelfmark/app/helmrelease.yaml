@@ -19,10 +19,21 @@ spec:
             image:
               repository: ghcr.io/calibrain/shelfmark
               tag: v1.0.0@sha256:2b94ee920da47ca3889b8d2056b07df86aa1ff815a9e4a139e8aeb29fcd6d834
+            command:
+              - gunicorn
+            args:
+              - --log-level=debug
+              - --access-logfile=-
+              - --error-logfile=-
+              - --worker-class=geventwebsocket.gunicorn.workers.GeventWebSocketWorker
+              - --workers=1
+              - -t
+              - "300"
+              - -b
+              - 0.0.0.0:8084
+              - shelfmark.main:app
             env:
               TZ: America/Chicago
-              PUID: 1000
-              PGID: 1000
               CWA_DB_PATH: /auth/app.db
               INGEST_DIR: /cwa-book-ingest
             probes:
@@ -44,17 +55,10 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
             securityContext:
-              allowPrivilegeEscalation: true
-              readOnlyRootFilesystem: false
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop: ["ALL"]
-                add:
-                  # S6
-                  - CHOWN
-                  - SETUID
-                  - SETGID
-                  - FOWNER
-                  - DAC_OVERRIDE
             resources:
               requests:
                 cpu: 10m
@@ -72,9 +76,9 @@ spec:
                   topologyKey: kubernetes.io/hostname
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        runAsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
