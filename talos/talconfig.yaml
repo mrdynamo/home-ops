@@ -25,7 +25,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
+    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -45,7 +45,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
+    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -85,7 +85,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker GPU - Intel UHD 750 iGPU
-    talosImageURL: factory.talos.dev/installer/a5665c8fbe92c3b490954be0fef443f5422e54259e982aff11ddb4c9a1f2ce66
+    talosImageURL: factory.talos.dev/installer/2d7f9c9620a30e589ff73e0d1b1b66929d5284c9ec7422ef7f0833622ed31288
     patches:
       # - "@./patches/intel-gpu/machine-files.yaml"
       - "@./patches/intel-gpu/machine-udevd.yaml"
@@ -106,7 +106,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker Base
-    talosImageURL: factory.talos.dev/installer/af91b17d2b54f60f5075048be5e8f9b3205bf6108a3e2df0c753a3c9a7b122ef
+    talosImageURL: factory.talos.dev/installer/db1f0bb5f933304b8e73362aa057fd2c11802cb1e1633f421d387167e9af1915
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
@@ -124,7 +124,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker GPU - Nvidia Production Proprietary (570.172.08)
-    talosImageURL: factory.talos.dev/installer/77a84503d103409d135d25befe735271c871b87bdad025807a1ddad6fb01e222
+    talosImageURL: factory.talos.dev/installer/29e1023e2acd556ea000e431b368effa1cc5d1a13598cbbd4d6926046d0ac216
     patches:
       - "@./patches/nvidia-gpu/machine-kernel.yaml"
       - "@./patches/nvidia-gpu/machine-sysctls.yaml"
