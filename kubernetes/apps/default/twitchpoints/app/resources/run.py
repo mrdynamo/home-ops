@@ -61,37 +61,37 @@ twitch_miner = TwitchChannelPointsMiner(
             BET_GENERAL=Fore.BLUE,
             BET_FAILED=Fore.RED,
         ),
-        discord=Discord(
-            webhook_api=DISCORD_WEBHOOK,  # Discord Webhook URL
-            events=[
-                Events.STREAMER_ONLINE,
-                Events.STREAMER_OFFLINE,
-                Events.GAIN_FOR_RAID,
-                Events.GAIN_FOR_CLAIM,
-                Events.GAIN_FOR_WATCH,
-                Events.GAIN_FOR_WATCH_STREAK,
-                Events.BET_WIN,
-                Events.BET_LOSE,
-                Events.BET_REFUND,
-                Events.BET_FILTERS,
-                Events.BET_GENERAL,
-                Events.BET_FAILED,
-                Events.BET_START,
-                Events.BONUS_CLAIM,
-                Events.MOMENT_CLAIM,
-                Events.JOIN_RAID,
-                Events.DROP_CLAIM,
-                Events.DROP_STATUS,
-                Events.CHAT_MENTION,
-            ],  # Only these events will be sent to the chat
-        ),
-        ## This can be implemented once https://github.com/rdavydov/Twitch-Channel-Points-Miner-v2/pull/709 is merged
-        # discord_chat=Discord(
-        #     webhook_api=DISCORD_CHAT_MENTION_WEBHOOK,  # Discord Chat Mention Webhook URL
-        #     events=[
-        #         Events.CHAT_MENTION,
-        #     ],  # Only these events will be sent to the chat
-        # ),
+        hooks=[
+            Discord(
+                webhook_api=DISCORD_WEBHOOK,  # Discord Webhook URL
+                events=[
+                    Events.STREAMER_ONLINE,
+                    Events.STREAMER_OFFLINE,
+                    Events.GAIN_FOR_RAID,
+                    Events.GAIN_FOR_CLAIM,
+                    Events.GAIN_FOR_WATCH,
+                    Events.GAIN_FOR_WATCH_STREAK,
+                    Events.BET_WIN,
+                    Events.BET_LOSE,
+                    Events.BET_REFUND,
+                    Events.BET_FILTERS,
+                    Events.BET_GENERAL,
+                    Events.BET_FAILED,
+                    Events.BET_START,
+                    Events.BONUS_CLAIM,
+                    Events.MOMENT_CLAIM,
+                    Events.JOIN_RAID,
+                    Events.DROP_CLAIM,
+                    Events.DROP_STATUS,
+                ],  # Only these events will be sent to the chat
+            ),
+            Discord(
+                webhook_api=DISCORD_CHAT_MENTION_WEBHOOK,  # Discord Chat Mention Webhook URL
+                events=[
+                    Events.CHAT_MENTION,
+                ],  # Only these events will be sent to the chat
+            ),
+        ],
     ),
     streamer_settings=StreamerSettings(
         make_predictions=False,  # If you want to Bet / Make prediction

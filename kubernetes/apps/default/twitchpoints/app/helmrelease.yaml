@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/rdavidoff/twitch-channel-points-miner-v2
-              tag: 2.0.4@sha256:f160a2e6fd2a558d28c929552fb0992a12a37564a035d9bcec5ffaf76f5fcd05
+              repository: ghcr.io/mrdynamo/twitch-channel-points-miner-v2
+              tag: dev@sha256:a281fc60a96f62a3ac3dfb148a6c8c35e4f7843e5838dc6fd2c8c334f81791d1
             env:
               TZ: America/Chicago
               TERM: xterm-256color
