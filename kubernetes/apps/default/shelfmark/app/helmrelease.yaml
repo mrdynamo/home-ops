@@ -22,7 +22,7 @@ spec:
             command:
               - gunicorn
             args:
-              - --log-level=debug
+              # - --log-level=debug
               - --access-logfile=-
               - --error-logfile=-
               - --worker-class=geventwebsocket.gunicorn.workers.GeventWebSocketWorker
