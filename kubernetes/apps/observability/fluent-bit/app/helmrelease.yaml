@@ -11,10 +11,14 @@ spec:
   interval: 1h
   values:
     extraPorts:
-      - port: 12345
-        containerPort: 12345
+      - port: 10001
+        containerPort: 10001
         protocol: UDP
-        name: talos
+        name: talos-service
+      - port: 10002
+        containerPort: 10002
+        protocol: UDP
+        name: talos-kernel
     config:
       service: |-
         [SERVICE]
@@ -48,9 +52,16 @@ spec:
         [INPUT]
           Name          udp
           Listen        0.0.0.0
-          Port          12345
+          Port          10001
           Format        json
-          Tag           talos.*
+          Tag           talos-service.*
+
+        [INPUT]
+          Name          udp
+          Listen        0.0.0.0
+          Port          10002
+          Format        json
+          Tag           talos-kernel.*
 
       filters: |-
         [FILTER]
@@ -113,7 +124,18 @@ spec:
 
         [OUTPUT]
           name http
-          match talos.*
+          match talos-service.*
+          host victoria-logs-server.observability.svc.cluster.local
+          port 9428
+          uri /insert/jsonline?_stream_fields=talos-service,talos-level&_msg_field=msg&_time_field=talos-time
+          format json_lines
+          json_date_format iso8601
+          compress gzip
+          log_response_payload false
+
+        [OUTPUT]
+          name http
+          match talos-kernel.*
           host victoria-logs-server.observability.svc.cluster.local
           port 9428
           uri /insert/jsonline?_stream_fields=clock,facility,priority,seq,talos-level&_msg_field=msg&_time_field=talos-time
