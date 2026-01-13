@@ -15,8 +15,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/egyptiangio/teamarr
-              tag: 1.4.8@sha256:5f2e72bc3724e2670b803d7df7f200e6c14b29a0fb60cc4d1a93b136837af3f2
+              repository: ghcr.io/pharaoh-labs/teamarr
+              tag: 1.4.9-archive@sha256:1c4a8b12e032ae37513dafd1fbe6ca966d6277acae6485c2790361ddc0dbdfd8
             env:
               TZ: America/Chicago
               PORT: &port 9195
