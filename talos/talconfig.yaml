@@ -65,7 +65,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/c42fa7bd36aa17aa5ebc764cafe94cacb2f63d89db58ac2e7d3d06ecef834b81
+    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
     controlPlane: true
     networkInterfaces:
       - deviceSelector:

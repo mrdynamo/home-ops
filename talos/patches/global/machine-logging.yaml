@@ -1,5 +1,5 @@
 machine:
   logging:
     destinations:
-      - endpoint: "udp://127.0.0.1:12345/"
+      - endpoint: "udp://fluent-bit.observability.svc.cluster.local:10001/"
         format: "json_lines"
