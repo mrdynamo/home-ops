@@ -46,7 +46,7 @@ spec:
           Tag           audit.*
 
         [INPUT]
-          Name          talos
+          Name          tcp
           Listen        0.0.0.0
           Port          12345
           Format        json
@@ -62,7 +62,7 @@ spec:
           k8s-logging.exclude on
           namespace_labels off
           annotations off
-          buffer_size 128KB
+          buffer_size 128k
 
         [FILTER]
           name nest
