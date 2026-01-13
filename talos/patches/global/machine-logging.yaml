@@ -1,7 +1,4 @@
 machine:
-  install:
-    extraKernelArgs:
-      - talos.logging.kernel=tcp://127.0.0.1:12345/
   logging:
     destinations:
       - endpoint: "udp://127.0.0.1:12345/"

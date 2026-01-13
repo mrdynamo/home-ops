@@ -46,7 +46,7 @@ spec:
           Tag           audit.*
 
         [INPUT]
-          Name          tcp
+          Name          talos
           Listen        0.0.0.0
           Port          12345
           Format        json
@@ -109,6 +109,7 @@ spec:
           json_date_format iso8601
           compress gzip
           log_response_payload false
+          Buffer_Size 64MB
 
         [OUTPUT]
           name http
