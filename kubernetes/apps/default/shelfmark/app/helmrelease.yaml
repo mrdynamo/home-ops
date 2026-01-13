@@ -110,3 +110,8 @@ spec:
         path: /mnt/tank/media/books/ingest
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
+            subPath: tmp
+          - path: /var/log
+            subPath: var-log
