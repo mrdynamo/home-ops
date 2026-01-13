@@ -13,7 +13,7 @@ spec:
     extraPorts:
       - port: 12345
         containerPort: 12345
-        protocol: TCP
+        protocol: UDP
         name: talos
     config:
       service: |-
@@ -46,7 +46,7 @@ spec:
           Tag           audit.*
 
         [INPUT]
-          Name          tcp
+          Name          udp
           Listen        0.0.0.0
           Port          12345
           Format        json
