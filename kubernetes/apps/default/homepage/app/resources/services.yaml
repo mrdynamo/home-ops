@@ -163,6 +163,8 @@
         href: https://flux.${INTERNAL_SECRET_DOMAIN}/
         description: Kubernetes GitOps dashboards
         icon: flux-cd.svg
+        namespace: flux-system
+        app: flux-operator
     - Gatus:
         href: https://status.${SECRET_DOMAIN}/
         description: Uptime monitoring dashboard
@@ -291,8 +293,8 @@
             href: https://spotty.${SECRET_DOMAIN}/
             description: Spotify stats
             icon: spotify.svg
-            # namespace: default
-            # app: your-spotify
+            namespace: default
+            app: your-spotify
             # widget:
             #   type: yourspotify
             #   url: http://yourspotify.default.svc.cluster.local:80
