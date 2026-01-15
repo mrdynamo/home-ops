@@ -91,7 +91,7 @@
         namespace: default # The kubernetes namespace the app resides in
         app: paperless-gpt # The name of the deployed app
     - Karakeep:
-        href: https://karakeep.${INTERNAL_SECRET_DOMAIN}/
+        href: https://karakeep.${SECRET_DOMAIN}/
         description: Bookmark management
         icon: karakeep.svg
         namespace: default # The kubernetes namespace the app resides in
