@@ -198,6 +198,12 @@
         widget:
             type: prometheus
             url: http://prometheus-operated.observability.svc.cluster.local:9090
+    - Siren:
+        href: https://siren.${INTERNAL_SECRET_DOMAIN}/
+        description: Alert dashboard
+        icon: siren.svg
+        namespace: observability
+        app: siren
     - Alert Manager:
         href: https://alertmanager.${INTERNAL_SECRET_DOMAIN}/
         description: Alert Manager interface
