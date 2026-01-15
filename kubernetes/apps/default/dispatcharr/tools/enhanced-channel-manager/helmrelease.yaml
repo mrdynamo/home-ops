@@ -21,9 +21,6 @@ spec:
               tag: dev@sha256:e59489022bfd4369663e838694c430b7c96a228f51faba2bca4dff9e8c596f6f
             env:
               TZ: America/Chicago
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness: &probes
                 enabled: false
