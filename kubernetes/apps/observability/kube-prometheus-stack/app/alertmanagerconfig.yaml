@@ -100,7 +100,7 @@ spec:
         userKey:
           name: *secret
           key: PUSHOVER_USER_KEY
-        url: https://siren.example.com/a/{{ .Fingerprint }}
+        url: 'https://siren.${INTERNAL_SECRET_DOMAIN}/a/{{ .Fingerprint }}'
         urlTitle: View in Siren
   - name: all-receivers
     discordConfigs: *discordConfigs
