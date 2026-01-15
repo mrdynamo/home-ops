@@ -23,7 +23,7 @@ spec:
             env:
               TZ: America/Chicago
               PORT: &port 3000
-              ALERTMANAGER_BASE_URL: http://alertmanager.observability.svc.cluster.local:9093
+              ALERTMANAGER_BASE_URL: http://alertmanager-operated.observability.svc.cluster.local:9093
             probes:
               liveness:
                 enabled: true
