@@ -177,7 +177,7 @@
         description: Grafana metrics dashboard
         icon: grafana.svg
         namespace: observability
-        app: grafana
+        app: grafana-operator
         # widget:
         #   type: grafana
         #   version: 2
