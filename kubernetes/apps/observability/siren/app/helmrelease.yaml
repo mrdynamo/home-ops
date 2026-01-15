@@ -63,7 +63,7 @@ spec:
     route:
       app:
         hostnames:
-          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
         parentRefs:
           - name: internal
             namespace: kube-system
