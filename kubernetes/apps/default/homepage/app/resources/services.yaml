@@ -216,6 +216,8 @@
             href: https://plex.${SECRET_DOMAIN}/
             description: Primary Plex server
             icon: plex.svg
+            namespace: default
+            app: plex
         - Emby:
             href: https://emby.${INTERNAL_SECRET_DOMAIN}/
             description: Secondary Emby server
