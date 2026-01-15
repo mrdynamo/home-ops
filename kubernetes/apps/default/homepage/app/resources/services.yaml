@@ -242,6 +242,12 @@
             icon: dispatcharr.svg
             namespace: default
             app: dispatcharr
+        - Enhanced Channel Manager:
+            href: https://enhanced-channel-manager.${INTERNAL_SECRET_DOMAIN}/
+            description: Enhanced Channel Manager for Dispatcharr
+            icon: https://raw.githubusercontent.com/MotWakorb/enhancedchannelmanager/refs/heads/main/frontend/src/assets/ECMLogo.png
+            namespace: default
+            app: enhanced-channel-manager
         - Calibre Web:
             href: https://ebooks.${SECRET_DOMAIN}/
             description: E-Book library web interface
