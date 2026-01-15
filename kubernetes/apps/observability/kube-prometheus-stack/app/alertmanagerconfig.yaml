@@ -55,6 +55,7 @@ spec:
       - apiURL:
           name: &secret alertmanager-secret
           key: ALERTMANAGER_DISCORD_WEBHOOK
+        avatarURL: https://raw.githubusercontent.com/prometheus/alertmanager/refs/heads/main/ui/app/favicon.ico
     # - name: heartbeat
     #   webhookConfigs:
     #     - httpConfig:
@@ -99,7 +100,8 @@ spec:
         userKey:
           name: *secret
           key: PUSHOVER_USER_KEY
-        urlTitle: View in Alertmanager
+        url: https://siren.example.com/a/{{ .Fingerprint }}
+        urlTitle: View in Siren
   - name: all-receivers
     discordConfigs: *discordConfigs
     pushoverConfigs: *pushoverConfigs
