@@ -222,6 +222,8 @@
             href: https://emby.${INTERNAL_SECRET_DOMAIN}/
             description: Secondary Emby server
             icon: emby.svg
+            namespace: default
+            app: emby
         - Dispatcharr:
             href: https://dispatcharr.${INTERNAL_SECRET_DOMAIN}/
             description: Live TV management
