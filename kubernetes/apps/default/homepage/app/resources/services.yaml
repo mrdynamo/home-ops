@@ -201,7 +201,7 @@
     - Siren:
         href: https://siren.${INTERNAL_SECRET_DOMAIN}/
         description: Alert dashboard
-        icon: siren.svg
+        icon: https://raw.githubusercontent.com/shamubernetes/siren/refs/heads/main/public/favicon.svg
         namespace: observability
         app: siren
     - Alert Manager:
