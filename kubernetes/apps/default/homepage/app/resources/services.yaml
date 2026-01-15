@@ -206,7 +206,7 @@
         description: Log aggregation and viewing
         icon: victoriametrics.svg
         namespace: observability
-        app: victoria-logs
+        app: victoria-logs-single
 
 
 - Media:
