@@ -51,7 +51,7 @@ spec:
   receivers:
   - name: "null"
   - name: discord
-    discordConfigs:
+    discordConfigs: &discordConfigs
       - apiURL:
           name: &secret alertmanager-secret
           key: ALERTMANAGER_DISCORD_WEBHOOK
@@ -65,7 +65,7 @@ spec:
     #         name: *secret
     #         key: BUDDY_HEARTBEAT_URL
   - name: pushover
-    pushoverConfigs:
+    pushoverConfigs: &pushoverConfigs
       - html: true
         message: |-
           {{- range .Alerts }}
@@ -101,42 +101,5 @@ spec:
           key: PUSHOVER_USER_KEY
         urlTitle: View in Alertmanager
   - name: all-receivers
-    discordConfigs:
-      - apiURL:
-          name: &secret alertmanager-secret
-          key: ALERTMANAGER_DISCORD_WEBHOOK
-    pushoverConfigs:
-      - html: true
-        message: |-
-          {{- range .Alerts }}
-            {{- if ne .Annotations.description "" }}
-              {{ .Annotations.description }}
-            {{- else if ne .Annotations.summary "" }}
-              {{ .Annotations.summary }}
-            {{- else if ne .Annotations.message "" }}
-              {{ .Annotations.message }}
-            {{- else }}
-              Alert description not available
-            {{- end }}
-            {{- if gt (len .Labels.SortedPairs) 0 }}
-              <small>
-                {{- range .Labels.SortedPairs }}
-                  <b>{{ .Name }}:</b> {{ .Value }}
-                {{- end }}
-              </small>
-            {{- end }}
-          {{- end }}
-        priority: |-
-          {{ if eq .Status "firing" }}1{{ else }}0{{ end }}
-        sendResolved: true
-        sound: gamelan
-        title: >-
-          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
-        ttl: 86400s
-        token:
-          name: *secret
-          key: ALERTMANAGER_PUSHOVER_TOKEN
-        userKey:
-          name: *secret
-          key: PUSHOVER_USER_KEY
-        urlTitle: View in Alertmanager
+    discordConfigs: *discordConfigs
+    pushoverConfigs: *pushoverConfigs
