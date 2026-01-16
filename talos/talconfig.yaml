@@ -89,6 +89,7 @@ nodes:
     patches:
       # - "@./patches/intel-gpu/machine-files.yaml"
       - "@./patches/intel-gpu/machine-udevd.yaml"
+      - "@./patches/intel-gpu/watchdog.yaml"
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
