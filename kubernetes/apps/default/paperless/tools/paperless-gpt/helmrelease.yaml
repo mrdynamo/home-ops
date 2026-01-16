@@ -22,7 +22,7 @@ spec:
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
               LLM_LANGUAGE: English
               LLM_PROVIDER: ollama
-              LLM_MODEL: llama3.2:latest
+              LLM_MODEL: llama3.2:3b
               OCR_PROVIDER: llm
               VISION_LLM_PROVIDER: ollama
               VISION_LLM_MODEL: minicpm-v:8b
