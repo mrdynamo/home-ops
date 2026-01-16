@@ -41,6 +41,11 @@ spec:
               GATUS_WEB_PORT: &port 80
               GATUS_DELAY_START_SECONDS: 15
               GATUS_LOG_LEVEL: debug
+              GATUS_POSTGRES:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}-postgres"
+                    key: url
             # envFrom:
             #   - secretRef:
             #       name: "{{ .Release.Name }}-secret"
