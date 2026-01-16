@@ -30,8 +30,8 @@ metrics: true
 
 storage:
   type: postgres
+  path: ${GATUS_POSTGRES_PATH}
   caching: true
-  path: ${GATUS_POSTGRES}
   maximum-number-of-events: 500
   maximum-number-of-results: 1000
 
