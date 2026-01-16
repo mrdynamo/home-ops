@@ -44,7 +44,7 @@ spec:
               GATUS_POSTGRES:
                 valueFrom:
                   secretKeyRef:
-                    name: "{{ .Release.Name }}-postgres"
+                    name: gatus-postgres
                     key: url
             # envFrom:
             #   - secretRef:
