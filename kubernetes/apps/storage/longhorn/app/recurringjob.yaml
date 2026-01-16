@@ -5,7 +5,7 @@ metadata:
   namespace: storage
 spec:
   concurrency: 3
-  cron: "0 0/3 * * ?"
+  cron: "0 0/6 * * ?"
   groups:
     - default
   labels: {}
