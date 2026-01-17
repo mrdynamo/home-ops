@@ -205,5 +205,18 @@
       ],
       datasourceTemplate: "docker",
     },
+    {
+      customType: "regex",
+      description: "Process .mise.toml dependency pins",
+      managerFilePatterns: [
+        "/(^|/)\\.mise\\.toml$/",
+      ],
+      matchStrings: [
+        // Matches keys like `python` or `pipx:makejinja` = "2.8.2"
+        "(?m)^(?<depName>[^\n=]+?)\\s*=\\s*\"(?<currentValue>[^\"]+)\"",
+      ],
+      // Let Renovate treat these as generic pinned deps; datasourceTemplate can be left
+      // empty or set where appropriate per-tool (left unset to let Renovate infer).
+    },
   ],
 }
