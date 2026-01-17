@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: descheduler
+spec:
+  groups:
+    - name: descheduler
+      rules:
+        - alert: DeschedulerEvicetedPods
+          expr: |-
+            gdescheduler_pods_evicted{} > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Descheduler has recently evidcted pods to balance utilization. The {{ $labels.name }} endpoint is down
+          labels:
+            severity: critical
