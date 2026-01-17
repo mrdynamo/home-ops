@@ -215,6 +215,7 @@
         // Matches keys like `python` or `pipx:makejinja` = "2.8.2"
         "(?m)^(?<depName>[^\n=]+?)\\s*=\\s*\"(?<currentValue>[^\"]+)\"",
       ],
+      datasourceTemplate: "mise"
       // Let Renovate treat these as generic pinned deps; datasourceTemplate can be left
       // empty or set where appropriate per-tool (left unset to let Renovate infer).
     },
