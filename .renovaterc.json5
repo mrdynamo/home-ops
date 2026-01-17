@@ -168,7 +168,7 @@
       matchPackageNames: [
         "ghcr.io/MotWakorb/enhancedchannelmanager"
       ],
-      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
     },
   ],
   customManagers: [
