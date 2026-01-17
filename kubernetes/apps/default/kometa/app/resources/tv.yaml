@@ -11,4 +11,4 @@ collections:
     #collection_order: custom
     visible_library: true # Visibility of collections in library 'Recommended' tab for everyone
     visible_home: true # Visibility of collections on MY 'Home' tab
-    visible_shared: true
+    visible_shared: true # Visibility of collections on shared user's 'Home' tab
