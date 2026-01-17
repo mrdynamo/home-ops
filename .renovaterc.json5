@@ -153,12 +153,23 @@
       addLabels: ["renovate/github-release"],
     },
     // {
-      // Handle Dispatcharr tags
-      // https://docs.renovatebot.com/modules/versioning/regex/
+      // // Handle Dispatcharr tags
+      // // https://docs.renovatebot.com/modules/versioning/regex/
       // matchDatasources: ["docker"],
       // matchPackageNames: ["ghcr.io/dispatcharr/dispatcharr"],
       // versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
     // },
+    {
+      // Handle EnhancedChannelManager tags
+      // https://docs.renovatebot.com/modules/versioning/regex/
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/MotWakorb/enhancedchannelmanager"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
+    },
   ],
   customManagers: [
     {
