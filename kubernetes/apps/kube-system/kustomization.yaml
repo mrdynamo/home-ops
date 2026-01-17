@@ -18,3 +18,4 @@ resources:
   - ./nvidia-k8s-device-plugin/ks.yaml
   - ./metrics-server/ks.yaml
   - ./reloader/ks.yaml
+  - ./spegel/ks.yaml
