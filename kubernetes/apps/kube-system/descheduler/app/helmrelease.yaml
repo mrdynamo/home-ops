@@ -29,9 +29,9 @@ spec:
                 metricsUtilization:
                   source: KubernetesMetrics
                 thresholds:
-                  cpu: 30
+                  cpu: 20
                   memory: 30
-                  pods: 30
+                  pods: 50
                 targetThresholds:
                   cpu: 50
                   memory: 50
