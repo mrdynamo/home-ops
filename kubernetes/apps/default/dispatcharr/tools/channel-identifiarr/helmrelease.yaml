@@ -3,11 +3,11 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: channel-identifiarr
+  name: &app channel-identifiarr
 spec:
   chartRef:
     kind: OCIRepository
-    name: channel-identifiarr
+    name: *app
   interval: 1h
   values:
     controllers:
@@ -19,6 +19,11 @@ spec:
               tag: 0.6.5@sha256:d883c0eb43e369fd78d59f11aaf1dcef8783ae663d92a088c7c07050b48adc23
             env:
               DATABASE_PATH: /database/channelidentifiarr.db
+              DISPATCHARR_URL: http://dispatcharr.default.svc:9191
+              EMBY_URL: http://emby.default.svc:8096
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -61,7 +66,7 @@ spec:
         advancedMounts:
           channel-identifiarr:
             app:
-              - path: "/database"
+              - path: /database
                 subPath: dispatcharr/channel-identifiarr
       tmp:
         type: emptyDir
