@@ -55,7 +55,7 @@ spec:
       - apiURL:
           name: &secret alertmanager-secret
           key: ALERTMANAGER_DISCORD_WEBHOOK
-        avatarURL: https://raw.githubusercontent.com/prometheus/alertmanager/refs/heads/main/ui/app/favicon.ico
+        avatarURL: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alertmanager.png
     # - name: heartbeat
     #   webhookConfigs:
     #     - httpConfig:
