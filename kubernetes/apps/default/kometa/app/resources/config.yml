@@ -7,14 +7,18 @@ libraries:
   #####################################
 
   Movies:
+
+    report_path: /config/reports/movies.yaml
+
+    settings:
+      asset_directory: config/assets/movies
+
     template_variables:
       use_separator: true
       sep_style: orig
       #visible_library: true                               # Visibility of collections in library 'Recommended' tab for everyone
       #visible_home: true                                  # Visibility of collections on MY 'Home' tab
       #visible_shared: true                                # Visibility of collections on shared user's 'Home' tab
-
-    report_path: /config/reports/movie_report.yaml
 
     collection_files:
       #- file: config/movies.yaml
@@ -92,14 +96,18 @@ libraries:
           horizontal_align: right
 
   TV Shows:
+
+    report_path: /config/reports/tv.yaml
+
+    settings:
+      asset_directory: config/assets/tv
+
     template_variables:
       use_separator: true
       #sep_style: orig
       #visible_library: true                               # Visibility of collections in library
       #visible_home: true                                  # Visibility of collections on MY home tab
       #visible_shared: true                                # Visibility of collections on shared user's home tab
-
-    report_path: /config/reports/tv_report.yaml
 
     collection_files:
       #- file: config/tv.yaml
@@ -168,7 +176,11 @@ libraries:
   #####################################
 
   # pmm_mov:
+  #
   #   report_path: /config/reports/pmm_mov.yaml
+
+  #   settings:
+  #     asset_directory: config/assets/movies
 
   #   collection_files:
   #     #- git: meisnate12/People
@@ -184,7 +196,11 @@ libraries:
   #     - default: audio_codec
 
   # pmm_tv:
+  #
   #   report_path: /config/reports/pmm_tv.yaml
+
+  #   settings:
+  #     asset_directory: config/assets/tv
 
   #   collection_files:
   #     #- file: config/tv.yaml
@@ -234,7 +250,7 @@ settings:
   cache_expiration: 60
   asset_directory: config/assets
   asset_folders: true
-  asset_depth: 0
+  asset_depth: 1
   create_asset_folders: false
   dimensional_asset_rename: false
   download_url_assets: false

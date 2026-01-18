@@ -76,6 +76,8 @@ spec:
         globalMounts:
           - path: /config/assets
             subPath: assets
+          - path: /config/reports
+            subPath: kometa/reports
       configmap:
         type: configMap
         name: kometa
