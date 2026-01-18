@@ -2,7 +2,7 @@ collections:
   Maintainerr_Leaving_Soon:
     name: "Movies Leaving Soon"
     summary: "These movies are leaving the plex server soon. Watch now to prevent them from being deleted."
-    file_poster: /config/assets/posters/generic_leaving_soon.jpeg
+    file_poster: /config/assets/posters/plex_generic_leaving_soon.jpg
     sort_title: "!000"
     blank_collection: true
     sync_mode: sync
