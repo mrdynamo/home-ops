@@ -39,5 +39,3 @@ spec:
         #   - sourceLabels: [__meta_kubernetes_pod_container_name, __meta_kubernetes_pod_container_port_number]
         #     regex: 'longhorn-manager;9500'
         #     action: keep
-    podAnnotations:
-      secret.reloader.stakater.com/reload: *secret
