@@ -9,28 +9,13 @@ spec:
   chartRef:
     kind: OCIRepository
     name: longhorn
-  valuesFrom:
-    - kind: Secret
-      name: &secret longhorn-secret
-      valuesKey: LONGHORN_BACKUP_TARGET
-      targetPath: defaultBackupStore.backupTarget
   values:
-    # # https://github.com/longhorn/longhorn/issues/11939
-    # preUpgradeChecker:
-    #   upgradeVersionCheck: false
-    # image:
-    #   longhorn:
-    #     manager:
-    #       tag: v1.10.0-hotfix-1
-    # https://github.com/longhorn/longhorn/blob/v1.10.0/chart/values.yaml
     monitoring:
       enabled: true
       createPrometheusRules: true
     persistence:
       defaultClass: false
       defaultDataLocality: best-effort
-    # defaultBackupStore:
-    #   backupTarget: ''
     defaultSettings:
       allowRecurringJobsWhileVolumeDetached: "true"
       createDefaultDiskLabeledNodes: "true"
