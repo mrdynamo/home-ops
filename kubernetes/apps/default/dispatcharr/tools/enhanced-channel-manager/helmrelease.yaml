@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager
-              tag: 0.8.0-0050-dev@sha256:98d11fbbf69ed134d804143941a00f028f7cf6f9e911feee71f423a4bafd7f0f
+              tag: 0.8.0@sha256:43d82df01c17731b3ff2b2a0d8335dd2cf4f04a8e551bf2234db0225469c1bf6
             command:
               - uvicorn
             args:
