@@ -23,8 +23,8 @@ spec:
               TZ: America/Chicago
               PORT: &port 8080
               APP_ENV: production
-              UPLOAD_DIR: /data/uploads
-              TRANSCRIPTS_DIR: /data/transcripts
+              # UPLOAD_DIR: /data/uploads
+              # TRANSCRIPTS_DIR: /data/transcripts
             probes:
               liveness: &probes
                 enabled: false
