@@ -27,6 +27,15 @@ spec:
           global:
             resolveTimeout: 5m
         externalUrl: https://alertmanager.${INTERNAL_SECRET_DOMAIN}
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k8s-04
         storage:
           volumeClaimTemplate:
             spec:
@@ -52,6 +61,15 @@ spec:
               sectionName: https
       prometheusSpec:
         externalUrl: https://prometheus.${INTERNAL_SECRET_DOMAIN}
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: NotIn
+                      values:
+                        - k8s-04
         version: v2.55.1 # override 'unsupported Prometheus version' error
         image:
           registry: mirror.gcr.io
@@ -101,6 +119,15 @@ spec:
       #   limits:
       #     cpu: 500m
       #     memory: 200Mi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
     kube-state-metrics:
       fullnameOverride: kube-state-metrics
       metricLabelsAllowlist:
@@ -108,6 +135,15 @@ spec:
         - deployments=[*]
         - persistentvolumeclaims=[*]
       prometheus:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                      - matchExpressions:
+                          - key: kubernetes.io/hostname
+                            operator: NotIn
+                            values:
+                              - k8s-04
         monitor:
           enabled: true
           relabelings:

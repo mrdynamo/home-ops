@@ -78,6 +78,15 @@ spec:
               accessMode: ReadWriteOnce
               size: 2Gi
     defaultPodOptions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
       hostUsers: false
     service:
       app:

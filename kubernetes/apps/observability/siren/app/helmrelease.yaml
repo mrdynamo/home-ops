@@ -49,6 +49,15 @@ spec:
               limits:
                 memory: 256Mi
     defaultPodOptions:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
