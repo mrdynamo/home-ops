@@ -81,4 +81,4 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
-          - path: /app/data/whisperx-env
+          - path: /app/whisperx-env
