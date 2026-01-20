@@ -27,6 +27,7 @@ resources:
   - ./prowlarr/ks.yaml
   - ./radarr/ks.yaml
   - ./sabnzbd/ks.yaml
+  - ./scriberr/ks.yaml
   - ./seerr/ks.yaml
   - ./shelfmark/ks.yaml
   - ./sonarr/ks.yaml
