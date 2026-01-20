@@ -82,4 +82,4 @@ spec:
         globalMounts:
           - path: /tmp
           - path: /app/whisperx-env
-          - path: /home/appuser/.cache/uv
+          - path: /home/appuser
