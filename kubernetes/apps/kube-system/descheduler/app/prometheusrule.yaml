@@ -8,7 +8,7 @@ spec:
   groups:
     - name: descheduler
       rules:
-        - alert: DeschedulerEvicetedPods
+        - alert: DeschedulerEvictedPods
           expr: |-
             descheduler_pods_evicted{} > 0
           for: 15m
