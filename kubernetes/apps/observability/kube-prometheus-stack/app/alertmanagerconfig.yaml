@@ -51,10 +51,10 @@ spec:
   receivers:
   - name: "null"
   - name: discord
-    discordConfigs: &discordConfigs
+    discordConfigs:
       - apiURL:
           name: &secret alertmanager-secret
-          key: ALERTMANAGER_DISCORD_WEBHOOK
+          key: &discordKey ALERTMANAGER_DISCORD_WEBHOOK
         avatarURL: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alertmanager.png
     # - name: heartbeat
     #   webhookConfigs:
@@ -66,7 +66,7 @@ spec:
     #         name: *secret
     #         key: BUDDY_HEARTBEAT_URL
   - name: pushover
-    pushoverConfigs: &pushoverConfigs
+    pushoverConfigs:
       - html: true
         message: |-
           {{- range .Alerts }}
@@ -96,12 +96,51 @@ spec:
         ttl: 86400s
         token:
           name: *secret
-          key: ALERTMANAGER_PUSHOVER_TOKEN
+          key: &pushoverToken ALERTMANAGER_PUSHOVER_TOKEN
         userKey:
           name: *secret
-          key: PUSHOVER_USER_KEY
+          key: &pushoverKey PUSHOVER_USER_KEY
         url: https://siren.${INTERNAL_SECRET_DOMAIN}/alerts
         urlTitle: View in Siren
   - name: all-receivers
-    discordConfigs: *discordConfigs
-    pushoverConfigs: *pushoverConfigs
+    discordConfigs:
+      - apiURL:
+          name: *secret
+          key: *discordKey
+        avatarURL: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alertmanager.png
+    pushoverConfigs:
+      - html: true
+        message: |-
+          {{- range .Alerts }}
+            {{- if ne .Annotations.description "" }}
+              {{ .Annotations.description }}
+            {{- else if ne .Annotations.summary "" }}
+              {{ .Annotations.summary }}
+            {{- else if ne .Annotations.message "" }}
+              {{ .Annotations.message }}
+            {{- else }}
+              Alert description not available
+            {{- end }}
+            {{- if gt (len .Labels.SortedPairs) 0 }}
+              <small>
+                {{- range .Labels.SortedPairs }}
+                  <b>{{ .Name }}:</b> {{ .Value }}
+                {{- end }}
+              </small>
+            {{- end }}
+          {{- end }}
+        priority: |-
+          {{ if eq .Status "firing" }}1{{ else }}0{{ end }}
+        sendResolved: true
+        sound: gamelan
+        title: >-
+          [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+        ttl: 86400s
+        token:
+          name: *secret
+          key: *pushoverToken
+        userKey:
+          name: *secret
+          key: *pushoverKey
+        url: https://siren.${INTERNAL_SECRET_DOMAIN}/alerts
+        urlTitle: View in Siren
