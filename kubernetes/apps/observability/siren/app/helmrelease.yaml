@@ -19,7 +19,7 @@ spec:
           app:
             image:
               repository: ghcr.io/shamubernetes/siren
-              tag: v1.3.45@sha256:b953b1e5da369b0a3c56b13b8aa32944a833a358e8df3529c9465edc9d392661
+              tag: v1.3.46@sha256:81fcc52c036f0a777e34e48c92427216bc189db7689c827bfd18e7df20478b0d
             env:
               TZ: America/Chicago
               PORT: &port 3000
