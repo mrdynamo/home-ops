@@ -23,6 +23,7 @@ spec:
               TZ: America/Chicago
               PORT: &port 8080
               APP_ENV: production
+              SECURE_COOKIES: false
               # UPLOAD_DIR: /data/uploads
               # TRANSCRIPTS_DIR: /data/transcripts
             probes:
