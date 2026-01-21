@@ -11,10 +11,10 @@ spec:
         - alert: DeschedulerEvictedPods
           expr: |-
             descheduler_pods_evicted{} > 0
-          for: 15m
+          for: 1m
+          keep_firing_for: 15m
           annotations:
             summary: >-
-              Descheduler has recently evicted pods to balance utilization.
-              The {{ $labels.name }} endpoint is down.
+              Descheduler has recently evicted pods on node {{ $labels.node }} due to: {{ $labels.strategy }}.
           labels:
             severity: critical
