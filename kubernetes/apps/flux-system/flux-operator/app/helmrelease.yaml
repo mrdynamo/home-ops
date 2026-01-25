@@ -10,6 +10,13 @@ spec:
     kind: OCIRepository
     name: flux-operator
   values:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 2000m
+        memory: 512Mi
     serviceMonitor:
       create: true
     web:
