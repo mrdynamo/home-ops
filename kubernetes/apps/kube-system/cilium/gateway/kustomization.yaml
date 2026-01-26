@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./certificate.yaml
   - ./external-cf.yaml
+  - ./external-vps.yaml
   - ./external.yaml
   - ./internal.yaml
   - ./pushsecret.yaml
