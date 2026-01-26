@@ -78,25 +78,12 @@ spec:
             port: *port
     route:
       app:
-        # annotations:
-        #   external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
-        #   gatus.home-operations.com/endpoint: |-
-        #     conditions: ["[STATUS] == any(401, 530)"]
         hostnames:
-          - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
-          - name: internal
+          - name: external-vps
             namespace: kube-system
             sectionName: https
-        # annotations:
-        #   gatus.home-operations.com/endpoint: |-
-        #     conditions: ["[STATUS] == any(401, 530)"]
-        # hostnames:
-        #   - "{{ .Release.Name }}.${SECRET_DOMAIN}"
-        # parentRefs:
-        #   - name: external
-        #     namespace: kube-system
-        #     sectionName: https
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
