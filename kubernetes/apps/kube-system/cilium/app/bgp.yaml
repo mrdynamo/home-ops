@@ -57,9 +57,13 @@ metadata:
   name: bgp-cluster-config
 spec:
   nodeSelector:
-    matchLabels:
-      # kubernetes.io/os: linux
-      node-role.kubernetes.io/worker: ""
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: NotIn
+        values:
+          - ""
+    # matchLabels:
+    #   kubernetes.io/os: linux
   bgpInstances:
     - name: cilium
       localASN: 65200
