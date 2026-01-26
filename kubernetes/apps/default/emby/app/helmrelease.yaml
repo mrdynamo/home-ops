@@ -78,12 +78,10 @@ spec:
             port: *port
     route:
       app:
-        annotations:
-          external-dns.alpha.kubernetes.io/target: "external-vps.${SECRET_DOMAIN}"
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
-          - name: external
+          - name: external-vps
             namespace: kube-system
             sectionName: https
     persistence:
