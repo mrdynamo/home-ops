@@ -9,16 +9,19 @@ spec:
     - dnsName: "external.${SECRET_DOMAIN}"
       recordType: CNAME
       targets: ["${DYNAMIC_DNS}"]
-# ---
-# # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/externaldns.k8s.io/dnsendpoint_v1alpha1.json
-# apiVersion: externaldns.k8s.io/v1alpha1
-# kind: DNSEndpoint
-# metadata:
-#   name: external-vps-ddns
-#   annotations:
-#     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
-# spec:
-#   endpoints:
-#     - dnsName: "external-vps.${SECRET_DOMAIN}"
-#       recordType: CNAME
-#       targets: ["${VPS_DYNAMIC_DNS}"]
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/externaldns.k8s.io/dnsendpoint_v1alpha1.json
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: external-vps-ddns
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+spec:
+  endpoints:
+    - dnsName: "external-vps.${SECRET_DOMAIN}"
+      recordType: CNAME
+      targets: ["${VPS_DYNAMIC_DNS}"]
+      providerSpecific:
+        - name: external-dns.alpha.kubernetes.io/cloudflare-proxied
+          value: "false"
