@@ -12,8 +12,8 @@ metadata:
         dns-resolver: tcp://1.1.1.1:53
       conditions: ["[STATUS] == any(200, 530)"]
       group: external
-    labels:
-      gateway-access: "external"
+  labels:
+    gateway-access: "external"
 spec:
   gatewayClassName: cilium
   addresses:

@@ -10,8 +10,8 @@ metadata:
       client:
         dns-resolver: tcp://1.1.1.1:53
       group: external
-    labels:
-      gateway-access: "external"
+  labels:
+    gateway-access: "external"
 spec:
   gatewayClassName: cilium
   addresses:
