@@ -85,7 +85,7 @@ spec:
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
-          - name: external-vps
+          - name: internal
             namespace: kube-system
             sectionName: https
     persistence:
