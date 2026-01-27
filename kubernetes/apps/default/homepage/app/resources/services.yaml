@@ -124,6 +124,12 @@
         icon: twitch.svg
         namespace: default
         app: twitchpoints
+    - Scriberr:
+        href: https://scriberr.${INTERNAL_SECRET_DOMAIN}/
+        description: Audio transcription service
+        icon: https://raw.githubusercontent.com/rishikanthc/Scriberr/main/logo.svg
+        namespace: default
+        app: scriberr
 
 - Network:
     - Unifi Cloud Gateway:
