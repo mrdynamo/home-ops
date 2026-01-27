@@ -110,7 +110,7 @@ libraries:
       #visible_shared: true                                # Visibility of collections on shared user's home tab
 
     collection_files:
-      - file: config/tv.yaml
+      #- file: config/tv.yaml
       #- file: config/remove-overlays.yaml
       - default: separator_chart
         template_variables:
