@@ -153,6 +153,10 @@
         href: https://proxy.local.${SECRET_DOMAIN}/
         description: Reverse proxy instance
         icon: nginx-proxy-manager.svg
+    - Nginx Proxy Manager - VPS:
+        href: https://proxy-vps.local.${SECRET_DOMAIN}/
+        description: Reverse proxy instance (VPS)
+        icon: nginx-proxy-manager.svg
     - Cloudflare DNS:
         href: {{HOMEPAGE_VAR_CLOUDFLARE_URL}}
         description: Cloudflare Console
