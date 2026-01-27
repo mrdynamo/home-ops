@@ -34,6 +34,10 @@
             url: {{HOMEPAGE_VAR_PORTAINER01_URL}}
             env: 2
             key: {{HOMEPAGE_VAR_PORTAINER01_API_KEY}}
+    - Oracle Cloud:
+        href: https://www.oracle.com/cloud/sign-in.html
+        description: Oracle Cloud Console
+        icon: oracle.svg
 
 - Storage:
     - TrueNAS:
