@@ -81,7 +81,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == any(401, 530)"]
+            conditions: ["[STATUS] == any(200, 401, 530)"]
         hostnames:
           - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
