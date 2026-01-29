@@ -1,15 +1,358 @@
 {
   "patterns": {
-    "911": {
-      "name": "Vice HD",
+    "937": {
+      "enabled": true,
+      "name": "Arizona Diamondbacks",
+      "regex": ["ARIZONA DIAMONDBACKS"]
+    },
+    "938": {
+      "enabled": true,
+      "name": "Atlanta Braves",
+      "regex": ["ATLANTA BRAVES"]
+    },
+    "939": {
+      "enabled": true,
+      "name": "Baltimore Orioles",
+      "regex": ["BALTIMORE ORIOLES"]
+    },
+    "940": {
+      "enabled": true,
+      "name": "Boston Red Sox",
+      "regex": ["BOSTON RED SOX"]
+    },
+    "941": {
+      "enabled": true,
+      "name": "Chicago Cubs",
+      "regex": ["CHICAGO CUBS"]
+    },
+    "942": {
+      "enabled": true,
+      "name": "Chicago White Sox",
+      "regex": ["CHICAGO WHITE SOX"]
+    },
+    "943": {
+      "enabled": true,
+      "name": "Cincinnati Reds",
+      "regex": ["CINCINNATI REDS"]
+    },
+    "944": {
+      "enabled": true,
+      "name": "Cleveland Guardians",
+      "regex": ["CLEVELAND GUARDIANS"]
+    },
+    "945": {
+      "enabled": true,
+      "name": "Colorado Rockies",
+      "regex": ["COLORADO ROCKIES"]
+    },
+    "946": {
+      "enabled": true,
+      "name": "Detroit Tigers",
+      "regex": ["DETROIT TIGERS"]
+    },
+    "947": {
+      "enabled": true,
+      "name": "Houston Astros",
+      "regex": ["HOUSTON ASTROS"]
+    },
+    "948": {
+      "enabled": true,
+      "name": "Kansas City Royals",
+      "regex": ["KANSAS CITY ROYALS"]
+    },
+    "949": {
+      "enabled": true,
+      "name": "Los Angeles Angels",
+      "regex": ["LOS ANGELES ANGELS"]
+    },
+    "950": {
+      "enabled": true,
+      "name": "Los Angeles Dodgers",
+      "regex": ["LOS ANGELES DODGERS"]
+    },
+    "951": {
+      "enabled": true,
+      "name": "Miami Marlins",
+      "regex": ["MIAMI MARLINS"]
+    },
+    "952": {
+      "enabled": true,
+      "name": "Milwaukee Brewers",
+      "regex": ["MILWAUKEE BREWERS"]
+    },
+    "953": {
+      "enabled": true,
+      "name": "Minnesota Twins",
+      "regex": ["MINNESOTA TWINS"]
+    },
+    "954": {
+      "enabled": true,
+      "name": "New York Mets",
+      "regex": ["NEW YORK METS"]
+    },
+    "955": {
+      "enabled": true,
+      "name": "New York Yankees",
+      "regex": ["NEW YORK YANKEES"]
+    },
+    "956": {
+      "enabled": true,
+      "name": "Oakland Athletics",
+      "regex": ["OAKLAND ATHLETICS"]
+    },
+    "957": {
+      "enabled": true,
+      "name": "Philadelphia Phillies",
+      "regex": ["PHILADELPHIA PHILLIES"]
+    },
+    "958": {
+      "enabled": true,
+      "name": "Pittsburgh Pirates",
+      "regex": ["PITTSBURGH PIRATES"]
+    },
+    "959": {
+      "enabled": true,
+      "name": "San Diego Padres",
+      "regex": ["SAN DIEGO PADRES"]
+    },
+    "960": {
+      "enabled": true,
+      "name": "San Francisco Giants",
+      "regex": ["SAN FRANCISCO GIANTS"]
+    },
+    "961": {
+      "enabled": true,
+      "name": "Seattle Mariners",
+      "regex": ["SEATTLE MARINERS"]
+    },
+    "962": {
+      "enabled": true,
+      "name": "St. Louis Cardinals",
+      "regex": ["ST. LOUIS CARDINALS"]
+    },
+    "963": {
+      "enabled": true,
+      "name": "Tampa Bay Rays",
+      "regex": ["TAMPA BAY RAYS"]
+    },
+    "964": {
+      "enabled": true,
+      "name": "Texas Rangers",
+      "regex": ["TEXAS RANGERS"]
+    },
+    "965": {
+      "enabled": true,
+      "name": "Toronto Blue Jays",
+      "regex": ["TORONTO BLUE JAYS"]
+    },
+    "966": {
+      "enabled": true,
+      "name": "Washington Nationals",
+      "regex": ["WASHINGTON NATIONALS"]
+    },
+    "1041": {
+      "enabled": true,
+      "name": "Atlanta Hawks",
       "regex": [
-        "^US: VICELAND HD$"
-      ],
-      "enabled": true
+        "^(?:SLING|NBA):\\s+ATLANTA\\s+HAWKS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1042": {
+      "enabled": true,
+      "name": "Boston Celtics",
+      "regex": [
+        "^(?:SLING|NBA):\\s+BOSTON\\s+CELTICS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1043": {
+      "enabled": true,
+      "name": "Brooklyn Nets",
+      "regex": [
+        "^(?:SLING|NBA):\\s+BROOKLYN\\s+NETS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1044": {
+      "enabled": true,
+      "name": "Charlotte Hornets",
+      "regex": [
+        "^(?:SLING|NBA):\\s+CHARLOTTE\\s+HORNETS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1045": {
+      "enabled": true,
+      "name": "Chicago Bulls",
+      "regex": [
+        "^(?:SLING|NBA):\\s+CHICAGO\\s+BULLS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1046": {
+      "enabled": true,
+      "name": "Cleveland Cavaliers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+CLEVELAND\\s+CAVALIERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1047": {
+      "enabled": true,
+      "name": "Dallas Mavericks",
+      "regex": [
+        "^(?:SLING|NBA):\\s+DALLAS\\s+MAVERICKS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1048": {
+      "enabled": true,
+      "name": "Denver Nuggets",
+      "regex": [
+        "^(?:SLING|NBA):\\s+DENVER\\s+NUGGETS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1049": {
+      "enabled": true,
+      "name": "Detroit Pistons",
+      "regex": [
+        "^(?:SLING|NBA):\\s+DETROIT\\s+PISTONS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1050": {
+      "enabled": true,
+      "name": "Golden State Warriors",
+      "regex": [
+        "^(?:SLING|NBA):\\s+GOLDEN\\s+STATE\\s+WARRIORS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1051": {
+      "enabled": true,
+      "name": "Houston Rockets",
+      "regex": [
+        "^(?:SLING|NBA):\\s+HOUSTON\\s+ROCKETS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1052": {
+      "enabled": true,
+      "name": "Indiana Pacers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+INDIANA\\s+PACERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1063": {
+      "enabled": true,
+      "name": "LA Clippers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+LOS\\s+ANGELES\\s+CLIPPERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1064": {
+      "enabled": true,
+      "name": "Los Angeles Lakers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+LOS\\s+ANGELES\\s+LAKERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1065": {
+      "enabled": true,
+      "name": "Memphis Grizzlies",
+      "regex": [
+        "^(?:SLING|NBA):\\s+MEMPHIS\\s+GRIZZLIES(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1066": {
+      "enabled": true,
+      "name": "Miami Heat",
+      "regex": [
+        "^(?:SLING|NBA):\\s+MIAMI\\s+HEAT(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1067": {
+      "enabled": true,
+      "name": "Milwaukee Bucks",
+      "regex": [
+        "^(?:SLING|NBA):\\s+MILWAUKEE\\s+BUCKS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1068": {
+      "enabled": true,
+      "name": "Minnesota Timberwolves",
+      "regex": [
+        "^(?:SLING|NBA):\\s+MINNESOTA\\s+TIMBERWOLVES(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1069": {
+      "enabled": true,
+      "name": "New Orleans Pelicans",
+      "regex": [
+        "^(?:SLING|NBA):\\s+NEW\\s+ORLEANS\\s+PELICANS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1070": {
+      "enabled": true,
+      "name": "New York Knicks",
+      "regex": [
+        "^(?:SLING|NBA):\\s+NEW\\s+YORK\\s+KNICKS(?:\\s+\\(NYK\\))?(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1071": {
+      "enabled": true,
+      "name": "Oklahoma City Thunder",
+      "regex": [
+        "^(?:SLING|NBA):\\s+OKLAHOMA\\s+CITY\\s+THUNDER(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1072": {
+      "enabled": true,
+      "name": "Orlando Magic",
+      "regex": [
+        "^(?:SLING|NBA):\\s+ORLANDO\\s+MAGIC(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1073": {
+      "enabled": true,
+      "name": "Philadelphia 76ers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+PHILADELPHIA\\s+76ERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1074": {
+      "enabled": true,
+      "name": "Phoenix Suns",
+      "regex": [
+        "^(?:SLING|NBA):\\s+PHOENIX\\s+SUNS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1075": {
+      "enabled": true,
+      "name": "Portland Trail Blazers",
+      "regex": [
+        "^(?:SLING|NBA):\\s+PORTLAND\\s+TRAIL\\s+BLAZERS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1076": {
+      "enabled": true,
+      "name": "Sacramento Kings",
+      "regex": [
+        "^(?:SLING|NBA):\\s+SACRAMENTO\\s+KINGS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1077": {
+      "enabled": true,
+      "name": "San Antonio Spurs",
+      "regex": [
+        "^(?:SLING|NBA):\\s+SAN\\s+ANTONIO\\s+SPURS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1078": {
+      "enabled": true,
+      "name": "Toronto Raptors",
+      "regex": [
+        "^(?:SLING|NBA):\\s+TORONTO\\s+RAPTORS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
+    },
+    "1080": {
+      "enabled": true,
+      "name": "Washington Wizards",
+      "regex": [
+        "NBA: WASHINGTON WIZARDS*",
+        "^(?:SLING|NBA):\\s+WASHINGTON\\s+WIZARDS(?:\\s+(?:RAW|HD|SD|ᴿᴬᵂ|ᴴᴰ))?$"
+      ]
     }
-  },
-  "global_settings": {
-    "case_sensitive": false,
-    "require_exact_match": false
   }
 }
