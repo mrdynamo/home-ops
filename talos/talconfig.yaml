@@ -157,6 +157,7 @@ controlPlane:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
     - "@./patches/global/machine-features.yaml"
+    - "@./patches/controller/watchdog.yaml"
 
 # Worker patches
 worker:
