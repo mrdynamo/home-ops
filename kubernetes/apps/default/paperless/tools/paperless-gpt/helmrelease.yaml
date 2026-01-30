@@ -40,7 +40,7 @@ spec:
               PDF_OCR_TAGGING: true
               PDF_OCR_COMPLETE_TAG: _paperless-gpt_ocr-complete_
               # OCR Settings
-              OCR_LIMIT_PAGES: 5
+              OCR_LIMIT_PAGES: 50
               OCR_PROCESS_MODE: image
               PDF_SKIP_EXISTING_OCR: false
               # Enhanced OCR Settings
