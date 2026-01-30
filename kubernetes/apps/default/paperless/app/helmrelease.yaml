@@ -42,10 +42,10 @@ spec:
               PAPERLESS_DB_POOLSIZE: 1
               PAPERLESS_CONSUMER_POLLING: 60
               PAPERLESS_DATE_PARSER_LANGUAGES: en
-            # envFrom:
-            #   - secretRef:
-            #       ## PAPERLESS_DBPASS
-            #       name: "{{ .Release.Name }}-secret"
+              PAPERLESS_EMAIL_USE_TLS: true
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness: &probes
                 enabled: false
