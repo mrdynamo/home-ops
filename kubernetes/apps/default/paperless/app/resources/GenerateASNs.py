@@ -107,19 +107,8 @@ if __name__ == "__main__":
                 sys.exit(2)
             range_key = f"{rid_int:02d}"
 
-            # Find scripts dir by searching parents for a 'scripts' directory
-            scripts_dir = None
-            for p in Path(__file__).resolve().parents:
-                if (p / "scripts").is_dir():
-                    scripts_dir = p / "scripts"
-                    break
-            if scripts_dir is None:
-                print(
-                    "Could not locate scripts directory to store state", file=sys.stderr
-                )
-                sys.exit(2)
-
-            state_file = scripts_dir / "asn_state.json"
+            # Store state inside the barcodes directory under resources
+            state_file = Path(__file__).resolve().parent / "barcodes" / "state.json"
             try:
                 if state_file.exists():
                     import json
