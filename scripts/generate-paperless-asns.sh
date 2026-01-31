@@ -40,14 +40,28 @@ fi
 # Ensure the resources directory is on PYTHONPATH so `import AveryLabels` works
 export PYTHONPATH="$RES_DIR"
 
-# If a first arg is provided, treat it as STARTASN and export it for the Python script.
+# If a first arg is provided, accept either a range id (1-2 digits) or a start number
 if [ "$#" -ge 1 ]; then
-  START_ARG="$1"
-  shift || true
-  export STARTASN="$START_ARG"
+  FIRST="$1"
+  if [[ "$FIRST" =~ ^[0-9]{1,2}$ ]]; then
+    # treat as range id
+    RANGE="$FIRST"
+    shift || true
+    python "$SCRIPT" --range "$RANGE" "$@"
+    exit $?
+  elif [[ "$FIRST" =~ ^[0-9]+$ ]]; then
+    # treat as explicit start number
+    START="$FIRST"
+    shift || true
+    python "$SCRIPT" "$START" "$@"
+    exit $?
+  else
+    # forward flags/other args as-is
+    python "$SCRIPT" "$@"
+    exit $?
+  fi
+else
+  python "$SCRIPT" "$@"
 fi
-
-# Run the target script with any remaining args forwarded
-python "$SCRIPT" "$@"
 
 # venv will be removed by the trap on exit
