@@ -23,14 +23,16 @@ spec:
             env:
               # USERMAP_UID: &uid 1000
               # USERMAP_GID: *uid
+              # General Settings
               PAPERLESS_TIME_ZONE: America/Chicago
               PAPERLESS_APP_TITLE: "Document Archive"
               PAPERLESS_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
-              PAPERLESS_REDIS: "redis://dragonfly.database.svc:6379/13"
+              PAPERLESS_PORT: &port 8000
+              # Tika/Gotenberg Settings
               PAPERLESS_TIKA_ENABLED: 1
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenburg.default.svc:3000
               PAPERLESS_TIKA_ENDPOINT: http://paperless-tika.default.svc:9998
-              PAPERLESS_PORT: &port 8000
+              # PostgreSQL Settings
               PAPERLESS_DBENGINE: postgresql
               PAPERLESS_DBHOST: postgres-rw.database.svc
               PAPERLESS_DBNAME: paperless
@@ -40,9 +42,19 @@ spec:
               PAPERLESS_DBSSLCERT: /var/run/secrets/postgresql/tls.crt
               PAPERLESS_DBSSLKEY: /var/run/secrets/postgresql/tls.key
               PAPERLESS_DB_POOLSIZE: 1
+              # Redis Settings
+              PAPERLESS_REDIS: "redis://dragonfly.database.svc:6379/13"
+              # File Consumption Settings
               PAPERLESS_CONSUMER_POLLING: 60
               PAPERLESS_DATE_PARSER_LANGUAGES: en
+              # Email Settings
               PAPERLESS_EMAIL_USE_TLS: true
+              # Barcode Settings
+              PAPERLESS_CONSUMER_ENABLE_BARCODES: true
+              PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE: true
+              PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX: ASN
+              PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE: true
+              PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING: '{"ASN06.": "ASN06", "ASN09.": "ASN09"}'
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
