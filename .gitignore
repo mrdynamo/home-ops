@@ -23,3 +23,8 @@ talosconfig
 .venv/
 .DS_Store
 Thumbs.db
+dmesg*
+
+# Paperless ASN files
+/kubernetes/apps/default/paperless/app/resources/__pycache__
+/paperless-asn-
