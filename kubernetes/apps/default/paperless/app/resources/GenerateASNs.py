@@ -23,9 +23,17 @@ def main(start_asn: int):
     count = 189
     end_asn = start_asn + count - 1
 
+    # Determine 2-digit range identifier from start ASN (hundred-thousands)
+    range_id = start_asn // 100_000
+    range_key = f"{range_id:02d}"
+
     res_dir = Path(__file__).resolve().parent
-    out_name = f"ASN-{start_asn:05d}-{end_asn:05d}.pdf"
-    out_path = res_dir / out_name
+    barcodes_dir = res_dir / "barcodes"
+    barcodes_dir.mkdir(parents=True, exist_ok=True)
+
+    # Filename: ASN-<2digit range>-<start 7 digits>-<end 7 digits>.pdf
+    out_name = f"ASN-{range_key}-{start_asn:07d}-{end_asn:07d}.pdf"
+    out_path = barcodes_dir / out_name
 
     # Create an iterator of barcode strings for the labels
     def iterator():
