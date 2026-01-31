@@ -40,7 +40,14 @@ fi
 # Ensure the resources directory is on PYTHONPATH so `import AveryLabels` works
 export PYTHONPATH="$RES_DIR"
 
-# Run the target script with any args forwarded
+# If a first arg is provided, treat it as STARTASN and export it for the Python script.
+if [ "$#" -ge 1 ]; then
+  START_ARG="$1"
+  shift || true
+  export STARTASN="$START_ARG"
+fi
+
+# Run the target script with any remaining args forwarded
 python "$SCRIPT" "$@"
 
 # venv will be removed by the trap on exit
