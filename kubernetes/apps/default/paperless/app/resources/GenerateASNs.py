@@ -13,10 +13,25 @@ def render(c, x, y, barcode_value=None):
     if barcode_value is None:
         raise RuntimeError("render called without barcode_value")
 
+    # QR contains the full value (e.g. 'ASN0300000')
     qr = QRCodeImage(barcode_value, size=y * 0.9)
     qr.drawOn(c, 1 * mm, y * 0.05)
+
+    # Visible text should be formatted as: 'ASN-<2digit range>-<last5>'
+    # Expect barcode_value like 'ASN' + 7-digit number
+    val = barcode_value
+    if val.startswith("ASN") and len(val) >= 10:
+        num = val[3:]
+        # normalize to 7 digits
+        num = num.zfill(7)[-7:]
+        range_id = num[:2]
+        tail = num[2:]
+        visible = f"ASN-{range_id}-{tail}"
+    else:
+        visible = barcode_value
+
     c.setFont("Helvetica", 2 * mm)
-    c.drawString(y, (y - 2 * mm) / 2, barcode_value)
+    c.drawString(y, (y - 2 * mm) / 2, visible)
 
 
 def main(start_asn: int):
@@ -31,8 +46,13 @@ def main(start_asn: int):
     barcodes_dir = res_dir / "barcodes"
     barcodes_dir.mkdir(parents=True, exist_ok=True)
 
-    # Filename: ASN-<2digit range>-<start 7 digits>-<end 7 digits>.pdf
-    out_name = f"ASN-{range_key}-{start_asn:07d}-{end_asn:07d}.pdf"
+    # Filename: ASN-<2digit range>-<start tail 5 digits>-<end tail 5 digits>.pdf
+    # For example start_asn=0300000 -> start_tail='00000', end_asn=0300188 -> end_tail='00188'
+    start_str = f"{start_asn:07d}"
+    end_str = f"{end_asn:07d}"
+    start_tail = start_str[-5:]
+    end_tail = end_str[-5:]
+    out_name = f"ASN-{range_key}-{start_tail}-{end_tail}.pdf"
     out_path = barcodes_dir / out_name
 
     # Create an iterator of barcode strings for the labels
