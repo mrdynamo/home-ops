@@ -54,7 +54,7 @@ spec:
               PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE: true
               PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX: ASN
               PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE: true
-              PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING: '{"ASN06.": "ASN06", "ASN09.": "ASN09"}'
+              PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING: '{"ASN06.*": "ASN06", "ASN09.*": "ASN09"}'
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
