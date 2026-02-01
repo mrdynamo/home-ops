@@ -20,6 +20,8 @@ cluster:
         disabled: false
   etcd:
     extraArgs:
+      heartbeat-interval: "500"
+      election-timeout: "5000"
       listen-metrics-urls: http://0.0.0.0:2381
     advertisedSubnets:
       - 192.168.30.0/24
