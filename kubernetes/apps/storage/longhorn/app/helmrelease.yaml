@@ -10,13 +10,12 @@ spec:
     kind: OCIRepository
     name: longhorn
   values:
-    # preUpgradeChecker:
-    #   upgradeVersionCheck: false
     image:
       longhorn:
+        # https://longhorn.io/docs/1.11.0/important-notes/#hotfix
+        # https://github.com/longhorn/longhorn/issues/12573
         instanceManager:
-          repository: derekbit/longhorn-instance-manager
-          tag: 1.11.0-fix-leak@sha256:1ba4526862acce68253f848ae33ce590b8ed1443119519f49c009ae66a74902b
+          tag: v1.11.0-hotfix-1
     monitoring:
       enabled: true
       createPrometheusRules: true
