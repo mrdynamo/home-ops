@@ -13,7 +13,7 @@ spec:
     excludeNamespaces: "kube-system,flux-system,cert-manager"
     operator:
       replicas: 1
-      scanJobsConcurrentLimit: 3
+      scanJobsConcurrentLimit: 1
       scanJobTTL: 300s
       scanJobTimeout: 20m
       builtInTrivyServer: true
@@ -38,6 +38,7 @@ spec:
           cpu: 15m
           memory: 512M
         limits:
+          cpu: 500m
           memory: 1Gi
     trivyOperator:
       excludeImages: "quay.io/backube/*"
