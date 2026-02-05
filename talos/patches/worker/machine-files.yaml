@@ -7,5 +7,8 @@ machine:
         [ NFSMount_Global_Options ]
         nfsvers=4.2
         hard=True
-        nconnect=16
+        nconnect=4
         noatime=True
+        rsize=1048576
+        wsize=1048576
+        async=True
