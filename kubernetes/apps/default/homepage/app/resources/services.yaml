@@ -245,7 +245,7 @@
             namespace: default
             app: plex
         - Emby:
-            href: https://emby.${INTERNAL_SECRET_DOMAIN}/
+            href: https://emby.${SECRET_DOMAIN}/
             description: Secondary Emby server
             icon: emby.svg
             namespace: default
