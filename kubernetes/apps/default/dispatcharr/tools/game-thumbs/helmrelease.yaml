@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/sethwv/game-thumbs
-              tag: v1.5.0@sha256:808ecd5df025e2471fa3beb9c84153a1bd00b4466a19be8cfa6cc695064d53ac
+              tag: v1.5.1@sha256:b9538a9bbd1a27e4e4bae611bb3581aa69d4d4c5cacdb26f8a3a36709013ceaf
             env:
               TZ: America/Chicago
               XC_PROXY: true
