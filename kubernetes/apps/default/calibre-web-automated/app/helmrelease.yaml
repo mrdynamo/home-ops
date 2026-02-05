@@ -24,6 +24,9 @@ spec:
               PUID: 1000
               PGID: 1000
               NETWORK_SHARE_MODE: true
+            envFrom:
+              - secretRef:
+                  name: calibre-web-automated-secret
             probes:
               liveness: &probes
                 enabled: false
