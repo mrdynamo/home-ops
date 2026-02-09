@@ -50,17 +50,18 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 2Gi
-                nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+                gpu.intel.com/i915: 1 # Request portion of shared iGPU
+                # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
-      runtimeClassName: nvidia
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: nvidia.com/gpu.count
-                    operator: Gt
-                    values: ["0"]
+      # runtimeClassName: nvidia
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: nvidia.com/gpu.count
+      #               operator: Gt
+      #               values: ["0"]
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
