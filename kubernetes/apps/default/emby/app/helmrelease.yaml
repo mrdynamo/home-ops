@@ -98,7 +98,7 @@ spec:
         path: /mnt/tank/media/plex
         globalMounts:
           - path: /media
-            readOnly: true
+            readOnly: false
       tmp:
         type: emptyDir
       transcode:
