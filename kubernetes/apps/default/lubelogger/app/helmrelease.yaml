@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/hargata/lubelogger
-              tag: v1.5.8@sha256:ec072f19b7b9f90d38f23507ac5bb0c9295fbf70470e91e7f778a7ef51df7eef
+              tag: v1.5.9@sha256:1bc6765ccc1df9cbd4773188b0758ef845079885c2cf30cd9fe315c5a08d3084
             env:
               TZ: America/Chicago
               LC_ALL: en_US.UTF-8
