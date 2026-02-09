@@ -164,4 +164,4 @@ worker:
   patches:
     - "@./patches/worker/machine-kubelet.yaml"
     - "@./patches/worker/machine-labels.yaml"
-    - "@./patches/worker/machine-files.yaml"
+    # - "@./patches/worker/machine-files.yaml"
