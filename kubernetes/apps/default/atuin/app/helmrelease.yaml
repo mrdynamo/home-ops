@@ -25,6 +25,10 @@ spec:
               ATUIN_PORT: &port 80
               ATUIN_OPEN_REGISTRATION: "true"
               ATUIN_DB_URI: sqlite:///config/atuin.db
+              ATUIN_METRICS__ENABLE: "true"
+              ATUIN_METRICS__HOST: 0.0.0.0
+              ATUIN_METRICS__PORT: &metricsPort 8080
+              ATUIN_TLS__ENABLE: "false"
             args: ["start"]
             probes:
               liveness: &probes
@@ -64,7 +68,19 @@ spec:
       app:
         ports:
           http:
+            primary: true
             port: *port
+          metrics:
+            port: *metricsPort
+    serviceMonitor:
+      app:
+        serviceName: atuin
+        endpoints:
+          - port: metrics
+            scheme: http
+            path: /metrics
+            interval: 1m
+            scrapeTimeout: 10s
     route:
       app:
         hostnames:
