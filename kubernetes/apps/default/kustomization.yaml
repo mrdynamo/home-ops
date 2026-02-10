@@ -11,6 +11,7 @@ resources:
   - ./bazarr/ks.yaml
   - ./calibre/ks.yaml
   - ./calibre-web-automated/ks.yaml
+  - ./chaptarr/ks.yaml
   - ./dispatcharr/ks.yaml
   - ./emby/ks.yaml
   - ./homepage/ks.yaml
