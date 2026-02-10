@@ -395,6 +395,12 @@
                 type: bazarr
                 url: http://bazarr.default.svc.cluster.local:80
                 key: {{HOMEPAGE_VAR_BAZARR_API_KEY}}
+        - Chaptarr:
+            href: https://chaptarr.${INTERNAL_SECRET_DOMAIN}/
+            description: E-book/audiobook downloader
+            icon: chaptarr.svg
+            namespace: default
+            app: chaptarr
         - Shelfmark:
             href: https://shelfmark.${INTERNAL_SECRET_DOMAIN}/
             description: E-Book downloader web interface
