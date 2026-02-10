@@ -137,7 +137,7 @@ twitch_miner.mine(
         Streamer("mattmalone"),
         Streamer("scump"),
         Streamer("datmodz"),
-        Streamer("slr0xx"),
+        # Streamer("slr0xx"),
         # Streamer("huntthefrontgaming"),
         Streamer("jesseenterkin25"),
         Streamer("mummkey"),
