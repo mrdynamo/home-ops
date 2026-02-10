@@ -9,6 +9,7 @@
 | calibre                | 1 Gi  | Friday @ 10:00               | `0 10 * * 5`    | `0 15 * * 5`       | `0 16 * * 5`       |
 | calibre-web-automated  | 1 Gi  | Tuesday @ 09:00              | `0 9 * * 2`     | `0 14 * * 2`       | `0 15 * * 2`       |
 | channel-identifiarr    | 1 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
+| chaptarr               | 1 Gi  | Wednesday @ 10:00            | `0 10 * * 3`    | `0 15 * * 3`       | `0 16 * * 3`       |
 | dispatcharr            | 1 Gi  | Friday @ 10:00               | `0 10 * * 5`    | `0 15 * * 5`       | `0 16 * * 5`       |
 | emby                   | 8 Gi  | Monday @ 10:00               | `0 10 * * 1`    | `0 15 * * 1`       | `0 16 * * 1`       |
 | homepage               | 1 Gi  | Thursday @ 04:00             | `0 4 * * 4`     | `0 9 * * 4`        | `0 10 * * 4`       |
