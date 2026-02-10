@@ -26,7 +26,6 @@ spec:
               ATUIN_OPEN_REGISTRATION: "true"
               ATUIN_DB_URI: sqlite:///config/atuin.db
             command:
-              - atuin
               - start
             probes:
               liveness: &probes
