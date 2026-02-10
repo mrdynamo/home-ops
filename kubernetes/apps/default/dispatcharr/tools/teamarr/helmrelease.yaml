@@ -70,3 +70,5 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/data
+      tmp:
+        type: emptyDir
