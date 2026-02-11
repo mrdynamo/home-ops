@@ -25,6 +25,7 @@ from TwitchChannelPointsMiner.classes.entities.Streamer import (
 import os
 
 TWITCH_USERNAME = os.environ.get("TWITCH_USERNAME")
+TWITCH_PASSWORD = os.environ.get("TWITCH_PASSWORD")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
 DISCORD_CHAT_MENTION_WEBHOOK = os.environ.get("DISCORD_CHAT_MENTION_WEBHOOK")
 
