@@ -85,7 +85,7 @@ spec:
       configmap:
         type: configMap
         name: *app
-        defaultMode: 0o755
+        defaultMode: 0o655
         advancedMounts:
           twitchpoints:
             app:
