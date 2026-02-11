@@ -6,20 +6,15 @@ from TwitchChannelPointsMiner import TwitchChannelPointsMiner
 from TwitchChannelPointsMiner.logger import LoggerSettings, ColorPalette
 from TwitchChannelPointsMiner.classes.Chat import ChatPresence
 from TwitchChannelPointsMiner.classes.Discord import Discord
+from TwitchChannelPointsMiner.classes.Webhook import Webhook
 from TwitchChannelPointsMiner.classes.Telegram import Telegram
+from TwitchChannelPointsMiner.classes.Matrix import Matrix
+from TwitchChannelPointsMiner.classes.Pushover import Pushover
+from TwitchChannelPointsMiner.classes.Gotify import Gotify
 from TwitchChannelPointsMiner.classes.Settings import Priority, Events, FollowersOrder
-from TwitchChannelPointsMiner.classes.entities.Bet import (
-    Strategy,
-    BetSettings,
-    Condition,
-    OutcomeKeys,
-    FilterCondition,
-    DelayMode,
-)
-from TwitchChannelPointsMiner.classes.entities.Streamer import (
-    Streamer,
-    StreamerSettings,
-)
+from TwitchChannelPointsMiner.classes.entities.Bet import Strategy, BetSettings, Condition, OutcomeKeys, FilterCondition, DelayMode
+from TwitchChannelPointsMiner.classes.entities.Streamer import Streamer, StreamerSettings
+from TwitchChannelPointsMiner.utils import AttemptStrategy
 
 ## Get Environment Variables
 import os
@@ -117,6 +112,10 @@ twitch_miner = TwitchChannelPointsMiner(
             ),
         ),
     ),
+    gql=AttemptStrategy(
+        attempts=3,                             # Number of attempts to make per GQL request
+        attempt_interval_seconds=1              # Number of seconds to wait between attempts
+    )
 )
 
 # Enable analytics webpage
