@@ -74,13 +74,13 @@ spec:
         advancedMounts:
           twitchpoints:
             app:
-              - path: /usr/src/app/analytics
+              - path: /config/analytics
                 subPath: analytics
-              - path: /usr/src/app/cookies
+              - path: /config/cookies
                 subPath: cookies
-              - path: /usr/src/app/logs
+              - path: /config/logs
                 subPath: logs
-              - path: /usr/src/app/assets
+              - path: /config/assets
                 subPath: assets
       configmap:
         type: configMap
@@ -88,5 +88,5 @@ spec:
         advancedMounts:
           twitchpoints:
             app:
-              - path: /usr/src/app/run.py
+              - path: /config/run.py
                 subPath: run.py
