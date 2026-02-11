@@ -96,22 +96,18 @@ spec:
             - sh
             - -c
             - |
-              # Remove old certs
-              echo "Removing old certs"
-              rm /certs/postgres/pg-ca.crt
-              rm /certs/postgres/pg-tls.crt
-              rm /certs/postgres/pg-tls.key
               # Copy and rename certificates for Postgres SSL connection
               echo "Copying certs"
-              cp /pg-certs/ca.crt /certs/postgres/pg-ca.crt
-              cp /pg-certs/tls.crt /certs/postgres/pg-tls.crt
-              cp /pg-certs/tls.key /certs/postgres/pg-tls.key
+              cp -v /pg-certs/ca.crt /certs/postgres/pg-ca.crt
+              cp -v /pg-certs/tls.crt /certs/postgres/pg-tls.crt
+              cp -v /pg-certs/tls.key /certs/postgres/pg-tls.key
               # Set proper ownership and permissions for authentik user (uid=1000)
               echo "Adjusting cert permissions"
-              chown 1000:1000 /certs/postgres/pg-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
-              chmod 644 /certs/postgres/pg-ca.crt
-              chmod 644 /certs/postgres/pg-tls.crt
-              chmod 600 /certs/postgres/pg-tls.key
+              chown -v 1000:1000 /certs/postgres/pg-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
+              chmod -v 644 /certs/postgres/pg-ca.crt
+              chmod -v 644 /certs/postgres/pg-tls.crt
+              chmod -v 600 /certs/postgres/pg-tls.key
+              echo "Cert copy and permission adjustment completed"
           volumeMounts:
             - name: postgres-certs-source
               mountPath: /pg-certs
