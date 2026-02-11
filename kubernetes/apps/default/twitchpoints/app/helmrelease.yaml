@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mrdynamo/twitch-channel-points-miner
-              tag: 2026.2.11@sha256:6c565299f5a0df7d682fe88b14ffa12b7146c13b801b32f404e990381da2d705
+              tag: 2026.2.11@sha256:82f90b114b43184eb82956074535f5016939774f77bd2d3a2981ac24b4e5ddc0
             env:
               TZ: America/Chicago
               TERM: xterm-256color
