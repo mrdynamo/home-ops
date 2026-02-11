@@ -96,6 +96,10 @@ spec:
             - sh
             - -c
             - |
+              # Remove old certs
+              rm /certs/postgres/pg-ca.crt
+              rm /certs/postgres/pg-tls.crt
+              rm /certs/postgres/pg-tls.key
               # Copy and rename certificates for Postgres SSL connection
               cp /pg-certs/ca.crt /certs/postgres/pg-ca.crt
               cp /pg-certs/tls.crt /certs/postgres/pg-tls.crt
