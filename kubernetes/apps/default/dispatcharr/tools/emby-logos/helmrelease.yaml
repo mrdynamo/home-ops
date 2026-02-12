@@ -53,5 +53,7 @@ spec:
       tmpfs:
         type: emptyDir
         globalMounts:
+            - path: /var/log
+              subPath: log
             - path: /etc/cron.d
               subPath: cron.d
