@@ -1,21 +1,273 @@
 {
-  "uid": "dispatcharr-overview",
-  "title": "Dispatcharr Overview",
-  "tags": ["dispatcharr", "exporter"],
-  "timezone": "browser",
-  "schemaVersion": 38,
-  "version": 1,
-  "refresh": "30s",
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "bargauge",
+      "name": "Bar gauge",
+      "version": ""
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
   "panels": [
     {
-      "id": 103,
-      "type": "table",
-      "title": "Streams",
+      "collapsed": false,
       "gridPos": {
+        "h": 1,
+        "w": 24,
         "x": 0,
-        "y": 0,
-        "h": 6,
-        "w": 24
+        "y": 0
+      },
+      "id": 9,
+      "panels": [],
+      "title": "Instance Info",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#14917e",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Dispatcharr Version$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": false,
+          "expr": "dispatcharr_info",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "keepLabels": ["version"],
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "version",
+            "renamePattern": "Dispatcharr Version"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#14917e",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Exporter Version$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_exporter_info",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A",
+          "useBackend": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "keepLabels": ["version"],
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "version",
+            "renamePattern": "Exporter Version"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 6,
+      "panels": [],
+      "title": "Active Sessions",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -25,16 +277,15 @@
               "type": "auto",
               "wrapText": false
             },
-            "inspect": false,
-            "filterable": false
+            "filterable": false,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -75,6 +326,10 @@
               {
                 "id": "custom.width",
                 "value": 200
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
               }
             ]
           },
@@ -112,7 +367,8 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "applyToRow": true,
-                  "type": "color-background"
+                  "type": "color-background",
+                  "wrapText": false
                 }
               },
               {
@@ -125,25 +381,31 @@
                   {
                     "options": {
                       "active": {
-                        "color": "#55a64b52",
+                        "color": "#55a64b80",
                         "index": 0
                       },
                       "buffering": {
-                        "color": "#ff780a52",
+                        "color": "#ff780a80",
                         "index": 1
                       },
                       "error": {
-                        "color": "#e02f4452",
+                        "color": "#e02f4480",
                         "index": 3
                       },
                       "waiting_for_clients": {
-                        "color": "#1f61c452",
+                        "color": "#1f61c480",
                         "index": 2
                       }
                     },
                     "type": "value"
                   }
                 ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic-by-name"
+                }
               }
             ]
           },
@@ -173,7 +435,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 175
               }
             ]
           },
@@ -200,9 +462,114 @@
                 "value": 100
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Progress"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "gauge",
+                  "valueDisplayMode": "hidden"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 75
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Program"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "auto"
+              }
+            ]
           }
         ]
       },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": ["count"],
+          "show": false
+        },
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_join(\n  dispatcharr_stream_uptime_seconds\n  * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution)\n      dispatcharr_stream_metadata,\n  \"provider_full\",\n  \" \",\n  \"provider\",\n  \"profile_name\"\n)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_join(\n  dispatcharr_stream_programming{current_subtitle!=\"\"}\n  * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution)\n      dispatcharr_stream_metadata,\n  \"program_title_full\",\n  \" - \",\n  \"current_title\",\n  \"current_subtitle\"\n)\nor\nlabel_join(\n  dispatcharr_stream_programming{current_subtitle=\"\"}\n  * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution)\n      dispatcharr_stream_metadata,\n  \"program_title_full\",\n  \"\",\n  \"current_title\"\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "title": "Streams",
       "transformations": [
         {
           "id": "labelsToFields",
@@ -211,58 +578,99 @@
           }
         },
         {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
-              "Value #A": true,
+              "Value #A": false,
+              "Value #B": true,
               "__name__": true,
               "channel_group": true,
+              "channel_name": false,
               "channel_uuid": true,
+              "current_description": true,
+              "current_end_time": true,
+              "current_start_time": true,
+              "current_subtitle": true,
+              "current_title": true,
               "group": true,
               "instance": true,
               "job": true,
+              "next_description": true,
+              "next_end_time": true,
+              "next_start_time": true,
+              "next_subtitle": true,
+              "next_title": true,
+              "previous_description": true,
+              "previous_end_time": true,
+              "previous_start_time": true,
+              "previous_subtitle": true,
+              "previous_title": true,
               "process": true,
               "profile_id": true,
-              "profile_name": false,
-              "provider": false,
+              "profile_name": true,
+              "program_title_full": false,
+              "provider": true,
               "provider_type": true,
               "resolution": false,
               "stream_id": true,
               "stream_name": true,
               "stream_profile": true,
-              "video_codec": true,
-              "endpoint": true,
-              "namespace": true,
-              "pod": true,
-              "service": true
+              "video_codec": true
             },
+            "includeByName": {},
             "indexByName": {
-              "Time": 8,
-              "Value": 6,
+              "Time": 11,
+              "Value #A": 17,
+              "Value #B": 5,
               "channel_name": 2,
               "channel_number": 0,
-              "channel_uuid": 9,
-              "group": 10,
-              "instance": 11,
-              "job": 12,
+              "channel_uuid": 12,
+              "current_description": 18,
+              "current_end_time": 19,
+              "current_start_time": 20,
+              "current_subtitle": 21,
+              "current_title": 3,
+              "group": 13,
+              "instance": 14,
+              "job": 15,
               "logo_url": 1,
-              "process": 13,
-              "profile_name": 5,
-              "provider": 4,
-              "resolution": 3,
-              "state": 7
+              "next_description": 22,
+              "next_end_time": 23,
+              "next_start_time": 24,
+              "next_subtitle": 25,
+              "next_title": 26,
+              "previous_description": 27,
+              "previous_end_time": 28,
+              "previous_start_time": 29,
+              "previous_subtitle": 30,
+              "previous_title": 31,
+              "process": 16,
+              "profile_name": 8,
+              "program_title_full": 4,
+              "provider": 7,
+              "provider_full": 9,
+              "resolution": 6,
+              "state": 10
             },
             "renameByName": {
               "Value": "Uptime",
+              "Value #A": "Uptime",
+              "Value #B": "Progress",
               "channel_name": "Name",
               "channel_number": "Channel",
+              "current_title": "Title",
               "logo_url": "Logo",
               "profile_name": "Profile",
+              "program_title_full": "Program",
               "provider": "Provider",
+              "provider_full": "Provider",
               "resolution": "Resolution"
-            },
-            "includeByName": {}
+            }
           }
         },
         {
@@ -290,228 +698,12 @@
           }
         }
       ],
-      "pluginVersion": "12.1.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_stream_uptime_seconds * on(channel_uuid, channel_number) group_left(channel_name, logo_url, state, provider, profile_name, resolution) dispatcharr_stream_metadata",
-          "format": "table",
-          "instant": true,
-          "range": false,
-          "refId": "A"
-        }
-      ],
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "showHeader": false,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": ["count"],
-          "countRows": true,
-          "fields": "",
-          "enablePagination": false
-        },
-        "sortBy": []
-      }
-    },
-
-    {
-      "id": 101,
-      "type": "bargauge",
-      "title": "Usage",
-      "gridPos": {
-        "x": 8,
-        "y": 15,
-        "h": 5,
-        "w": 8
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
-          "decimals": 0,
-          "fieldMinMax": false,
-          "max": 1,
-          "min": 0,
-          "unit": "percentunit"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "semi-dark-blue",
-                  "mode": "shades"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "pluginVersion": "",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(\n  dispatcharr_profile_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)\n/\nsum(\n  dispatcharr_profile_max_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)",
-          "hide": false,
-          "instant": true,
-          "legendFormat": "Total",
-          "range": false,
-          "refId": "B"
-        },
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_profile_connection_usage\n  unless on(profile_id, profile_name, account_name)\n  (dispatcharr_profile_days_to_expiry == 0)",
-          "instant": true,
-          "legendFormat": "{{account_name}} {{profile_name}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "horizontal",
-        "legend": {
-          "showLegend": false,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "displayMode": "basic",
-        "valueMode": "color",
-        "namePlacement": "auto",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizWidth": 8,
-        "minVizHeight": 16,
-        "maxVizHeight": 300
-      }
-    },
-
-    {
-      "id": 102,
-      "type": "bargauge",
-      "title": "Expiry",
-      "gridPos": {
-        "x": 16,
-        "y": 15,
-        "h": 5,
-        "w": 8
-      },
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "continuous-RdYlGr"
-          },
-          "decimals": 0,
-          "fieldMinMax": false,
-          "min": -1,
-          "unit": "d"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": ""
-            },
-            "properties": []
-          }
-        ]
-      },
-      "pluginVersion": "",
-      "targets": [
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_profile_days_to_expiry != -1",
-          "instant": true,
-          "legendFormat": "{{account_name}} {{profile_name}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "orientation": "horizontal",
-        "legend": {
-          "showLegend": false,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "displayMode": "basic",
-        "valueMode": "color",
-        "namePlacement": "auto",
-        "showUnfilled": true,
-        "sizing": "auto",
-        "minVizWidth": 8,
-        "minVizHeight": 16,
-        "maxVizHeight": 300
-      }
-    },
-
-    {
-      "id": 104,
-      "type": "table",
-      "title": "Clients",
-      "gridPos": {
-        "x": 0,
-        "y": 6,
-        "h": 5,
-        "w": 8
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -521,16 +713,15 @@
               "type": "auto",
               "wrapText": false
             },
-            "inspect": false,
-            "filterable": false
+            "filterable": false,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -551,8 +742,8 @@
                 "value": 0
               },
               {
-                "id": "custom.width",
-                "value": 100
+                "id": "custom.minWidth",
+                "value": 50
               }
             ]
           },
@@ -575,8 +766,8 @@
                 "value": false
               },
               {
-                "id": "custom.width",
-                "value": 100
+                "id": "custom.minWidth",
+                "value": 50
               }
             ]
           },
@@ -650,8 +841,8 @@
             },
             "properties": [
               {
-                "id": "custom.width",
-                "value": 120
+                "id": "custom.minWidth",
+                "value": 50
               }
             ]
           },
@@ -666,8 +857,8 @@
                 "value": "decbytes"
               },
               {
-                "id": "custom.width",
-                "value": 100
+                "id": "custom.minWidth",
+                "value": 50
               }
             ]
           },
@@ -678,17 +869,86 @@
             },
             "properties": [
               {
-                "id": "custom.width",
-                "value": 100
-              },
-              {
                 "id": "unit",
                 "value": "bps"
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 50
               }
             ]
           }
         ]
       },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 104,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": ["count"],
+          "show": false
+        },
+        "frameIndex": 1,
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_client_connection_duration_seconds \n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_client_bytes_sent\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_client_current_transfer_rate_bps\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "C"
+        }
+      ],
+      "title": "Clients",
       "transformations": [
         {
           "id": "labelsToFields",
@@ -724,12 +984,9 @@
               "stream_id": true,
               "stream_name": true,
               "stream_profile": true,
-              "video_codec": true,
-              "endpoint": true,
-              "namespace": true,
-              "pod": true,
-              "service": true
+              "video_codec": true
             },
+            "includeByName": {},
             "indexByName": {
               "Time": 5,
               "Value": 2,
@@ -754,8 +1011,7 @@
               "logo_url": "Logo",
               "profile_name": "Profile",
               "provider": "Provider"
-            },
-            "includeByName": {}
+            }
           }
         },
         {
@@ -783,71 +1039,425 @@
           }
         }
       ],
-      "pluginVersion": "12.1.0",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 5,
+      "panels": [],
+      "title": "Providers & Usage",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "decimals": 0,
+          "fieldMinMax": false,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "shades"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 2,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${datasource}"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_client_connection_duration_seconds \n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
-          "format": "table",
+          "expr": "sum(\n  dispatcharr_profile_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)\n/\nsum(\n  dispatcharr_profile_max_connections\n    unless on(profile_id, profile_name, account_name)\n    (dispatcharr_profile_days_to_expiry == 0)\n)",
           "hide": false,
           "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "dispatcharr_client_bytes_sent\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "Total",
           "range": false,
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_client_current_transfer_rate_bps\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
-          "format": "table",
-          "hide": false,
+          "expr": "dispatcharr_profile_connection_usage\n  unless on(profile_id, profile_name, account_name)\n  (dispatcharr_profile_days_to_expiry == 0)",
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "{{account_name}} {{profile_name}}",
           "range": false,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "title": "Usage",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "decimals": 0,
+          "fieldMinMax": false,
+          "mappings": [],
+          "min": -1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "d"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": ""
+            },
+            "properties": []
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 3,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_profile_days_to_expiry != -1",
+          "instant": true,
+          "legendFormat": "{{account_name}} {{profile_name}}",
+          "range": false,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "title": "Expiry",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "dispatcharr_active_streams",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Active Streams",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "editorMode": "code",
+          "expr": "dispatcharr_active_clients",
+          "legendFormat": "Active Clients",
+          "range": true,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "dispatcharr_m3u_accounts{status=\"total\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "M3U Accounts",
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "dispatcharr_epg_sources{status=\"total\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "EPG Sources",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "dispatcharr_channels",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Exported Channels",
+          "range": true,
           "refId": "C"
         }
       ],
+      "type": "stat"
+    },
+    {
       "datasource": {
         "type": "prometheus",
-        "uid": "${datasource}"
+        "uid": "${DS_PROMETHEUS}"
       },
-      "options": {
-        "showHeader": false,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": ["count"],
-          "countRows": false,
-          "fields": "",
-          "enablePagination": false
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
         },
-        "frameIndex": 1,
-        "sortBy": []
-      }
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "dispatcharr_m3u_account_stream_count{status=\"success\"}",
+          "instant": false,
+          "legendFormat": "{{account_name}}",
+          "range": true,
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ],
+      "title": "Incoming Streams",
+      "type": "stat"
     }
-  ]
+  ],
+  "refresh": "auto",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "definition": "label_values(dispatcharr_stream_metadata,channel_number)",
+        "includeAll": true,
+        "label": "Active Channel",
+        "name": "channel",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(dispatcharr_stream_metadata,channel_number)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Dispatcharr",
+  "uid": "aa842463-afa6-45fb-b63c-1649aa62ebe9",
+  "version": 20,
+  "weekStart": ""
 }
