@@ -14,5 +14,5 @@ spec:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
   configMapRef:
-    key: *app
-    name: dashboard.json
+    name: *app
+    key: dashboard.json
