@@ -6,6 +6,10 @@ resources:
   - ./externalsecret.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: emby-logos
+    files:
+      - passwd=./resources/passwd
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

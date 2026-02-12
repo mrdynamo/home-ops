@@ -12,6 +12,18 @@ spec:
   values:
     controllers:
       emby-logos:
+        # initContainers:
+        #   add-passwd:
+        #     image:
+        #       repository: busybox
+        #       tag: 1.37.0@sha256:b3255e7dfbcd10cb367af0d409747d511aeb66dfac98cf30e97e87e4207dd76f
+        #     command:
+        #       - sh
+        #       - -c
+        #       - |
+        #         cp /etc/passwd /work/passwd || true
+        #         echo 'emby:x:1000:1000:Emby User:/home/emby:/sbin/nologin' >> /work/passwd
+        #         chmod 0644 /etc/passwd
         containers:
           app:
             image:
@@ -57,3 +69,10 @@ spec:
               subPath: log
             - path: /etc/cron.d
               subPath: cron.d
+      passwd:
+        type: configMap
+        name: *app
+        defaultMode: 0664
+        globalMounts:
+          - path: /etc/passwd
+            subPath: passwd
