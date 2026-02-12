@@ -67,6 +67,8 @@ spec:
         globalMounts:
             - path: /var/log
               subPath: log
+            - path: /var/spool
+              subPath: spool
             - path: /etc/cron.d
               subPath: cron.d
       passwd:
