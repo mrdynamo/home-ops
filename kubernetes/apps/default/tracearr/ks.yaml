@@ -10,7 +10,6 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   components:
-    - ../../../../components/volsync
     - ../../../../components/database
     - ../../../../components/dragonfly
   dependsOn:
@@ -21,8 +20,6 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_CAPACITY: 1Gi
-      VOLSYNC_SCHEDULE: 0 9 * * 5 # Cron in UTC (CST: -6, CST: -5)
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
