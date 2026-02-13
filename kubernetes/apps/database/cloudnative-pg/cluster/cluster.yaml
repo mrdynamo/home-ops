@@ -105,8 +105,8 @@ spec:
         superuser: false
         disablePassword: true
 
-      # - name: tracearr
-      #   ensure: present
-      #   login: true
-      #   superuser: false
-      #   disablePassword: true
+      - name: tracearr
+        ensure: present
+        login: true
+        superuser: false
+        disablePassword: true
