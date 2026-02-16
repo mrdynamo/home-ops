@@ -18,6 +18,7 @@ resources:
   - ./invoiceninja/ks.yaml
   - ./karakeep/ks.yaml
   - ./kometa/ks.yaml
+  - ./krr/ks.yaml
   - ./lubelogger/ks.yaml
   - ./maintainerr/ks.yaml
   - ./mealie/ks.yaml
