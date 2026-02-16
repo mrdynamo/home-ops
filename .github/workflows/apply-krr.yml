@@ -1,0 +1,72 @@
+name: Apply KRR recommendations
+
+on:
+  schedule:
+    # Run 15 minutes after the krr cronjob (krr cron: "0 8 * * 1").
+    # krr runs Mondays at 08:00 UTC, so run this workflow Mondays at 08:15 UTC.
+    - cron: "15 8 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  apply-krr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Configure kubeconfig
+        env:
+          KUBECONFIG_SECRET: ${{ secrets.KUBECONFIG }}
+        run: |
+          if [ -z "$KUBECONFIG_SECRET" ]; then
+            echo "KUBECONFIG secret is missing" >&2
+            exit 1
+          fi
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_SECRET" > ~/.kube/config
+          chmod 600 ~/.kube/config
+          echo "KUBECONFIG=~/.kube/config" >> $GITHUB_ENV
+
+      - name: Make script executable
+        run: chmod +x scripts/apply-krr.sh
+
+      - name: Run apply-krr (writes changes)
+        env:
+          # ensure kubectl reads kubeconfig
+          KUBECONFIG: ${{ env.KUBECONFIG }}
+        run: |
+          ./scripts/apply-krr.sh --from-pvc --write
+
+      - name: Check for repo changes
+        id: changes
+        run: |
+          git --no-pager status --porcelain
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(krr): apply resource recommendations"
+          branch: apply-krr-${{ github.run_id }}
+          title: "chore(krr): apply resource recommendations"
+          body: |
+            This PR applies KRR resource recommendations (automatically generated).
+          labels: krr
