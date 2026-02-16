@@ -1,4 +1,31 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Runs the embedded Python script in an isolated, temporary virtualenv so it
+# doesn't modify or rely on the repo's or system's persistent python
+# environments. This mirrors generate-paperless-asns.sh behavior.
+
+TMPDIR=$(mktemp -d)
+cleanup() {
+  rm -rf "$TMPDIR"
+}
+trap cleanup EXIT
+
+PYTHON_BIN=$(command -v python3 || command -v python) || {
+  echo "python3 or python not found in PATH" >&2
+  exit 1
+}
+
+"$PYTHON_BIN" -m venv "$TMPDIR/venv"
+. "$TMPDIR/venv/bin/activate"
+
+pip install --upgrade pip setuptools wheel
+
+# Install ruamel.yaml which the script requires
+pip install ruamel.yaml
+
+# Run the embedded Python script using the venv's Python. Pass through args.
+python - "$@" <<'PYCODE'
 from __future__ import annotations
 
 import argparse
@@ -99,6 +126,7 @@ def _read_all_yaml_docs(path: Path) -> Tuple[str, List[Any], YAML]:
 
 def _dump_all_yaml_docs(yaml: YAML, docs: List[Any]) -> str:
 	from io import StringIO
+
 	buf = StringIO()
 	yaml.dump_all(docs, buf)
 	return buf.getvalue()
@@ -643,3 +671,5 @@ def main() -> int:
 
 if __name__ == "__main__":
 	raise SystemExit(main())
+PYCODE
+
