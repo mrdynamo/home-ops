@@ -68,9 +68,10 @@ spec:
               capabilities: {add: ["NET_RAW"], drop: ["ALL"]}
             resources:
               requests:
-                cpu: 100m
+                cpu: 16m
+                memory: 109Mi
               limits:
-                memory: 512Mi
+                memory: 109Mi
         statefulset:
           volumeClaimTemplates:
             - name: config

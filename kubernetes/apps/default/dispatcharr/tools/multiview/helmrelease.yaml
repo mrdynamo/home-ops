@@ -37,13 +37,13 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 284Mi
               limits:
-                memory: 1Gi
+                memory: 284Mi
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
       # runtimeClassName: nvidia

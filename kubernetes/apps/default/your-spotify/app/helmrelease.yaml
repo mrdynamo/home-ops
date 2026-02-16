@@ -38,19 +38,25 @@ spec:
             securityContext: &securityContext
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: 11m
+                memory: 190Mi
               limits:
-                memory: 1Gi
+                memory: 190Mi
       web:
         containers:
           app:
             image:
               repository: ghcr.io/yooooomi/your_spotify_client
               tag: 1.17.0@sha256:efe20e90bbfdad1b45bc62ef19cf73c63f1c8ddec52d838efe61a81b99daf1d1
+            resources:
+              requests:
+                cpu: 10m
+                memory: 167Mi
+              limits:
+                memory: 167Mi
             env:
               TIMEZONE: America/Chicago
               API_ENDPOINT: *api_endpoint
@@ -71,6 +77,12 @@ spec:
             image:
               repository: docker.io/library/mongo
               tag: 8.2.5@sha256:9e52bf8768ae4f59b9ca734845d15cee0e523ced14b900cc3692d241eec9154c
+            resources:
+              requests:
+                cpu: 16m
+                memory: 796Mi
+              limits:
+                memory: 796Mi
             probes: *probes
             # resources:
             #   requests:

@@ -52,9 +52,10 @@ spec:
                 enabled: true
             resources:
               requests:
-                cpu: 10m
+                cpu: 178m
+                memory: 1143Mi
               limits:
-                memory: 1Gi
+                memory: 1143Mi
 
       chrome:
         pod:
@@ -82,8 +83,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 1280Mi
               limits:
-                memory: 1Gi
+                memory: 1280Mi
 
       meilisearch:
         pod:
@@ -119,8 +121,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 205Mi
               limits:
-                memory: 4Gi
+                memory: 205Mi
 
     defaultPodOptions:
       securityContext:

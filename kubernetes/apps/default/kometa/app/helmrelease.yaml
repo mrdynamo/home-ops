@@ -46,17 +46,17 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
-            args: [ "--read-only-config", "--width 200", "--run" ]
+            args: ["--read-only-config", "--width 200", "--run"]
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 975m
+                memory: 1037Mi
               limits:
-                memory: 1Gi
+                memory: 1037Mi
         pod:
           restartPolicy: Never
     defaultPodOptions:

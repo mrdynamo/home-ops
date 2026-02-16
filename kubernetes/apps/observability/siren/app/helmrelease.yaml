@@ -42,12 +42,13 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 10m
+                memory: 231Mi
               limits:
-                memory: 256Mi
+                memory: 231Mi
     defaultPodOptions:
       affinity:
         nodeAffinity:
@@ -63,7 +64,7 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile: {type: RuntimeDefault}
     service:
       app:
         ports:

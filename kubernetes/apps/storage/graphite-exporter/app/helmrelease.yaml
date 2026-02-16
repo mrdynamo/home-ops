@@ -21,7 +21,7 @@ spec:
               tag: v0.16.0@sha256:e54bca6645ea8a9e8c52312a8540de98ad08819d38476c021d77a0eae75bc797
             env:
               TZ: America/Chicago
-            args: [ "--graphite.mapping-config=/tmp/graphite-mapping.conf", "--graphite.mapping-strict-match" ]
+            args: ["--graphite.mapping-config=/tmp/graphite-mapping.conf", "--graphite.mapping-strict-match"]
             probes:
               liveness: &probes
                 enabled: true
@@ -42,9 +42,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 128Mi
+                memory: 100Mi
               limits:
-                memory: 512Mi
+                memory: 100Mi
     # defaultPodOptions:
     #   securityContext:
     #     runAsNonRoot: true

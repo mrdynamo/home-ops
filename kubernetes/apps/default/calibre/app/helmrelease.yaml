@@ -44,10 +44,10 @@ spec:
             #     add: ["seccomp:unconfined"]
             resources:
               requests:
-                cpu: 10m
-                memory: 128Mi
+                cpu: 858m
+                memory: 1952Mi
               limits:
-                memory: 2Gi
+                memory: 1952Mi
                 nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
       runtimeClassName: nvidia

@@ -61,9 +61,10 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                cpu: 10m
+                cpu: 44m
+                memory: 216Mi
               limits:
-                memory: 1Gi
+                memory: 216Mi
         pod:
           affinity:
             podAffinity:
@@ -81,7 +82,7 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile: {type: RuntimeDefault}
     service:
       app:
         ports:

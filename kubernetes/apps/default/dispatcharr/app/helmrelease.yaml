@@ -51,15 +51,15 @@ spec:
               # allowPrivilegeEscalation: false
               # readOnlyRootFilesystem: true
               # capabilities: {drop: ["ALL"]}
-              capabilities: { add: ["SYS_NICE"] }
+              capabilities: {add: ["SYS_NICE"]}
             resources:
               # claims:
               #   - name: gpu
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 679m
+                memory: 2596Mi
               limits:
-                memory: 4Gi
+                memory: 2596Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     # defaultPodOptions:

@@ -75,16 +75,22 @@ spec:
             #   capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 100m
-                memory: 256Mi
+                cpu: 508m
+                memory: 2409Mi
               limits:
-                memory: 4Gi
+                memory: 2409Mi
       gotenburg:
         containers:
           app:
             image:
               repository: ghcr.io/mchestr/gotenberg
               tag: 8.17.3
+            resources:
+              requests:
+                cpu: 10m
+                memory: 483Mi
+              limits:
+                memory: 483Mi
             env:
               DISABLE_GOOGLE_CHROME: "1"
             # securityContext: *sc
@@ -95,6 +101,12 @@ spec:
               repository: docker.io/apache/tika
               tag: 3.2.3.0-full
             # securityContext: *sc
+            resources:
+              requests:
+                cpu: 10m
+                memory: 413Mi
+              limits:
+                memory: 413Mi
     defaultPodOptions:
       hostUsers: true
       securityContext:
