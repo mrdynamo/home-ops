@@ -42,9 +42,7 @@ spec:
 
     persistence:
       data:
-        type: emptyDir
-      repo:
-        type: emptyDir
+        existingClaim: "{{ .Release.Name }}"
 
     serviceAccount:
       *app : {}
