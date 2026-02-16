@@ -11,6 +11,98 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# If the user requests fetching krr.json from the 'krr' PVC in the default
+# namespace, either pass `--from-pvc`/`--krr-from-pvc` or set
+# `--krr-json pvc://<claimName>`. If `--krr-json` is omitted entirely we
+# will NOT fetch automatically (explicit flag is safer).
+FETCH_KRR=0
+KRR_PVC_NAME="krr"
+KRR_PVC_NS="default"
+LOCAL_KRR=""
+
+# Build a new argv array while detecting special flags/values
+NEW_ARGS=()
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--from-pvc|--krr-from-pvc)
+			FETCH_KRR=1
+			shift
+			;;
+		--krr-json)
+			if [ -z "${2:-}" ]; then
+				echo "ERROR: --krr-json requires a value" >&2
+				exit 2
+			fi
+			if [ "${2#pvc://}" != "$2" ]; then
+				# value like pvc://claimName
+				FETCH_KRR=1
+				KRR_PVC_NAME="${2#pvc://}"
+				shift 2
+			elif [ "${2}" = "pvc" ]; then
+				FETCH_KRR=1
+				shift 2
+			else
+				NEW_ARGS+=("--krr-json" "$2")
+				shift 2
+			fi
+			;;
+		*)
+			NEW_ARGS+=("$1")
+			shift
+			;;
+	esac
+done
+
+if [ "$FETCH_KRR" -eq 1 ]; then
+	if ! command -v kubectl >/dev/null 2>&1; then
+		echo "ERROR: kubectl not found in PATH; cannot fetch krr.json from PVC" >&2
+		exit 2
+	fi
+
+POD_MANIFEST="$TMPDIR/pod-krr-fetch.yaml"
+cat > "$POD_MANIFEST" <<YAML
+apiVersion: v1
+kind: Pod
+metadata:
+  name: krr-fetch
+  namespace: ${KRR_PVC_NS}
+spec:
+  restartPolicy: Never
+  containers:
+  - name: krr
+    image: alpine:latest
+    command: ["sh", "-c", "sleep 3600"]
+    volumeMounts:
+    - name: krr
+      mountPath: /data
+  volumes:
+  - name: krr
+    persistentVolumeClaim:
+      claimName: ${KRR_PVC_NAME}
+YAML
+
+kubectl apply -f "$POD_MANIFEST"
+	kubectl wait --for=condition=Ready pod/krr-fetch -n "$KRR_PVC_NS" --timeout=30s
+
+	LOCAL_KRR="$TMPDIR/krr.json"
+	if ! kubectl cp "${KRR_PVC_NS}/krr-fetch:/data/krr.json" "$LOCAL_KRR" >/dev/null 2>&1; then
+		echo "ERROR: failed to copy /data/krr.json from PVC ${KRR_PVC_NAME} in namespace ${KRR_PVC_NS}" >&2
+		kubectl delete pod krr-fetch -n "$KRR_PVC_NS" --ignore-not-found >/dev/null 2>&1 || true
+		exit 2
+	fi
+
+	# Ensure we delete the pod on cleanup
+	cleanup() {
+		rm -rf "$TMPDIR"
+		kubectl delete pod krr-fetch -n "$KRR_PVC_NS" --ignore-not-found >/dev/null 2>&1 || true
+	}
+
+	NEW_ARGS+=("--krr-json" "$LOCAL_KRR")
+fi
+
+# Replace positional params with the rebuilt args
+set -- "${NEW_ARGS[@]:-}"
+
 PYTHON_BIN=$(command -v python3 || command -v python) || {
   echo "python3 or python not found in PATH" >&2
   exit 1
