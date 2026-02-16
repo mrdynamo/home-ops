@@ -13,7 +13,7 @@ spec:
     - name: longhorn
       namespace: storage
   interval: 1h
-  path: ./kubernetes/apps/default/lubelogger/app
+  path: ./kubernetes/apps/default/krr/app
   postBuild:
     substitute:
       APP: *app
