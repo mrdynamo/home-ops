@@ -426,7 +426,17 @@ def _infer_namespace_from_path(repo_root: Path, file_path: Path) -> Optional[str
 	return None
 
 
-def _is_app_template_hr(doc: Dict[str, Any], *, chart_name: str, chartref_kind: str) -> bool:
+
+
+
+def _is_app_template_hr(doc: Dict[str, Any], *, chart_name: str, chartref_kind: str, ocirepo_index: Optional[Dict[str, List[str]]] = None) -> bool:
+	"""
+	Determine if a HelmRelease doc uses the given app-template chart.
+	If the HelmRelease references an OCIRepository by name (common pattern where
+	each app has its own OCIRepository resource named after the app), we consult
+	`ocirepo_index` to see whether that OCIRepository points to an upstream
+	`app-template` chart URL.
+	"""
 	spec = doc.get("spec") or {}
 
 	# chartRef style (your repo): spec.chartRef.kind/name
@@ -436,6 +446,13 @@ def _is_app_template_hr(doc: Dict[str, Any], *, chart_name: str, chartref_kind: 
 		cr_name = str(chart_ref.get("name") or "")
 		if cr_kind == chartref_kind and cr_name == chart_name:
 			return True
+		# If the chartRef references an OCIRepository named after the app, try
+		# to resolve that repo's URL and see if it points to the app-template
+		if cr_kind == chartref_kind and ocirepo_index is not None and cr_name:
+			urls = ocirepo_index.get(cr_name) or []
+			for u in urls:
+				if isinstance(u, str) and chart_name in u:
+					return True
 
 	# chart.spec.chart style: spec.chart.spec.chart
 	chart = spec.get("chart") or {}
@@ -642,6 +659,40 @@ def main() -> int:
 		print("No tracked YAML files found in repo.", file=sys.stderr)
 		return 2
 
+	# Build an index of OCIRepository resources by name -> list of URLs
+	ocirepo_index: Dict[str, List[str]] = {}
+	for fp in yaml_files:
+		try:
+			_, docs, _ = _read_all_yaml_docs(fp)
+		except Exception:
+			continue
+
+		for doc in docs:
+			if not isinstance(doc, dict):
+				continue
+			if str(doc.get("kind", "")) != "OCIRepository":
+				continue
+			api = str(doc.get("apiVersion", ""))
+			if not api.startswith("source.toolkit.fluxcd.io/"):
+				continue
+
+			meta = doc.get("metadata") or {}
+			name = str(meta.get("name") or "")
+			if not name:
+				continue
+			ns = str(meta.get("namespace") or "")
+			if not ns:
+				guess = _infer_namespace_from_path(repo_root, fp)
+				if guess:
+					ns = guess
+				else:
+					ns = "default"
+
+			spec = doc.get("spec") or {}
+			url = spec.get("url") if isinstance(spec, dict) else None
+			if isinstance(url, str):
+				ocirepo_index.setdefault(name, []).append(url)
+
 	# Index HelmReleases that match app-template
 	hr_index: Dict[HrRef, List[HrDocLoc]] = {}
 	hr_index_by_name: Dict[str, List[HrDocLoc]] = {}
@@ -655,7 +706,7 @@ def main() -> int:
 		for i, doc in enumerate(docs):
 			if not _is_helmrelease(doc):
 				continue
-			if not _is_app_template_hr(doc, chart_name=args.chart_name, chartref_kind=args.chartref_kind):
+			if not _is_app_template_hr(doc, chart_name=args.chart_name, chartref_kind=args.chartref_kind, ocirepo_index=ocirepo_index):
 				continue
 
 			ref = _hr_ref_from_doc(doc)
