@@ -49,12 +49,10 @@ spec:
               # claims:
               #   - name: gpu
               requests:
-                ## KRR applies nearly 6000m due to maintenance tasks running between 2-5 am.
-                ## Unneeded and limits k8s-04 too hard for other workloads.
-                cpu: 2000m
-                memory: 2595Mi
+                cpu: 115m
+                memory: 2482Mi
               limits:
-                memory: 2595Mi
+                memory: 2482Mi
                 gpu.intel.com/i915: 1 # Request portion of share iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
