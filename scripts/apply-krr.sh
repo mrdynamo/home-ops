@@ -58,6 +58,28 @@ if [ "$FETCH_KRR" -eq 1 ]; then
 		echo "ERROR: kubectl not found in PATH; cannot fetch krr.json from PVC" >&2
 		exit 2
 	fi
+	# If a k8s CronJob named 'krr' exists, trigger it as a one-off Job so it
+	# writes the latest /data/krr.json into the PVC before we copy it out.
+	if kubectl get cronjob krr -n "$KRR_PVC_NS" >/dev/null 2>&1; then
+		JOB_TS=$(date -u +%Y%m%d%H%M%S)
+		JOB_NAME="krr-manual-${JOB_TS}"
+		echo "Triggering cronjob krr as job/${JOB_NAME} in namespace ${KRR_PVC_NS}..."
+		if ! kubectl create job --from=cronjob/krr "${JOB_NAME}" -n "$KRR_PVC_NS" >/dev/null 2>&1; then
+			echo "ERROR: failed to create job from cronjob/krr" >&2
+			exit 2
+		fi
+
+		# wait for completion (5 minute timeout)
+		if ! kubectl wait --for=condition=complete job/"${JOB_NAME}" -n "$KRR_PVC_NS" --timeout=300s >/dev/null 2>&1; then
+			echo "ERROR: job ${JOB_NAME} did not complete within timeout" >&2
+			kubectl get pods -n "$KRR_PVC_NS" -l job-name="${JOB_NAME}" -o name | xargs -r -n1 kubectl logs -n "$KRR_PVC_NS" || true
+			kubectl delete job "${JOB_NAME}" -n "$KRR_PVC_NS" --ignore-not-found >/dev/null 2>&1 || true
+			exit 2
+		fi
+
+		echo "Job ${JOB_NAME} completed; cleaning up job resource..."
+		kubectl delete job "${JOB_NAME}" -n "$KRR_PVC_NS" --ignore-not-found >/dev/null 2>&1 || true
+	fi
 
 POD_MANIFEST="$TMPDIR/pod-krr-fetch.yaml"
 cat > "$POD_MANIFEST" <<YAML
