@@ -5,6 +5,10 @@ kind: Kustomization
 resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: krr
+    files:
+      - custom_strategy.py=./resources/custom_strategy.py
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

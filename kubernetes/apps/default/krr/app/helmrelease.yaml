@@ -31,6 +31,12 @@ spec:
               - python
               - krr.py
               - simple
+              - --history-duration
+              - "672" # DEFAULT: 336 hours (14 days)
+              - --cpu-percentile
+              - "75"  # DEFAULT: 95
+              - --memory-buffer-percentage
+              - "10"  # DEFAULT: 15
               - --allow_hpa
               - --use_oomkill_data
               - --max-workers
@@ -43,6 +49,14 @@ spec:
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
+      # configmap:
+      #   type: configMap
+      #   name: *app
+      #   advancedMounts:
+      #     kometa:
+      #       app:
+      #         - path: /data/custom_strategy.py
+      #           subPath: custom_strategy.py
 
     serviceAccount:
       *app : {}
