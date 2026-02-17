@@ -36,12 +36,14 @@ spec:
               - --cpu-percentile
               - "75"  # DEFAULT: 95
               - --memory-buffer-percentage
-              - "10"  # DEFAULT: 15
+              - "5"  # DEFAULT: 15
               - --allow_hpa
               - --use_oomkill_data
+              - --oom-memory-buffer-percentage
+              - "10"  # DEFAULT: 25
               - --max-workers
               - "3"
-              - -f
+              - --formatter
               - json
               - --fileoutput
               - /data/krr.json
