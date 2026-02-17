@@ -49,7 +49,9 @@ spec:
               # claims:
               #   - name: gpu
               requests:
-                cpu: 5429m
+                ## KRR applies nearly 6000m due to maintenance tasks running between 2-5 am.
+                ## Unneeded and limits k8s-04 too hard for other workloads.
+                cpu: 2000m
                 memory: 2595Mi
               limits:
                 memory: 2595Mi
