@@ -632,11 +632,20 @@ def main() -> int:
 	ap.add_argument("--min-severity", default="WARNING", help="Min severity: OK/GOOD/WARNING/CRITICAL (default: WARNING).")
 	ap.add_argument("--only-missing", action="store_true", help="Only set fields that are currently missing.")
 	ap.add_argument("--no-name-fallback", action="store_true", help="Disable unique name-only matching fallback.")
+	ap.add_argument("--exclude", action="append", default=[], help="HelmRelease names to exclude; repeatable or comma-separated.")
 	ap.add_argument("--write", action="store_true", help="Write changes (default: dry-run).")
 	ap.add_argument("--stage", action="store_true", help="git add changed files (implies --write).")
 	ap.add_argument("--commit", action="store_true", help="git commit changed files (implies --stage).")
 	ap.add_argument("--commit-message", default="chore: apply krr resource recommendations", help="Commit message.")
 	args = ap.parse_args()
+
+	# Normalize exclude list into a set of names (supports repeated flags and comma-separated values)
+	exclude_names = set()
+	for ex in args.exclude:
+		for part in str(ex).split(","):
+			name = part.strip()
+			if name:
+				exclude_names.add(name)
 
 	if args.commit:
 		args.stage = True
@@ -741,6 +750,10 @@ def main() -> int:
 		return raw, docs, yaml
 
 	for target, rec in krr_map.items():
+		# Skip targets that the user requested to exclude by name
+		if target.hr.name in exclude_names:
+			print(f"NOTE: excluded {target.hr.namespace}/{target.hr.name} per --exclude")
+			continue
 		locs = hr_index.get(target.hr)
 
 		if not locs and not args.no_name_fallback:
