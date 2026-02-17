@@ -63,16 +63,17 @@ spec:
                 memory: 1015Mi
               limits:
                 memory: 1015Mi
-        pod:
-          affinity:
-            podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/name
-                        operator: In
-                        values: ["calibre"]
-                  topologyKey: kubernetes.io/hostname
+        ## With Calibre HR disabled, bypass affinity so CWA/Shelfmark can schedule.
+        # pod:
+        #   affinity:
+        #     podAffinity:
+        #       requiredDuringSchedulingIgnoredDuringExecution:
+        #         - labelSelector:
+        #             matchExpressions:
+        #               - key: app.kubernetes.io/name
+        #                 operator: In
+        #                 values: ["calibre"]
+        #           topologyKey: kubernetes.io/hostname
     defaultPodOptions:
       securityContext:
         runAsNonRoot: false
