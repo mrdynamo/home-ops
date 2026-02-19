@@ -112,3 +112,5 @@ spec:
             subPath: ingest
           - path: /calibre-library
             subPath: "Calibre Library"
+          - path: /config/processed_books
+            subPath: cwa-originals
