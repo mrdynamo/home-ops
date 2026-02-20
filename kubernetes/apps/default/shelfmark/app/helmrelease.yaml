@@ -34,7 +34,6 @@ spec:
               - shelfmark.main:app
             env:
               TZ: America/Chicago
-              CWA_DB_PATH: /auth/app.db
               INGEST_DIR: /cwa-book-ingest
             probes:
               liveness: &probes
@@ -65,16 +64,6 @@ spec:
                 memory: 216Mi
               limits:
                 memory: 216Mi
-        # pod:
-        #   affinity:
-        #     podAffinity:
-        #       requiredDuringSchedulingIgnoredDuringExecution:
-        #         - labelSelector:
-        #             matchExpressions:
-        #               - key: app.kubernetes.io/name
-        #                 operator: In
-        #                 values: ["calibre-web-automated"]
-        #           topologyKey: kubernetes.io/hostname
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -91,20 +80,14 @@ spec:
     route:
       app:
         hostnames:
-          - "shelfmark.${INTERNAL_SECRET_DOMAIN}"
+          - "shelfmark.${SECRET_DOMAIN}"
         parentRefs:
-          - name: internal
+          - name: external
             namespace: kube-system
             sectionName: https
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      # calibre-web-db:
-      #   existingClaim: "calibre-web-automated"
-      #   globalMounts:
-      #     - path: /auth/app.db
-      #       subPath: app.db
-      #       readOnly: true
       cwa-book-ingest:
         type: nfs
         server: 192.168.20.21

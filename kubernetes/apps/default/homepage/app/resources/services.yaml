@@ -402,7 +402,7 @@
             namespace: default
             app: chaptarr
         - Shelfmark:
-            href: https://shelfmark.${INTERNAL_SECRET_DOMAIN}/
+            href: https://shelfmark.${SECRET_DOMAIN}/
             description: E-Book downloader web interface
             icon: https://raw.githubusercontent.com/calibrain/shelfmark/refs/heads/main/src/frontend/public/logo.png
             namespace: default
