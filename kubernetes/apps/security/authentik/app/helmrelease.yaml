@@ -40,6 +40,7 @@ spec:
       deploymentStrategy:
         type: RollingUpdate
       env:
+        # Postgres settings
         - name: AUTHENTIK_POSTGRESQL__NAME
           value: *app
         - name: AUTHENTIK_POSTGRESQL__HOST
@@ -54,6 +55,11 @@ spec:
           value: /certs/postgres/pg-tls.crt
         - name: AUTHENTIK_POSTGRESQL__SSLKEY
           value: /certs/postgres/pg-tls.key
+        # SMTP settings
+        - name: AUTHENTIK_EMAIL__USE_TLS
+          value: "true"
+        - name: AUTHENTIK_EMAIL__FROM
+          value: "authentik@${SECRET_DOMAIN}"
       envFrom:
         - secretRef:
             name: authentik-secret
