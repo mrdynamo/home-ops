@@ -65,16 +65,16 @@ spec:
                 memory: 216Mi
               limits:
                 memory: 216Mi
-        pod:
-          affinity:
-            podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/name
-                        operator: In
-                        values: ["calibre-web-automated"]
-                  topologyKey: kubernetes.io/hostname
+        # pod:
+        #   affinity:
+        #     podAffinity:
+        #       requiredDuringSchedulingIgnoredDuringExecution:
+        #         - labelSelector:
+        #             matchExpressions:
+        #               - key: app.kubernetes.io/name
+        #                 operator: In
+        #                 values: ["calibre-web-automated"]
+        #           topologyKey: kubernetes.io/hostname
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -99,12 +99,12 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      calibre-web-db:
-        existingClaim: "calibre-web-automated"
-        globalMounts:
-          - path: /auth/app.db
-            subPath: app.db
-            readOnly: true
+      # calibre-web-db:
+      #   existingClaim: "calibre-web-automated"
+      #   globalMounts:
+      #     - path: /auth/app.db
+      #       subPath: app.db
+      #       readOnly: true
       cwa-book-ingest:
         type: nfs
         server: 192.168.20.21
