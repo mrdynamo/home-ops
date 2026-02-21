@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/sethwv/ws4kp-to-hls
-              tag: latest@sha256:0d4e99c94c9b67e8bc6d9bb89efe0339c667e81f7f04888204e4f3275065fa94
+              tag: latest@sha256:a4347e3168696e4419cd6bc1e6525139b6d48217a3a5fa10fa2e4ac8ce13048b
             env:
               PORT: &port 3000
               WS4KP_EXTERNAL_PORT: &webport 8080
