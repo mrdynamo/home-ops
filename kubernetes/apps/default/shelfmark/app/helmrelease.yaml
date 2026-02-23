@@ -35,6 +35,7 @@ spec:
             env:
               TZ: America/Chicago
               INGEST_DIR: /cwa-book-ingest
+              HIDE_LOCAL_AUTH: true
             probes:
               liveness: &probes
                 enabled: true
