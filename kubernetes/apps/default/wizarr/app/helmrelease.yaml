@@ -73,5 +73,5 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
-          - path: /opt/default_wizard_steps
+          # - path: /opt/default_wizard_steps
           - path: /.cache
