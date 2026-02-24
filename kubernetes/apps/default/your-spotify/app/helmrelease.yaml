@@ -50,7 +50,7 @@ spec:
           app:
             image:
               repository: ghcr.io/yooooomi/your_spotify_client
-              tag: 1.17.0@sha256:efe20e90bbfdad1b45bc62ef19cf73c63f1c8ddec52d838efe61a81b99daf1d1
+              tag: 1.18.0@sha256:e1379587e48a006e18b1eb3752bb6b6869f6518c29706d487f88083a1c8eab89
             resources:
               requests:
                 cpu: 10m
