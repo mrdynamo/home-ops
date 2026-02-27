@@ -177,6 +177,12 @@
         icon: google-cloud-platform.svg
 
 - Observability:
+    - Headlamp:
+        href: https://headlamp.${INTERNAL_SECRET_DOMAIN}/
+        description: Kubernetes dashboard
+        icon: headlamp.svg
+        namespace: observability
+        app: headlamp
     - Flux:
         href: https://flux.${INTERNAL_SECRET_DOMAIN}/
         description: Kubernetes GitOps dashboards
