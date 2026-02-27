@@ -12,6 +12,7 @@ resources:
   - ./fluent-bit/ks.yaml
   - ./gatus/ks.yaml
   - ./grafana/ks.yaml
+  - ./headlamp/ks.yaml
   - ./intel-gpu-exporter/ks.yaml
   - ./keda/ks.yaml
   - ./kromgo/ks.yaml
