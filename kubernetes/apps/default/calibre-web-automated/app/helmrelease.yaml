@@ -59,7 +59,7 @@ spec:
                   - DAC_OVERRIDE
             resources:
               requests:
-                cpu: 10m
+                cpu: 364m
                 memory: 672Mi
               limits:
                 memory: 672Mi

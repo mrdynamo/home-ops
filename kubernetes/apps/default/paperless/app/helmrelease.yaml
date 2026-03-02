@@ -75,10 +75,10 @@ spec:
             #   capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 508m
-                memory: 2409Mi
+                cpu: 14m
+                memory: 2650Mi
               limits:
-                memory: 2409Mi
+                memory: 2650Mi
       gotenburg:
         containers:
           app:
