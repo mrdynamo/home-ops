@@ -21,6 +21,17 @@
       ],
       overridePackageName: "ghcr.io/siderolabs/installer",
     },
+    {
+      "description": "Separate Major/Minor/Patch for Talos upgrades",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/siderolabs/installer"
+      ],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true
+    }
     // {
     //   // Handle Dispatcharr tags
     //   // https://docs.renovatebot.com/modules/versioning/regex/
