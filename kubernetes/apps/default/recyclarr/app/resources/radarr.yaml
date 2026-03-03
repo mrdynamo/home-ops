@@ -24,18 +24,19 @@ radarr:
         rename: true
         standard: plex-imdb
 
-
-    include:
-      # Comment out any of the following includes to disable them
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-hd-bluray-web
-      - template: radarr-custom-formats-hd-bluray-web
-      - template: radarr-quality-profile-uhd-bluray-web
-      - template: radarr-custom-formats-uhd-bluray-web
-      - template: radarr-quality-profile-remux-web-1080p
-      - template: radarr-custom-formats-remux-web-1080p
-      - template: radarr-quality-profile-remux-web-2160p
-      - template: radarr-custom-formats-remux-web-2160p
+    quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f  # UHD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 9ca12ea80aa55ef916e3751f4b874151  # Remux + WEB 1080p
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: fd161a61e3ab826d3a22d53f935696dd  # Remux + WEB 2160p
+        reset_unmatched_scores:
+          enabled: true
 
     # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
