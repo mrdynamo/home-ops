@@ -72,6 +72,12 @@
         icon: cloudflare.svg
 
 - Internal Services:
+    - Authentik:
+        href: https://auth.${INTERNAL_SECRET_DOMAIN}/
+        description: Authentication provider
+        icon: authentik.svg
+        namespace: security
+        app: authentik
     - Home Assistant:
         href: https://homeassistant.local.${SECRET_DOMAIN}/
         description: Home Assistant
