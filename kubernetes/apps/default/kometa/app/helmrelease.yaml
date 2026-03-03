@@ -39,7 +39,7 @@ spec:
               ## Run only testing libraries
               # KOMETA_RUN_LIBRARIES: "pmm_mov|pmm_tv"
               ## Run only collections on all libraries
-              KOMETA_COLLECTIONS_ONLY: true
+              # KOMETA_COLLECTIONS_ONLY: true
               ## Run only overlays on all libraries
               # KOMETA_OVERLAYS_ONLY: true
               #####
