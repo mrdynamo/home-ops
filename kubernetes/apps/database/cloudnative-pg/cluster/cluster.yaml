@@ -19,7 +19,7 @@ spec:
     replicationTLSSecret: postgres-client-cert
 
   storage:
-    size: 2Gi
+    size: 8Gi
     storageClass: longhorn-fast
 
   plugins:
