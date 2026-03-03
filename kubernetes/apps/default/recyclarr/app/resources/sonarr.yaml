@@ -1,0 +1,126 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/latest/config-schema.json
+### Highly recommend using Visual Studio Code with indent-rainbow plugin. VSC will also leverage the above link to enhance pmm yml edits.
+
+###################################################################################################
+#                                                                                                 #
+#                              Recyclarr Configuration: Sonarr (v4)                               #
+#                                    WEB-1080p and WEB-2160p                                      #
+#                                                                                                 #
+###################################################################################################
+
+# Instance Definition: https://recyclarr.dev/wiki/yaml/config-reference/basic/
+sonarr:
+  sonarr-prod:
+    base_url: http://sonarr.default.svc.cluster.local
+    api_key: !env_var SONARR_API_KEY
+    delete_old_custom_formats: true
+
+    media_management:
+      propers_and_repacks: do_not_prefer
+
+    media_naming:
+      episodes:
+        anime: default
+        daily: default
+        rename: true
+        standard: default
+      season: default
+      series: plex-imdb
+
+    include:
+      # Comment out any of the following includes to disable them
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v4-quality-profile-web-1080p
+      - template: sonarr-v4-custom-formats-web-1080p
+      - template: sonarr-v4-quality-profile-web-2160p
+      - template: sonarr-v4-custom-formats-web-2160p
+
+    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+    custom_formats:
+      ###########################################
+      #                                         #
+      #         WEB-1080p Modifications         #
+      #                                         #
+      ###########################################
+
+      # Optional
+      - trash_ids:
+          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
+          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        assign_scores_to:
+          - name: WEB-1080p
+
+      # Allow x265 HD releases with HDR/DV
+      - trash_ids:
+          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+        assign_scores_to:
+          - name: WEB-1080p
+            score: 0
+      - trash_ids:
+          - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: WEB-1080p
+
+      # Prefer HDR over SDR if available
+      - trash_ids:
+          # HDR Formats
+          - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10Plus
+          - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
+          - 1f733af03141f068a540eec352589a89 # DV HLG
+          - 27954b0a80aab882522a88a4d9eae1cd # DV SDR
+          - 6d0d8de7b57e35518ac0308b0ddf404e # DV
+          - bb019e1cd00f304f80971c965de064dc # HDR (undefined)
+          - 3e2c4e748b64a1a1118e0ea3f4cf6875 # HDR
+          - 3497799d29a085e2ac2df9d468413c94 # HDR10
+          - a3d82cbef5039f8d295478d28a887159 # HDR10+
+          - 17e889ce13117940092308f48b48b45b # HLG
+          - 2a7e3be05d3861d6df7171ec74cad727 # PQ
+          # Block DV without HDR10 fallback
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
+        assign_scores_to:
+          - name: WEB-1080p
+
+      ###########################################
+      #                                         #
+      #         WEB-2160p Modifications         #
+      #                                         #
+      ###########################################
+
+      # HDR Formats
+      - trash_ids:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
+          # HDR10Plus Boost - Uncomment the next line if any of your devices DO support HDR10+
+          # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10Plus Boost
+        assign_scores_to:
+          - name: WEB-2160p
+
+      # Optional
+      - trash_ids:
+          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
+          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
+          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        assign_scores_to:
+          - name: WEB-2160p
+
+      - trash_ids:
+          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+        # assign_scores_to:
+        # - name: WEB-2160p
+        # score: 0
+        # - trash_ids:
+        # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: WEB-2160p
+
+      - trash_ids:
+          - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+        assign_scores_to:
+          - name: WEB-2160p
+            score: 0 # Uncomment this line to enable SDR releases

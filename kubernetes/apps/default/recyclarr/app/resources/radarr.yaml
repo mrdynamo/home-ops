@@ -1,0 +1,306 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/latest/config-schema.json
+### Highly recommend using Visual Studio Code with indent-rainbow plugin. VSC will also leverage the above link to enhance pmm yml edits.
+
+###################################################################################################
+#                                                                                                 #
+#                                 Recyclarr Configuration: Radarr                                 #
+#                               Bluray 1080p/2160p and Remux 1080p/2160p                          #
+#                                                                                                 #
+###################################################################################################
+
+# Instance Definition: https://recyclarr.dev/wiki/yaml/config-reference/basic/
+radarr:
+  radarr-prod:
+    base_url: http://radarr.default.svc.cluster.local
+    api_key: !env_var RADARR_API_KEY
+    delete_old_custom_formats: true
+
+    media_management:
+      propers_and_repacks: do_not_prefer
+
+    media_naming:
+      folder: plex-imdb
+      movie:
+        rename: true
+        standard: plex-imdb
+
+
+    include:
+      # Comment out any of the following includes to disable them
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-custom-formats-hd-bluray-web
+      - template: radarr-quality-profile-uhd-bluray-web
+      - template: radarr-custom-formats-uhd-bluray-web
+      - template: radarr-quality-profile-remux-web-1080p
+      - template: radarr-custom-formats-remux-web-1080p
+      - template: radarr-quality-profile-remux-web-2160p
+      - template: radarr-custom-formats-remux-web-2160p
+
+    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
+    custom_formats:
+      ###########################################
+      #                                         #
+      #      HD Bluray + WEB Modifications      #
+      #                                         #
+      ###########################################
+
+      # Movie Versions
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: HD Bluray + WEB
+            # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
+
+      # Optional
+      - trash_ids:
+          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          # - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
+      # Allow x265 HD releases with HDR/DV
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+            score: 0
+      - trash_ids:
+          - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
+      # Prefer HDR over SDR if available
+      - trash_ids:
+          # HDR Formats
+          - c53085ddbd027d9624b320627748612f # DV HDR10Plus
+          - e23edd2482476e595fb990b12e7c609c # DV HDR10
+          - 58d6a88f13e2db7f5059c41047876f00 # DV
+          - 55d53828b9d81cbe20b02efd00aa0efd # DV HLG
+          - a3e19f8f627608af0211acd02bf89735 # DV SDR
+          - b974a6cd08c1066250f1f177d7aa1225 # HDR10+
+          - dfb86d5941bc9075d6af23b09c2aeecd # HDR10
+          - e61e28db95d22bedcadf030b8f156d96 # HDR
+          - 2a4d9069cc1fe3242ff9bdaebed239bb # HDR (undefined)
+          - 08d6d8834ad9ec87b1dc7ec8148e7a1f # PQ
+          - 9364dd386c9b4a1100dde8264690add7 # HLG
+          # Block DV without HDR10 fallback
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
+      ###########################################
+      #                                         #
+      #      UHD Bluray + WEB Modifications     #
+      #                                         #
+      ###########################################
+
+      # Audio
+      - trash_ids:
+          # Uncomment the next section to enable Advanced Audio Formats
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      # Movie Versions
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
+
+      # Optional
+      - trash_ids:
+          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          # - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      # Allow x265 HD releases with HDR/DV
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            score: 0
+      - trash_ids:
+          - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      - trash_ids:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+          # HDR10Plus Boost - Uncomment the next line if any of your devices DO support HDR10+
+          # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      - trash_ids:
+          - 9c38ebb7384dada637be8899efa68e6f # SDR
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+            # score: 0 # Uncomment this line to allow SDR releases
+
+      ###########################################
+      #                                         #
+      #     Remux + WEB 1080p Modifications     #
+      #                                         #
+      ###########################################
+
+      # Audio
+      - trash_ids:
+          # Uncomment the next section to enable Advanced Audio Formats
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+
+      # Movie Versions
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+            # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
+
+      # Optional
+      - trash_ids:
+          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          # - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+
+      # Allow x265 HD releases with HDR/DV
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+            score: 0
+      - trash_ids:
+          - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+
+      # Prefer HDR over SDR if available
+      - trash_ids:
+          # HDR Formats
+          - c53085ddbd027d9624b320627748612f # DV HDR10Plus
+          - e23edd2482476e595fb990b12e7c609c # DV HDR10
+          - 58d6a88f13e2db7f5059c41047876f00 # DV
+          - 55d53828b9d81cbe20b02efd00aa0efd # DV HLG
+          - a3e19f8f627608af0211acd02bf89735 # DV SDR
+          - b974a6cd08c1066250f1f177d7aa1225 # HDR10+
+          - dfb86d5941bc9075d6af23b09c2aeecd # HDR10
+          - e61e28db95d22bedcadf030b8f156d96 # HDR
+          - 2a4d9069cc1fe3242ff9bdaebed239bb # HDR (undefined)
+          - 08d6d8834ad9ec87b1dc7ec8148e7a1f # PQ
+          - 9364dd386c9b4a1100dde8264690add7 # HLG
+          # Block DV without HDR10 fallback
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+        assign_scores_to:
+          - name: Remux + WEB 1080p
+
+      ###########################################
+      #                                         #
+      #     Remux + WEB 2160p Modifications     #
+      #                                         #
+      ###########################################
+
+      # Audio
+      - trash_ids:
+          # Uncomment the next section to enable Advanced Audio Formats
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      # Movie Versions
+      - trash_ids:
+          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
+
+      # Optional
+      - trash_ids:
+          # - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          # - 90cedc1fea7ea5d11298bebd3d1d3223 # EVO (no WEBDL)
+          # - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          # - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          # - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          # - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      # Allow x265 HD releases with HDR/DV
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: 0
+      - trash_ids:
+          - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      - trash_ids:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+          # HDR10Plus Boost - Uncomment the next line if any of your devices DO support HDR10+
+          # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
+      - trash_ids:
+          - 9c38ebb7384dada637be8899efa68e6f # SDR
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            # score: 0 # Uncomment this line to allow SDR releases
