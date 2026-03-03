@@ -25,6 +25,7 @@ spec:
               ENABLED_PROVIDERS: all
               GIT_COUNTRY: us,ca,uk
               LG_COUNTRY: us,ca,uk
+              WHALE_COUNTRY: us,ca,uk
             probes:
               liveness: &probes
                 enabled: false
