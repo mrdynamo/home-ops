@@ -38,6 +38,59 @@ radarr:
         reset_unmatched_scores:
           enabled: true
 
+    custom_formats:
+        ###########################################
+        #                                         #
+        #      HD Bluray + WEB Modifications      #
+        #                                         #
+        ###########################################
+
+      ## Golden Rule HD (x265 modifications)
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+            - name: HD Bluray + WEB
+              score: 0
+
+        ###########################################
+        #                                         #
+        #      UHD Bluray + WEB Modifications     #
+        #                                         #
+        ###########################################
+
+      ## Golden Rule UHD (x265 modifications)
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+            - name: UHD Bluray + WEB
+              score: 0
+
+        ###########################################
+        #                                         #
+        #     Remux + WEB 1080p Modifications     #
+        #                                         #
+        ###########################################
+
+      ## Golden Rule HD (x265 modifications)
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+            - name: Remux + WEB 1080p
+              score: 0
+
+        ###########################################
+        #                                         #
+        #     Remux + WEB 2160p Modifications     #
+        #                                         #
+        ###########################################
+
+      ## Golden Rule UHD (x265 modifications)
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        assign_scores_to:
+            - name: Remux + WEB 2160p
+              score: 0
+
     custom_format_groups:
       add:
         ###########################################
@@ -69,12 +122,6 @@ radarr:
             - name: HD Bluray + WEB
 
         ## Golden Rule HD (x265 modifications)
-        - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # Golden Rule HD
-          select:
-            - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
-          assign_scores_to:
-            - name: HD Bluray + WEB
-              score: 0
         - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # Golden Rule HD
           exclude:
             - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
@@ -109,12 +156,6 @@ radarr:
 
         ## Golden Rule UHD (x265 modifications)
         - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # Golden Rule UHD
-          select:
-            - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
-          assign_scores_to:
-            - name: UHD Bluray + WEB
-              score: 0
-        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # Golden Rule UHD
           exclude:
             - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
           assign_scores_to:
@@ -147,12 +188,6 @@ radarr:
             - name: Remux + WEB 1080p
 
         ## Golden Rule HD (x265 modifications)
-        - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # Golden Rule HD
-          select:
-            - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-              score: 0
         - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # Golden Rule HD
           exclude:
             - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
@@ -208,12 +243,6 @@ radarr:
             - name: Remux + WEB 2160p
 
         ## Golden Rule UHD (x265 modifications)
-        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # Golden Rule UHD
-          select:
-            - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
-          assign_scores_to:
-            - name: Remux + WEB 2160p
-              score: 0
         - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # Golden Rule UHD
           exclude:
             - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
