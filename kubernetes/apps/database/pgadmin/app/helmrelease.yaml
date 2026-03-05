@@ -25,15 +25,15 @@ spec:
               - |
                 # Copy and rename certificates for Postgres SSL connection
                 echo "Copying certs"
-                cp -v /var/run/secrets/postgresql/ca.crt /var/lib/pgadmin/.postgresql/root.crt
-                cp -v /var/run/secrets/postgresql/tls.crt /var/lib/pgadmin/.postgresql/postgresql.crt
-                cp -v /var/run/secrets/postgresql/tls.key /var/lib/pgadmin/.postgresql/postgresql.key
+                cp -v /var/run/secrets/postgresql/ca.crt /home/pgadmin/.postgresql/root.crt
+                cp -v /var/run/secrets/postgresql/tls.crt /home/pgadmin/.postgresql/postgresql.crt
+                cp -v /var/run/secrets/postgresql/tls.key /home/pgadmin/.postgresql/postgresql.key
                 # Set proper ownership and permissions for pgadmin user (uid=5050)
                 echo "Adjusting cert permissions"
-                chown -v 5050:5050 /var/lib/pgadmin/.postgresql/root.crt /var/lib/pgadmin/.postgresql/postgresql.crt /var/lib/pgadmin/.postgresql/postgresql.key
-                chmod -v 644 /var/lib/pgadmin/.postgresql/root.crt
-                chmod -v 644 /var/lib/pgadmin/.postgresql/postgresql.crt
-                chmod -v 600 /var/lib/pgadmin/.postgresql/postgresql.key
+                chown -v 5050:5050 /home/pgadmin/.postgresql/root.crt /home/pgadmin/.postgresql/postgresql.crt /home/pgadmin/.postgresql/postgresql.key
+                chmod -v 644 /home/pgadmin/.postgresql/root.crt
+                chmod -v 644 /home/pgadmin/.postgresql/postgresql.crt
+                chmod -v 600 /home/pgadmin/.postgresql/postgresql.key
                 echo "Cert copy and permission adjustment completed"
             securityContext:
               allowPrivilegeEscalation: true
@@ -109,4 +109,4 @@ spec:
       certificates:
         type: emptyDir
         globalMounts:
-          - path: /var/lib/pgadmin/.postgresql
+          - path: /home/pgadmin/.postgresql
