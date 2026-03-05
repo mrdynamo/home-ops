@@ -7,13 +7,12 @@
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "ePifAHUKvDmPGQWCvF6h",
-      "ConnectionParameters": {
-        "sslmode": "verify-full",
-        "connect_timeout": 10,
-        "sslrootcert": "/var/run/secrets/postgresql/ca.crt",
-        "sslcert": "/var/run/secrets/postgresql/tls.crt",
-        "sslkey": "/var/run/secrets/postgresql/tls.key"
-      },
+      "SSLMode": "verify-full",
+      "SSLRootCert": "/var/run/secrets/postgresql/ca.crt",
+      "SSLCert": "/var/run/secrets/postgresql/tls.crt",
+      "SSLKey": "/var/run/secrets/postgresql/tls.key",
+      "SSLCompression": 0,
+      "Timeout": 10,
       "UseSSHTunnel": 0,
       "TunnelPort": "22",
       "TunnelAuthentication": 0

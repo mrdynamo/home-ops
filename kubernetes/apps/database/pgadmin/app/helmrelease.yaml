@@ -3,12 +3,12 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: pgadmin
+  name: &app pgadmin
 spec:
   interval: 1h
   chartRef:
     kind: OCIRepository
-    name: pgadmin
+    name: *app
   values:
     controllers:
       pgadmin:
@@ -21,7 +21,6 @@ spec:
               tag: 9.12.0@sha256:10137f33be7ed61e47f56004493710cb5b80ba7fb0ca01758855e242f1f284a7
             env:
               TZ: America/Chicago
-              PGADMIN_REPLACE_SERVERS_ON_STARTUP: true
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -75,8 +74,7 @@ spec:
           - path: /var/lib/pgadmin
       configmap:
         type: configMap
-        name: pgadmin
-        defaultMode: 0664
+        name: *app
         globalMounts:
           - path: /pgadmin4/servers.json
             subPath: servers.json
