@@ -22,8 +22,8 @@ spec:
             env:
               TZ: America/Chicago
               PGSSLROOTCERT: /var/run/secrets/postgresql/ca.crt
-              PGSSLCERT: /var/run/secrets/postgresql/tls.crt
-              PGSSLKEY: /var/run/secrets/postgresql/tls.key
+              # PGSSLCERT: /var/run/secrets/postgresql/tls.crt
+              # PGSSLKEY: /var/run/secrets/postgresql/tls.key
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
