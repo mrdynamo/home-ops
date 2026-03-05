@@ -79,6 +79,7 @@ spec:
       configmap:
         type: configMap
         name: *app
+        defaultMode: 0640
         globalMounts:
           - path: /pgadmin4/servers.json
             subPath: servers.json
