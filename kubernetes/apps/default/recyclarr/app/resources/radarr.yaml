@@ -39,11 +39,11 @@ radarr:
           enabled: true
 
     custom_formats:
-        ###########################################
-        #                                         #
-        #      HD Bluray + WEB Modifications      #
-        #                                         #
-        ###########################################
+      ###########################################
+      #                                         #
+      #      HD Bluray + WEB Modifications      #
+      #                                         #
+      ###########################################
 
       ## Golden Rule HD (x265 modifications)
       - trash_ids:
@@ -52,11 +52,40 @@ radarr:
             - name: HD Bluray + WEB
               score: 0
 
-        ###########################################
-        #                                         #
-        #      UHD Bluray + WEB Modifications     #
-        #                                         #
-        ###########################################
+      ## HDR Groups
+      - trash_ids:
+          - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
+      ## Audio Formats
+      - trash_ids:
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
+
+      ###########################################
+      #                                         #
+      #      UHD Bluray + WEB Modifications     #
+      #                                         #
+      ###########################################
 
       ## Golden Rule UHD (x265 modifications)
       - trash_ids:
@@ -65,11 +94,39 @@ radarr:
             - name: UHD Bluray + WEB
               score: 0
 
-        ###########################################
-        #                                         #
-        #     Remux + WEB 1080p Modifications     #
-        #                                         #
-        ###########################################
+      ## HDR Groups
+      - trash_ids:
+          - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      ## Audio Formats
+      - trash_ids:
+          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          - 3cafb66171b47f226146a0770576870f # TrueHD
+          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          - e7c2fcae07cbada050a0af3357491d7b # PCM
+          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          - 185f1dd7264c4562b9022d963ac37424 # DD+
+          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          - 240770601cc226190c367ef59aba7463 # AAC
+          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: UHD Bluray + WEB
+
+      ###########################################
+      #                                         #
+      #     Remux + WEB 1080p Modifications     #
+      #                                         #
+      ###########################################
 
       ## Golden Rule HD (x265 modifications)
       - trash_ids:
@@ -78,139 +135,11 @@ radarr:
             - name: Remux + WEB 1080p
               score: 0
 
-
-    custom_format_groups:
-      add:
-        ###########################################
-        #                                         #
-        #      HD Bluray + WEB Modifications      #
-        #                                         #
-        ###########################################
-
-        ## HDR Groups
-        - trash_id: ef20e67b95a381fb3bc6d1f06ea24f46 # HDR
-          select:
-            - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
-          assign_scores_to:
-            - name: HD Bluray + WEB
-        - trash_id: b29413a7487478fe98228ce79e5689e4 # HDR10+ Boost
-          select:
-            - caa37d0df9c348912df1fb1d88f9273a # HDR
-          assign_scores_to:
-            - name: HD Bluray + WEB
-        - trash_id: 1616617ab3a14397a2b2321bcbda44d1 # DV Boost
-          select:
-            - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
-          assign_scores_to:
-            - name: HD Bluray + WEB
-        - trash_id: 7fc2751eef7e6bdc70b74136e5e35c76 # DV (w/o HDR fallback)
-          select:
-            - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
-          assign_scores_to:
-            - name: HD Bluray + WEB
-
-        ## Audio Formats
-        - trash_id: 9d5acd8f1da78dfbae788182f7605200 # Audio Formats
-          select:
-            - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
-            - 2f22d89048b01681dde8afe203bf2e95 # DTS X
-            - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
-            - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
-            - 3cafb66171b47f226146a0770576870f # TrueHD
-            - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
-            - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
-            - e7c2fcae07cbada050a0af3357491d7b # PCM
-            - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
-            - 185f1dd7264c4562b9022d963ac37424 # DD+
-            - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
-            - 1c1a4c5e823891c75bc50380a6866f73 # DTS
-            - 240770601cc226190c367ef59aba7463 # AAC
-            - c2998bd0d90ed5621d8df281e839436e # DD
-          assign_scores_to:
-            - name: UHD Bluray + WEB
-
-
-        ###########################################
-        #                                         #
-        #      UHD Bluray + WEB Modifications     #
-        #                                         #
-        ###########################################
-
-        ## HDR Groups
-        - trash_id: ef20e67b95a381fb3bc6d1f06ea24f46 # HDR
-          select:
-            - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: b29413a7487478fe98228ce79e5689e4 # HDR10+ Boost
-          select:
-            - caa37d0df9c348912df1fb1d88f9273a # HDR
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: 1616617ab3a14397a2b2321bcbda44d1 # DV Boost
-          select:
-            - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: 7fc2751eef7e6bdc70b74136e5e35c76 # DV (w/o HDR fallback)
-          select:
-            - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-
-        ## Audio Formats
-        - trash_id: 9d5acd8f1da78dfbae788182f7605200 # Audio Formats
-          select:
-            - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
-            - 2f22d89048b01681dde8afe203bf2e95 # DTS X
-            - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
-            - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
-            - 3cafb66171b47f226146a0770576870f # TrueHD
-            - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
-            - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
-            - e7c2fcae07cbada050a0af3357491d7b # PCM
-            - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
-            - 185f1dd7264c4562b9022d963ac37424 # DD+
-            - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
-            - 1c1a4c5e823891c75bc50380a6866f73 # DTS
-            - 240770601cc226190c367ef59aba7463 # AAC
-            - c2998bd0d90ed5621d8df281e839436e # DD
-          assign_scores_to:
-            - name: UHD Bluray + WEB
-
-
-        ###########################################
-        #                                         #
-        #     Remux + WEB 1080p Modifications     #
-        #                                         #
-        ###########################################
-
-        ## HDR Groups
-        - trash_id: ef20e67b95a381fb3bc6d1f06ea24f46 # HDR
-          select:
-            - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: b29413a7487478fe98228ce79e5689e4 # HDR10+ Boost
-          select:
-            - caa37d0df9c348912df1fb1d88f9273a # HDR
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: 1616617ab3a14397a2b2321bcbda44d1 # DV Boost
-          select:
-            - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-        - trash_id: 7fc2751eef7e6bdc70b74136e5e35c76 # DV (w/o HDR fallback)
-          select:
-            - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
-          assign_scores_to:
-            - name: Remux + WEB 1080p
-
-        ###########################################
-        #                                         #
-        #     Remux + WEB 2160p Modifications     #
-        #                                         #
-        ###########################################
-
-
+      ## HDR Groups
+      - trash_ids:
+          - 493b6d1dbec3c3364c59d7607f7e3405 # HDR
+          - caa37d0df9c348912df1fb1d88f9273a # HDR10+ Boost
+          - b337d6812e06c200ec9a2d3cfa9d20a7 # DV Boost
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: Remux + WEB 1080p

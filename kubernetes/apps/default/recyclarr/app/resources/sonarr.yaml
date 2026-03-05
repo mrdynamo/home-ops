@@ -39,11 +39,11 @@ sonarr:
           enabled: true
 
     custom_formats:
-        ###########################################
-        #                                         #
-        #         WEB-1080p Modifications         #
-        #                                         #
-        ###########################################
+      ###########################################
+      #                                         #
+      #         WEB-1080p Modifications         #
+      #                                         #
+      ###########################################
 
       ## Golden Rule HD (x265 modifications)
       - trash_ids:
@@ -52,11 +52,39 @@ sonarr:
             - name: WEB-1080p
               score: 0
 
-        ###########################################
-        #                                         #
-        #         WEB-2160p Modifications         #
-        #                                         #
-        ###########################################
+      ## HDR Groups
+      - trash_ids:
+        - 505d871304820ba7106b693be6fe4a9e # HDR
+        - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+        - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
+        - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: WEB-1080p
+
+      ## Audio Formats
+      - trash_ids:
+        - 0d7824bb924701997f874e7ff7d4844a # TrueHD Atmos
+        - 1808e4b9cee74e064dfae3f1db99dbfe # TrueHD
+        - 30f70576671ca933adbdcfc736a69718 # PCM
+        - 851bd64e04c9374c51102be3dd9ae4cc # FLAC
+        - c429417a57ea8c41d57e6990a8b0033f # DTS-HD MA
+        - cfa5fbd8f02a86fc55d8d223d06a5e1f # DTS-HD HRA
+        - c1a25cd67b5d2e08287c957b1eb903ec # DTS-ES
+        - 9d00418ba386a083fbf4d58235fc37ef # DTS X
+        - 5964f2a8b3be407d083498e4459d05d0 # DTS
+        - 4232a509ce60c4e208d13825b7c06264 # DD+ ATMOS
+        - 63487786a8b01b7f20dd2bc90dd4a477 # DD+
+        - dbe00161b08a25ac6154c55f95e6318d # DD
+        - b6fbafa7942952a13e17e2b1152b539a # ATMOS (undefined)
+        - a50b8a0c62274a7c38b09a9619ba9d86 # AAC
+        assign_scores_to:
+          - name: WEB-1080p
+
+      ###########################################
+      #                                         #
+      #         WEB-2160p Modifications         #
+      #                                         #
+      ###########################################
 
       ## Allow SDR
       - trash_ids:
@@ -64,54 +92,3 @@ sonarr:
         assign_scores_to:
           - name: WEB-2160p
             score: 0
-
-
-    custom_format_groups:
-      add:
-        ###########################################
-        #                                         #
-        #         WEB-1080p Modifications         #
-        #                                         #
-        ###########################################
-
-        ## HDR Groups
-        - trash_id: 7e1724c5da59e7474803ad25be98f6a3 # HDR
-          select:
-            - 505d871304820ba7106b693be6fe4a9e # HDR
-          assign_scores_to:
-            - name: WEB-1080p
-        - trash_id: 7d366c213e5c23a052b157356fac1921 # HDR10+ Boost
-          select:
-            - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
-          assign_scores_to:
-            - name: WEB-1080p
-        - trash_id: e0b2774083df4265f25c9e5bc6c80940 # DV Boost
-          select:
-            - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
-          assign_scores_to:
-            - name: WEB-1080p
-        - trash_id: d776a1ea912a117d66d83b880ff2055d # DV (w/o HDR fallback)
-          select:
-            - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
-          assign_scores_to:
-            - name: WEB-1080p
-
-        ## Audio Formats
-        - trash_id: e9a1944a254e6f8a9da63083f7ae15cb
-          select:
-            - 0d7824bb924701997f874e7ff7d4844a # TrueHD Atmos
-            - 1808e4b9cee74e064dfae3f1db99dbfe # TrueHD
-            - 30f70576671ca933adbdcfc736a69718 # PCM
-            - 851bd64e04c9374c51102be3dd9ae4cc # FLAC
-            - c429417a57ea8c41d57e6990a8b0033f # DTS-HD MA
-            - cfa5fbd8f02a86fc55d8d223d06a5e1f # DTS-HD HRA
-            - c1a25cd67b5d2e08287c957b1eb903ec # DTS-ES
-            - 9d00418ba386a083fbf4d58235fc37ef # DTS X
-            - 5964f2a8b3be407d083498e4459d05d0 # DTS
-            - 4232a509ce60c4e208d13825b7c06264 # DD+ ATMOS
-            - 63487786a8b01b7f20dd2bc90dd4a477 # DD+
-            - dbe00161b08a25ac6154c55f95e6318d # DD
-            - b6fbafa7942952a13e17e2b1152b539a # ATMOS (undefined)
-            - a50b8a0c62274a7c38b09a9619ba9d86 # AAC
-          assign_scores_to:
-            - name: WEB-1080p
