@@ -21,7 +21,7 @@ spec:
               tag: 9.12.0@sha256:10137f33be7ed61e47f56004493710cb5b80ba7fb0ca01758855e242f1f284a7
             env:
               TZ: America/Chicago
-              PGSSLROOTCERT: /var/run/secrets/postgresql/ca.crt
+              # PGSSLROOTCERT: /var/run/secrets/postgresql/ca.crt
               # PGSSLCERT: /var/run/secrets/postgresql/tls.crt
               # PGSSLKEY: /var/run/secrets/postgresql/tls.key
             envFrom:
