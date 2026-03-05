@@ -14,6 +14,23 @@ spec:
       pgadmin:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          chown:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command:
+              - sh
+              - -c
+              - |
+                chown -R 5050:5050 /var/lib/pgadmin/sessions/ /var/lib/pgadmin/storage/
+            securityContext:
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              runAsNonRoot: false
+              capabilities: {drop: ["ALL"]}
+              runAsUser: 0
+              runAsGroup: 0
         containers:
           app:
             image:
