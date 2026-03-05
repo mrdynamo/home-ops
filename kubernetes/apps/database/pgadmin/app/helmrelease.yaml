@@ -14,6 +14,31 @@ spec:
       pgadmin:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          copy-certs:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command:
+              - sh
+              - -c
+              - |
+                # Copy and rename certificates for Postgres SSL connection
+                echo "Copying certs"
+                cp -v /var/run/secrets/postgresql/ca.crt /var/lib/pgadmin/.postgresql/root.crt
+                cp -v /var/run/secrets/postgresql/tls.crt /var/lib/pgadmin/.postgresql/postgresql.crt
+                cp -v /var/run/secrets/postgresql/tls.key /var/lib/pgadmin/.postgresql/postgresql.key
+                # Set proper ownership and permissions for pgadmin user (uid=5050)
+                echo "Adjusting cert permissions"
+                chown -v 5050:5050 /var/lib/pgadmin/.postgresql/root.crt /var/lib/pgadmin/.postgresql/postgresql.crt /var/lib/pgadmin/.postgresql/postgresql.key
+                chmod -v 644 /var/lib/pgadmin/.postgresql/root.crt
+                chmod -v 644 /var/lib/pgadmin/.postgresql/postgresql.crt
+                chmod -v 600 /var/lib/pgadmin/.postgresql/postgresql.key
+                echo "Cert copy and permission adjustment completed"
+            securityContext:
+              allowPrivilegeEscalation: true
+              runAsUser: 0
+              runAsGroup: 0
         containers:
           app:
             image:
@@ -23,9 +48,6 @@ spec:
               TZ: America/Chicago
               PGADMIN_DISABLE_POSTFIX: "True"
               PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
-              PGSSLROOTCERT: "/var/run/secrets/postgresql/ca.crt"
-              # PGSSLCERT: "/var/run/secrets/postgresql/tls.crt"
-              # PGSSLKEY: "/var/run/secrets/postgresql/tls.key"
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -84,3 +106,7 @@ spec:
         globalMounts:
           - path: /pgadmin4/servers.json
             subPath: servers.json
+      certificates:
+        type: emptyDir
+        globalMounts:
+          - path: /var/lib/pgadmin/.postgresql
