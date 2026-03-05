@@ -13,7 +13,7 @@ sonarr:
   sonarr-prod:
     base_url: http://sonarr.default.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
-    # delete_old_custom_formats: true
+    delete_old_custom_formats: true
 
     media_management:
       propers_and_repacks: do_not_prefer
@@ -31,99 +31,66 @@ sonarr:
       type: series
 
     quality_profiles:
-      - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
         reset_unmatched_scores:
           enabled: true
-      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6  # WEB-2160p
+      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
         reset_unmatched_scores:
           enabled: true
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
-    custom_formats:
-      ###########################################
-      #                                         #
-      #         WEB-1080p Modifications         #
-      #                                         #
-      ###########################################
+    custom_format_groups:
+      add:
+        ###########################################
+        #                                         #
+        #         WEB-1080p Modifications         #
+        #                                         #
+        ###########################################
 
-      # Optional
-      - trash_ids:
-          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
-          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
-          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-        assign_scores_to:
-          - name: WEB-1080p
+        # HDR Groups
+        - trash_id: 7e1724c5da59e7474803ad25be98f6a3 # HDR
+          select:
+            - 505d871304820ba7106b693be6fe4a9e # HDR
+          assign_scores_to:
+            - name: WEB-1080p
+        - trash_id: 7d366c213e5c23a052b157356fac1921 # HDR10+ Boost
+          select:
+            - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost
+          assign_scores_to:
+            - name: WEB-1080p
+        - trash_id: e0b2774083df4265f25c9e5bc6c80940 # DV Boost
+          select:
+            - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost
+          assign_scores_to:
+            - name: WEB-1080p
+        - trash_id: d776a1ea912a117d66d83b880ff2055d # DV (w/o HDR fallback)
+          select:
+            - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+          assign_scores_to:
+            - name: WEB-1080p
 
-      # Allow x265 HD releases with HDR/DV
-      - trash_ids:
-          - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
-        assign_scores_to:
-          - name: WEB-1080p
-            score: 0
-      - trash_ids:
-          - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
-        assign_scores_to:
-          - name: WEB-1080p
+        ## Golden Rule HD (x265 modifications)
+        - trash_id: 158188097a58d7687dee647e04af0da3 # Golden Rule HD
+          select:
+            - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
+          assign_scores_to:
+            - name: WEB-1080p
+              score: 0
+        - trash_id: 158188097a58d7687dee647e04af0da3 # Golden Rule HD
+          exclude:
+            - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
+          assign_scores_to:
+            - name: WEB-1080p
 
-      # Prefer HDR over SDR if available
-      - trash_ids:
-          # HDR Formats
-          - 2b239ed870daba8126a53bd5dc8dc1c8 # DV HDR10Plus
-          - 7878c33f1963fefb3d6c8657d46c2f0a # DV HDR10
-          - 1f733af03141f068a540eec352589a89 # DV HLG
-          - 27954b0a80aab882522a88a4d9eae1cd # DV SDR
-          - 6d0d8de7b57e35518ac0308b0ddf404e # DV
-          - bb019e1cd00f304f80971c965de064dc # HDR (undefined)
-          - 3e2c4e748b64a1a1118e0ea3f4cf6875 # HDR
-          - 3497799d29a085e2ac2df9d468413c94 # HDR10
-          - a3d82cbef5039f8d295478d28a887159 # HDR10+
-          - 17e889ce13117940092308f48b48b45b # HLG
-          - 2a7e3be05d3861d6df7171ec74cad727 # PQ
-          # Block DV without HDR10 fallback
-          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
-        assign_scores_to:
-          - name: WEB-1080p
+        ###########################################
+        #                                         #
+        #         WEB-2160p Modifications         #
+        #                                         #
+        ###########################################
 
-      ###########################################
-      #                                         #
-      #         WEB-2160p Modifications         #
-      #                                         #
-      ###########################################
-
-      # HDR Formats
-      - trash_ids:
-          # Comment out the next line if you and all of your users' setups are fully DV compatible
-          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
-          # HDR10Plus Boost - Uncomment the next line if any of your devices DO support HDR10+
-          # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10Plus Boost
-        assign_scores_to:
-          - name: WEB-2160p
-
-      # Optional
-      - trash_ids:
-          # - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          # - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
-          # - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          # - 06d66ab109d4d2eddb2794d21526d140 # Retags
-          # - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-        assign_scores_to:
-          - name: WEB-2160p
-
-      - trash_ids:
-          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
-          # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD)
-        # assign_scores_to:
-        # - name: WEB-2160p
-        # score: 0
-        # - trash_ids:
-        # - 9b64dff695c2115facf1b6ea59c9bd07 # x265 (no HDR/DV)
-        assign_scores_to:
-          - name: WEB-2160p
-
-      - trash_ids:
-          - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
-        assign_scores_to:
-          - name: WEB-2160p
-            score: 0 # Uncomment this line to enable SDR releases
+        # SDR (Allow)
+        - trash_id: e1053c0ef622df3749fa43c22865663a # SDR
+          select:
+            - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
+          assign_scores_to:
+            - name: WEB-2160p
+              score: 0
