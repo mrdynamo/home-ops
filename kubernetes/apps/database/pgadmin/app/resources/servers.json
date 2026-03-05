@@ -8,7 +8,6 @@
       "MaintenanceDB": "postgres",
       "Username": "ePifAHUKvDmPGQWCvF6h",
       "SSLMode": "verify-full",
-      "SSLRootCert": "/var/run/secrets/postgresql/ca.crt",
       "SSLCert": "/var/run/secrets/postgresql/tls.crt",
       "SSLKey": "/var/run/secrets/postgresql/tls.key",
       "SSLCompression": 0,
