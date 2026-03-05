@@ -103,7 +103,7 @@ spec:
       - name: pgadmin
         ensure: present
         login: true
-        superuser: false
+        superuser: true
         disablePassword: true
 
       - name: tracearr
