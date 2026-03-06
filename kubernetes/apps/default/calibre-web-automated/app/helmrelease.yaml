@@ -29,22 +29,22 @@ spec:
                   name: calibre-web-automated-secret
             probes:
               liveness: &probes
-                enabled: false
+                enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /login
                     port: &port 8083
-                  initialDelaySeconds: 0
-                  periodSeconds: 10
+                  initialDelaySeconds: 15
+                  periodSeconds: 15
                   timeoutSeconds: 1
-                  failureThreshold: 3
+                  failureThreshold: 5
               readiness: *probes
               startup:
-                enabled: false
+                enabled: true
                 spec:
                   failureThreshold: 30
-                  periodSeconds: 10
+                  periodSeconds: 15
             securityContext:
               allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
