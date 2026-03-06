@@ -36,9 +36,9 @@ spec:
                     path: /login
                     port: &port 8083
                   initialDelaySeconds: 15
-                  periodSeconds: 15
+                  periodSeconds: 10
                   timeoutSeconds: 1
-                  failureThreshold: 5
+                  failureThreshold: 3
               readiness: *probes
               startup:
                 enabled: true
