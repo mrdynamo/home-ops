@@ -98,7 +98,7 @@ spec:
         containers:
           app:
             image:
-              repository: mirror.gcr.io/apache/tika
+              repository: docker.io/apache/tika
               tag: 3.2.3.0-full
             # securityContext: *sc
             resources:

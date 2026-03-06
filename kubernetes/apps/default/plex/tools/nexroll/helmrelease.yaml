@@ -17,7 +17,7 @@ spec:
         containers:
           app:
             image:
-              repository: mirror.gcr.io/jbrns/nexroll
+              repository: docker.io/jbrns/nexroll
               tag: 1.10.14@sha256:5b9bc672cf6059ca0310272b64fe2b4327123066abd006f397084d94a3f3585c
             env:
               TZ: America/Chicago

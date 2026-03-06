@@ -17,7 +17,7 @@ spec:
         containers:
           app:
             image:
-              repository: mirror.gcr.io/invoiceninja/invoiceninja-debian
+              repository: docker.io/invoiceninja/invoiceninja-debian
               tag: 5.12.70@sha256:415c2d7be9b14e36c1c9bff9f20ae65477f2b9bde3301649705f51cca4648435
             env:
               TZ: America/Chicago
