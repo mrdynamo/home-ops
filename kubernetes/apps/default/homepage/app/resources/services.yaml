@@ -73,7 +73,7 @@
 
 - Internal Services:
     - Authentik:
-        href: https://auth.${INTERNAL_SECRET_DOMAIN}/
+        href: https://auth.${SECRET_DOMAIN}/
         description: Authentication provider
         icon: authentik.svg
         namespace: security
