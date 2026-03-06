@@ -75,7 +75,7 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/library/mongo
+              repository: mirror.gcr.io/library/mongo
               tag: 8.2.5@sha256:474f5c3bf0e355bb97dafda730e725169a4d51c5578abf7be9ec7ad3fdee4481
             resources:
               requests:
