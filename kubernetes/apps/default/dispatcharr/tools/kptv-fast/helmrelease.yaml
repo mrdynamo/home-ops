@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/kpirnie/kptv-fast
-              tag: latest@sha256:e2291bb8c148b3ddda16aee68543394378b8930ca7a20f65487b795f83368a83
+              tag: latest@sha256:8db83c10a0b3f53ce3d3ff1757a7e69d6eec0504d6a7320a06532b38815b2092
             env:
               DEBUG: false
               CACHE_DURATION: 7200
