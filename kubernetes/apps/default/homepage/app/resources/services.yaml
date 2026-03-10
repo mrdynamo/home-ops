@@ -422,7 +422,7 @@
 
 - Database:
     - PGAdmin:
-        href: https://pgadmin.local.${SECRET_DOMAIN}/
+        href: https://pgadmin.internal.${SECRET_DOMAIN}/
         description: PostgreSQL management
         icon: pgadmin.svg
         namespace: database # The kubernetes namespace the app resides in
