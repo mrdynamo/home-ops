@@ -46,10 +46,10 @@ spec:
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 31m
-                memory: 1033Mi
+                cpu: 10m
+                memory: 562Mi
               limits:
-                memory: 1033Mi
+                memory: 562Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:

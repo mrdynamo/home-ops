@@ -46,9 +46,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 1640Mi
+                memory: 1303Mi
               limits:
-                memory: 1640Mi
+                memory: 1303Mi
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
       # runtimeClassName: nvidia

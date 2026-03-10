@@ -86,10 +86,10 @@ spec:
             #   capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 14m
-                memory: 2650Mi
+                cpu: 514m
+                memory: 1539Mi
               limits:
-                memory: 2650Mi
+                memory: 1539Mi
       gotenburg:
         containers:
           app:
@@ -99,9 +99,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 483Mi
+                memory: 100Mi
               limits:
-                memory: 483Mi
+                memory: 100Mi
             env:
               DISABLE_GOOGLE_CHROME: "1"
             # securityContext: *sc
