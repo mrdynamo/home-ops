@@ -107,5 +107,20 @@
       },
       minimumGroupSize: 2,
     },
+    {
+      description: "Volsync Group",
+      groupName: "volsync",
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "/volsync/",
+        "/volsync-perfectra1n/"
+      ],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
   ],
 }
