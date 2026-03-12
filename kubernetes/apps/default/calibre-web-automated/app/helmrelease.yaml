@@ -62,7 +62,7 @@ spec:
                 cpu: 24m
                 memory: 566Mi
               limits:
-                memory: 566Mi
+                memory: 1000Mi
         ## With Calibre HR disabled, bypass affinity so CWA/Shelfmark can schedule.
         # pod:
         #   affinity:
