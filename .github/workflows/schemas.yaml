@@ -1,0 +1,49 @@
+# .github/workflows/schemas.yaml
+---
+name: Publish k8s schemas
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 0 * * *
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/schemas.yaml
+      - .github/schemas-index.html
+
+jobs:
+  main:
+    name: Schemas
+    runs-on: home-ops-runner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.14.x
+
+      - name: Install Python Dependencies
+        run: pip install pyyaml
+
+      - name: Run crd-extractor
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/Utilities/crd-extractor.sh | bash
+
+      - name: Generate index.html
+        run: |
+          cd /home/runner/.datree/crdSchemas
+          # ... generate browsable index ...
+
+      - name: Publish Schemas
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: /home/runner/.datree/crdSchemas
+          command: pages deploy --project-name=kubernetes-schemas --branch main .
