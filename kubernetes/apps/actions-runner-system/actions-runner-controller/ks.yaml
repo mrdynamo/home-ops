@@ -23,6 +23,7 @@ metadata:
 spec:
   dependsOn:
     - name: actions-runner-controller
+      namespace: actions-runner-system
     - name: openebs
       namespace: storage
   interval: 1h
