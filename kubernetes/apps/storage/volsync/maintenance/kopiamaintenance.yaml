@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/kopiamaintenance_v1alpha1.json
+# yaml-language-server: $schema=https://schemas.budimanjojo.com/volsync.backube/kopiamaintenance_v1alpha1.json
 apiVersion: volsync.backube/v1alpha1
 kind: KopiaMaintenance
 metadata:
@@ -11,3 +11,9 @@ spec:
     schedule: 30 3 * * *
   repository:
     repository: volsync-maintenance-secret
+  moverVolumes:
+      - mountPath: repository
+        volumeSource:
+          nfs:
+            path: /mnt/tank/backups/kopia/repository
+            server: 192.168.20.21
