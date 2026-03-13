@@ -136,6 +136,10 @@
         icon: https://raw.githubusercontent.com/rishikanthc/Scriberr/main/logo.svg
         namespace: default
         app: scriberr
+    - Kubernetes Schemas:
+        href: https://kubernetes-schemas-eov.pages.dev/
+        description: JSON schemas for Kubernetes CRDs
+        icon: kubernetes.svg
 
 - Network:
     - Unifi Cloud Gateway:
