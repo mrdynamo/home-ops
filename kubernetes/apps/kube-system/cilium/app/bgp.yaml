@@ -10,7 +10,7 @@ spec:
     - start: 192.168.30.100
       stop: 192.168.30.204
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgpadvertisement_v2.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cilium.io/ciliumbgpadvertisement_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPAdvertisement
 metadata:
@@ -30,7 +30,7 @@ spec:
             values:
               - "true"
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgppeerconfig_v2.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPPeerConfig
 metadata:
@@ -50,7 +50,7 @@ spec:
         matchLabels:
           advertise: bgp
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgpclusterconfig_v2.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cilium.io/ciliumbgpclusterconfig_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumBGPClusterConfig
 metadata:

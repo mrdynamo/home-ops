@@ -60,7 +60,11 @@ spec:
     clusterRoleBinding:
       create: false
     config:
+      inCluster: true
+      inClusterContextName: "main"
       pluginsDir: /build/plugins
+      enableHelm: false
+      watchPlugins: false
     podAnnotations:
       reloader.stakater.com/auto: "true"
     service:
