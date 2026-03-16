@@ -10,12 +10,6 @@ spec:
     kind: OCIRepository
     name: longhorn
   values:
-    image:
-      longhorn:
-        # https://longhorn.io/docs/1.11.0/important-notes/#hotfix
-        # https://github.com/longhorn/longhorn/issues/12573
-        instanceManager:
-          tag: v1.11.0-hotfix-1
     monitoring:
       enabled: true
       createPrometheusRules: true
