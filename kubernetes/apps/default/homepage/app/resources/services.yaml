@@ -309,6 +309,16 @@
             app: calibre
 
     - Management:
+        - Tracearr:
+            href: https://tracearr.${INTERNAL_SECRET_DOMAIN}/
+            description: Tracearr for Plex/Emby streaming statistics
+            icon: tracearr.svg
+            namespace: default
+            app: tracearr
+            widget:
+                type: tracearr
+                url: http://tracearr.default.svc.cluster.local:3000
+                key: {{HOMEPAGE_VAR_TRACEARR_API_KEY}}
         - Tautulli:
             href: https://tautulli.${INTERNAL_SECRET_DOMAIN}/
             description: Plex server streaming statistics
