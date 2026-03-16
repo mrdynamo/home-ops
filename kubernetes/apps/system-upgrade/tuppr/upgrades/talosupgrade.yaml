@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/tuppr.home-operations.com/talosupgrade_v1alpha1.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/tuppr.home-operations.com/talosupgrade_v1alpha1.json
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: TalosUpgrade
 metadata:
@@ -8,8 +8,6 @@ spec:
   talos:
     # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
     version: v1.12.4
-  policy:
-    rebootMode: powercycle
   healthChecks:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
@@ -19,3 +17,8 @@ spec:
       kind: Volume
       expr: |-
         status.robustness != "degraded"
+  # maintenance:
+  #   windows:
+  #     - start: "0 2 * * 0"
+  #       duration: "4h"
+  #       timezone: "America/Chicago"
