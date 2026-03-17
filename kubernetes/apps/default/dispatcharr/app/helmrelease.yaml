@@ -21,6 +21,8 @@ spec:
               tag: 0.21.0@sha256:30f89f57a36f509323f98c15ec89727e73b1313324b5b628dcf518be3cf17c36
             env:
               TZ: America/Chicago
+              PUID: 1000
+              PGID: 1000
               # DISPATCHARR_LOG_LEVEL: DEBUG
               REDIS_HOST: dragonfly.database.svc
               REDIS_PORT: 6379
@@ -63,6 +65,12 @@ spec:
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     # defaultPodOptions:
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
+    #     runAsGroup: 1000
+    #     fsGroup: 1000
+    #     fsGroupChangePolicy: OnRootMismatch
       # resourceClaims:
       #   - name: gpu
       #     resourceClaimTemplateName: dispatcharr
@@ -75,12 +83,6 @@ spec:
       #             - key: nvidia.com/gpu.count
       #               operator: Gt
       #               values: ["0"]
-    #   securityContext:
-    #     runAsNonRoot: true
-    #     runAsUser: 1000
-    #     runAsGroup: 1000
-    #     fsGroup: 1000
-    #     fsGroupChangePolicy: OnRootMismatch
       # tolerations:
       #   - key: nvidia.com/gpu
       #     operator: Exists
