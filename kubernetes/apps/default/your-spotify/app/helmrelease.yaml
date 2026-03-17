@@ -76,7 +76,7 @@ spec:
           app:
             image:
               repository: docker.io/library/mongo
-              tag: 8.2.5@sha256:60aa240412f473f672ec8b282fd5651aa156dcc7a220f81f5381ce768ccc3167
+              tag: 8.2.6@sha256:eb37f58646a901dc7727cf448cae36daaefaba79de33b5058dab79aa4c04aefb
             resources:
               requests:
                 cpu: 14m
