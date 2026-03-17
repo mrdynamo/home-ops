@@ -50,9 +50,10 @@ spec:
                   failureThreshold: 5
               readiness: *probes
             securityContext:
-              allowPrivilegeEscalation: false
+              # allowPrivilegeEscalation: false
               # readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"], add: ["SYS_NICE"] }
+              # capabilities: {drop: ["ALL"], add: ["SYS_NICE"] }
+              capabilities: {add: ["SYS_NICE"]}
             resources:
               # claims:
               #   - name: gpu
@@ -63,13 +64,13 @@ spec:
                 memory: 2538Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+    # defaultPodOptions:
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
+    #     runAsGroup: 1000
+    #     fsGroup: 1000
+    #     fsGroupChangePolicy: OnRootMismatch
       # resourceClaims:
       #   - name: gpu
       #     resourceClaimTemplateName: dispatcharr
