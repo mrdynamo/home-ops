@@ -7,6 +7,9 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/observability/smartctl-exporter/app
+  dependsOn:
+    - name: grafana-instance
+      namespace: observability
   postBuild:
     substituteFrom:
       - name: cluster-secrets
