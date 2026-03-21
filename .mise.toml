@@ -7,7 +7,7 @@ MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
 
 [tools]
 "python" = "3.14.3"
-"pipx" = "1.10.0"
+"pipx" = "1.10.1"
 "pipx:makejinja" = "2.8.2"
 "pipx:flux-local" = "8.1.0"
 "aqua:budimanjojo/talhelper" = "3.1.7"
