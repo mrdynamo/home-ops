@@ -25,6 +25,12 @@ rules:
         customValue:
           type: custom_days
           value: "180"
+      - operator: OR
+        firstValue: Tautulli.viewCount
+        action: SMALLER
+        customValue:
+          type: number
+          value: 1
       - operator: AND
         firstValue: Radarr.releaseDate
         action: BEFORE
