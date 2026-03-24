@@ -100,5 +100,9 @@ spec:
             subPath: tmp
           - path: /var/log
             subPath: var-log
+          - path: /tmp/shelfmark
+            subPath: shelfmark-tmp
           - path: /tmp/shelfmark/seleniumbase/downloaded_files
             subPath: seleniumbase-downloaded-files
+          - path: /app/downloaded_files
+            subPath: app-downloaded-files
