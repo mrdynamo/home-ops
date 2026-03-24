@@ -37,7 +37,7 @@ spec:
                     port: &port 8083
                   initialDelaySeconds: 15
                   periodSeconds: 10
-                  timeoutSeconds: 1
+                  timeoutSeconds: 3
                   failureThreshold: 3
               readiness: *probes
               startup:
