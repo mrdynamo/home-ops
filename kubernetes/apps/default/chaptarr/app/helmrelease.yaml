@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: docker.io/robertlordhood/chaptarr
-              tag: develop@sha256:6007698b8cedca00df5a7f0c47e418ffce859b7dd858ea8c2b6883d5274c73c3
+              tag: develop@sha256:d5cffbf7229d43a077d336574e312bd261581a95b9f268e502f16c5aafc097fc
             env:
               TZ: America/Chicago
             probes:
