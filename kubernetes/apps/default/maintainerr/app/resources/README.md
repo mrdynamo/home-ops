@@ -2,8 +2,9 @@
 
 ## Movies Leaving Soon
 
-Requested and not watched in 6mo from available OR not watched in 1yr and release date more than 2 years ago AND not part of a Kometa universe.
+Requested and not watched in 6mo from available OR not watched in 1yr and release date more than 1 year ago AND not part of a Kometa universe
 -----
+
 Requested in Seer = TRUE
 AND
 Available in Seer > 180 days
@@ -14,11 +15,11 @@ _OR_
 
 Tautulli Last Viewed > 365 days
 AND
-Radarr release date > 730 days
+Radarr release date > 365 days
 
 _AND_
 
-Radarr tag != pmm_universe
+Radarr tag != kometa-universe
 
 ## Shows Leaving Soon
 

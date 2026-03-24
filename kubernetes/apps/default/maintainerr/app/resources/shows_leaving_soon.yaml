@@ -1,13 +1,13 @@
 mediaType: SHOWS
 rules:
   - "0":
-      - firstValue: Jellyseerr.isRequested
+      - firstValue: Seerr.isRequested
         action: EQUALS
         customValue:
           type: boolean
           value: "true"
       - operator: AND
-        firstValue: Jellyseerr.mediaAddedAt
+        firstValue: Seerr.mediaAddedAt
         action: BEFORE
         customValue:
           type: custom_days
@@ -38,7 +38,7 @@ rules:
           type: custom_days
           value: "365"
       - operator: AND
-        firstValue: Jellyseerr.mediaAddedAt
+        firstValue: Seerr.mediaAddedAt
         action: BEFORE
         customValue:
           type: custom_days

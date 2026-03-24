@@ -1,13 +1,13 @@
 mediaType: MOVIES
 rules:
   - "0":
-      - firstValue: Jellyseerr.isRequested
+      - firstValue: Seerr.isRequested
         action: EQUALS
         customValue:
           type: boolean
           value: "true"
       - operator: AND
-        firstValue: Jellyseerr.mediaAddedAt
+        firstValue: Seerr.mediaAddedAt
         action: BEFORE
         customValue:
           type: custom_days
@@ -36,15 +36,15 @@ rules:
         action: BEFORE
         customValue:
           type: custom_days
-          value: "730"
+          value: "365"
       - operator: AND
-        firstValue: Jellyseerr.isRequested
+        firstValue: Seerr.isRequested
         action: EQUALS
         customValue:
           type: boolean
           value: "true"
       - operator: AND
-        firstValue: Jellyseerr.mediaAddedAt
+        firstValue: Seerr.mediaAddedAt
         action: BEFORE
         customValue:
           type: custom_days
@@ -55,4 +55,4 @@ rules:
         action: NOT_CONTAINS_PARTIAL
         customValue:
           type: text
-          value: pmm_universe
+          value: kometa-universe
