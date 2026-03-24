@@ -11,7 +11,7 @@ rules:
         action: BEFORE
         customValue:
           type: custom_days
-          value: "180"
+          value: "90"
       - operator: AND
         firstValue: Tautulli.sw_viewedEpisodes
         action: SMALLER
