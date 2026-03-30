@@ -13,7 +13,6 @@ spec:
     - ../../../../components/dragonfly
     - ../../../../components/nfs-scaler
     - ../../../../components/volsync
-    - ../../../../components/database
   dependsOn:
     - name: longhorn
       namespace: storage
