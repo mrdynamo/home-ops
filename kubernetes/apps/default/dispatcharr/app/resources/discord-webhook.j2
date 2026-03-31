@@ -1,0 +1,101 @@
+{#
+Copy one template block at a time into the matching Dispatcharr webhook event.
+
+Notes:
+- Dispatcharr renders these with Django-style template syntax.
+- If the rendered result is valid JSON, it is posted as JSON.
+- These examples use Discord's top-level content field only.
+- This is the most compatible shape for Dispatcharr and generic webhook relays.
+- Use escapejs to keep rendered strings safe inside JSON strings.
+- Common keys added by Dispatcharr for stream-related events include:
+	channel_name, stream_name, stream_url, channel_url, provider_name, profile_used
+#}
+
+{# channel_start / Channel Started #}
+{
+	"content": "\n**Channel Started:** {{ channel_name|default:'Unknown channel'|escapejs }} is now streaming.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}\n**Provider:** {{ provider_name|default:'Unknown provider'|escapejs }}\n**Profile:** {{ profile_used|default:'Default'|escapejs }}\n**Stream ID:** {{ stream_id|default:'n/a'|escapejs }}"
+}
+
+{# channel_stop / Channel Stopped #}
+{% with runtime_seconds=runtime|default:0 bytes_total=total_bytes|default:0 %}
+{% widthratio runtime_seconds 60 1 as runtime_minutes %}
+{% widthratio bytes_total 1048576 1 as total_megabytes %}
+{
+	"content": "\n**Channel Stopped:** {{ channel_name|default:'Unknown channel'|escapejs }} stopped streaming.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Runtime:** {{ runtime_minutes|escapejs }} min\n**Total Data:** {{ total_megabytes|escapejs }} MB"
+}
+{% endwith %}
+
+{# channel_reconnect / Channel Reconnected #}
+{
+	"content": "\n**Channel Reconnected:** {{ channel_name|default:'Unknown channel'|escapejs }} reconnected successfully.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}\n**Provider:** {{ provider_name|default:'Unknown provider'|escapejs }}\n**Reason:** {{ reason|default:'Automatic recovery'|escapejs }}"
+}
+
+{# channel_error / Channel Error #}
+{
+	"content": "\n**Channel Error:** Dispatcharr reported a channel error for {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}\n**Provider:** {{ provider_name|default:'Unknown provider'|escapejs }}\n**Error:** {{ error|default:reason|default:message|default:'Unknown error'|escapejs }}"
+}
+
+{# channel_failover / Channel Failover #}
+{% with duration_seconds=duration|default:0 %}
+{% widthratio duration_seconds 60 1 as duration_minutes %}
+{
+	"content": "\n**Channel Failover:** {{ channel_name|default:'Unknown channel'|escapejs }} failed over to another stream source.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Current Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}\n**Provider:** {{ provider_name|default:'Unknown provider'|escapejs }}\n**Reason:** {{ reason|default:'Automatic failover'|escapejs }}\n**Duration:** {{ duration_minutes|escapejs }} min"
+}
+{% endwith %}
+
+{# stream_switch / Stream Switch #}
+{
+	"content": "\n**Stream Switch:** Dispatcharr switched the active stream for {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Active Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}\n**Stream ID:** {{ stream_id|default:'n/a'|escapejs }}\n**Provider:** {{ provider_name|default:'Unknown provider'|escapejs }}\n**Profile:** {{ profile_used|default:'Default'|escapejs }}"
+}
+
+{# recording_start / Recording Started #}
+{
+	"content": "\n**Recording Started:** Recording has started for {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Recording ID:** {{ recording_id|default:'n/a'|escapejs }}\n**Profile:** {{ profile_used|default:'Default'|escapejs }}\n**Stream:** {{ stream_name|default:'Unknown stream'|escapejs }}"
+}
+
+{# recording_end / Recording Ended #}
+{% with bytes_total=bytes_written|default:0 %}
+{% widthratio bytes_total 1048576 1 as total_megabytes %}
+{
+	"content": "\n**Recording Ended:** Recording finished for {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Recording ID:** {{ recording_id|default:'n/a'|escapejs }}\n**Interrupted:** {{ interrupted|default:'false'|escapejs }}\n**Data Written:** {{ total_megabytes|escapejs }} MB\n**Reason:** {{ interrupted_reason|default:reason|default:'Normal completion'|escapejs }}"
+}
+{% endwith %}
+
+{# epg_refresh / EPG Refreshed #}
+{
+	"content": "\n**EPG Refreshed:** EPG processing completed for {{ source_name|default:'Unknown source'|escapejs }}.\n**Source:** {{ source_name|default:'Unknown source'|escapejs }}\n**Channels:** {{ channels|default:'0'|escapejs }}\n**Programs:** {{ programs|default:'0'|escapejs }}\n**Skipped Programs:** {{ skipped_programs|default:'0'|escapejs }}\n**Status:** {{ status|default:'success'|escapejs }}\n**Details:** {{ message|default:last_message|default:'EPG refresh completed'|escapejs }}"
+}
+
+{# m3u_refresh / M3U Refreshed #}
+{
+	"content": "\n**M3U Refreshed:** M3U processing completed for {{ account_name|default:'Unknown account'|escapejs }}.\n**Account:** {{ account_name|default:'Unknown account'|escapejs }}\n**Created:** {{ streams_created|default:'0'|escapejs }}\n**Updated:** {{ streams_updated|default:'0'|escapejs }}\n**Deleted:** {{ streams_deleted|default:'0'|escapejs }}\n**Total Processed:** {{ total_processed|default:streams_processed|default:'0'|escapejs }}\n**Elapsed Time:** {{ elapsed_time|default:'n/a'|escapejs }}"
+}
+
+{# client_connect / Client Connected #}
+{
+	"content": "\n**Client Connected:** A client connected to {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Client ID:** {{ client_id|default:'n/a'|escapejs }}\n**IP Address:** {{ client_ip|default:'Unknown'|escapejs }}\n**User Agent:** {{ user_agent|default:'Unknown'|escapejs }}"
+}
+
+{# client_disconnect / Client Disconnected #}
+{% with duration_seconds=duration|default:0 bytes_total=bytes_sent|default:0 %}
+{% widthratio duration_seconds 60 1 as duration_minutes %}
+{% widthratio bytes_total 1048576 1 as total_megabytes %}
+{
+	"content": "\n**Client Disconnected:** A client disconnected from {{ channel_name|default:'Unknown channel'|escapejs }}.\n**Channel:** {{ channel_name|default:'Unknown channel'|escapejs }}\n**Client ID:** {{ client_id|default:'n/a'|escapejs }}\n**IP Address:** {{ client_ip|default:'Unknown'|escapejs }}\n**Duration:** {{ duration_minutes|escapejs }} min\n**Data Sent:** {{ total_megabytes|escapejs }} MB\n**User Agent:** {{ user_agent|default:'Unknown'|escapejs }}"
+}
+{% endwith %}
+
+{# login_failed / Login Failed #}
+{
+	"content": "\n**Login Failed:** A login attempt failed in Dispatcharr.\n**User:** {{ user|default:username|default:'Unknown'|escapejs }}\n**IP Address:** {{ client_ip|default:ip_address|default:'Unknown'|escapejs }}\n**User Agent:** {{ user_agent|default:'Unknown'|escapejs }}\n**Reason:** {{ reason|default:error|default:message|default:'Invalid credentials'|escapejs }}"
+}
+
+{# epg_blocked / EPG Blocked #}
+{
+	"content": "\n**EPG Blocked:** Dispatcharr blocked an EPG request.\n**User:** {{ user|default:username|default:'Unknown'|escapejs }}\n**Profile:** {{ profile|default:'all'|escapejs }}\n**IP Address:** {{ client_ip|default:ip_address|default:'Unknown'|escapejs }}\n**Reason:** {{ reason|default:error|default:message|default:'Request blocked'|escapejs }}\n**User Agent:** {{ user_agent|default:'Unknown'|escapejs }}"
+}
+
+{# m3u_blocked / M3U Blocked #}
+{
+	"content": "\n**M3U Blocked:** Dispatcharr blocked an M3U request.\n**User:** {{ user|default:username|default:'Unknown'|escapejs }}\n**Profile:** {{ profile|default:'all'|escapejs }}\n**IP Address:** {{ client_ip|default:ip_address|default:'Unknown'|escapejs }}\n**Reason:** {{ reason|default:error|default:message|default:'Request blocked'|escapejs }}\n**User Agent:** {{ user_agent|default:'Unknown'|escapejs }}"
+}
