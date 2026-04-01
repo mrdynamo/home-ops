@@ -3,12 +3,12 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app dispatcharr
+  name: dispatcharr
 spec:
   interval: 1h
   chartRef:
     kind: OCIRepository
-    name: *app
+    name: dispatcharr
   values:
     controllers:
       dispatcharr:
@@ -16,39 +16,21 @@ spec:
           reloader.stakater.com/auto: "true"
         containers:
           app:
-            image: &image
+            image:
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.22.0@sha256:06189b5f338fe2c8bd2527ab9e2751bc8a1b32b955a44c1bc16cc0768ae290e6
-            env: &env
+              tag: 0.21.1@sha256:3fe4da0af06887781aba4650bb64bbffc3a10f11a602d4d5a1a8df6a8edca416
+            env:
               TZ: America/Chicago
               DISPATCHARR_LOG_LEVEL: DEBUG
+              REDIS_HOST: dragonfly.database.svc
+              REDIS_PORT: 6379
+              REDIS_DB: 5
+              REDIS_URL: redis://dragonfly.database.svc:6379/5
               # Process Priority Configuration (Optional)
               # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
               # Negative values require cap_add: SYS_NICE
               UWSGI_NICE_LEVEL: -10   # uWSGI/FFmpeg/Streaming (default: 0, recommended: -5 for high priority)
               CELERY_NICE_LEVEL: 15   # Celery/EPG/Background tasks (default: 5, low priority)
-              # Modular deployment properties
-              DISPATCHARR_ENV: modular
-              ## PostgreSQL configuration for modular deployment
-              POSTGRES_HOST: postgres-rw.database.svc
-              POSTGRES_PORT: 5432
-              POSTGRES_DB: *app
-              POSTGRES_USER: *app
-              POSTGRES_SSL: true
-              POSTGRES_SSL_MODE: verify-full
-              POSTGRES_SSL_CA_CERT: /var/run/secrets/postgresql/ca.crt
-              POSTGRES_SSL_CERT: /var/run/secrets/postgresql/tls.crt
-              POSTGRES_SSL_KEY: /var/run/secrets/postgresql/tls.key
-              ## Redis configuration for modular deployment
-              REDIS_HOST: dragonfly.database.svc
-              REDIS_PORT: 6379
-              REDIS_DB: 5
-              REDIS_URL: redis://dragonfly.database.svc:6379/5
-              # REDIS_SSL: true
-              # REDIS_SSL_VERIFY: true
-              # REDIS_SSL_CA_CERT: /certs/redis/ca.crt
-              # REDIS_SSL_CERT: /certs/redis/client.crt
-              # REDIS_SSL_KEY: /certs/redis/client.key
             probes:
               liveness: &probes
                 enabled: true
@@ -65,7 +47,7 @@ spec:
                   timeoutSeconds: 3
                   failureThreshold: 5
               readiness: *probes
-            securityContext: &sc
+            securityContext:
               # allowPrivilegeEscalation: false
               # readOnlyRootFilesystem: true
               # capabilities: {drop: ["ALL"], add: ["SYS_NICE"] }
@@ -80,14 +62,6 @@ spec:
                 memory: 2538Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
-          celery:
-            image: *image
-            command: ["/app/docker/entrypoint.celery.sh"]
-            env:
-              << : *env
-              DJANGO_SETTINGS_MODULE: dispatcharr.settings
-              DISPATCHARR_PORT: *port
-            securityContext: *sc
     # defaultPodOptions:
     #   securityContext:
     #     runAsNonRoot: true
