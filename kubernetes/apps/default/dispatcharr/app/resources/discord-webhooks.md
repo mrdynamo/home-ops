@@ -1,5 +1,5 @@
 
-# Dispatcharr → Discord webhook templates
+# Webhook Templates - Discord
 
 This document contains the Dispatcharr webhook templates (Jinja/Django-style) formatted for Discord `content` payloads. Copy the matching code block into your Dispatcharr webhook configuration for the corresponding event.
 
