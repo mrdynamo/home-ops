@@ -73,11 +73,7 @@ spec:
             resources:
               # claims:
               #   - name: gpu
-              requests:
-                cpu: 144m
-                memory: 2538Mi
               limits:
-                memory: 2538Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
           celery:
