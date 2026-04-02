@@ -7,8 +7,15 @@ Notes:
 - These examples use Discord's top-level content field only.
 - This is the most compatible shape for Dispatcharr and generic webhook relays.
 - Use escapejs to keep rendered strings safe inside JSON strings.
-- Common keys added by Dispatcharr for stream-related events include:
-	channel_name, stream_name, stream_url, channel_url, provider_name, profile_used
+# Common keys added by Dispatcharr for stream-related events include:
+#	channel_name, stream_name, provider_name, profile_used
+# NOTE: `channel_url` and `stream_url` are intentionally excluded and MUST NOT be
+# included in webhook templates or payloads. Do not add `channel_url` or
+# `stream_url` to templates or include them in payload examples.
+# Additional keys exposed by the `connect` app (useful in payloads):
+#	`event`, `stream_id`,
+#	`recording_id`, `bytes_written`/`bytes_total`/`total_bytes`, `test`,
+#	`interrupted`, `interrupted_reason`, `client_id`, `client_ip`, `user_agent`
 #}
 
 {# channel_start / Channel Started #}
@@ -73,7 +80,7 @@ Notes:
 
 {# client_connect / Client Connected #}
 {
-	"content": "\n🔌 **__Client Connected__** 🔌\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Client ID:**\n*{{ client_id|default:'n/a'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:'Unknown'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
+	"content": "\n🔌 **__Client Connected__** 🔌\n**Username:**\n*{{ username|default:'Anonymous'|escapejs }}*\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Client ID:**\n*{{ client_id|default:'n/a'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:'Unknown'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
 }
 
 {# client_disconnect / Client Disconnected #}
@@ -81,21 +88,21 @@ Notes:
 {% widthratio duration_seconds 60 1 as duration_minutes %}
 {% widthratio bytes_total 1048576 1 as total_megabytes %}
 {
-	"content": "\n❌ **__Client Disconnected__** ❌\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Client ID:**\n*{{ client_id|default:'n/a'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:'Unknown'|escapejs }}*\n**Duration:**\n*{{ duration_minutes|escapejs }} min*\n**Data Sent:**\n*{{ total_megabytes|escapejs }} MB*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
+	"content": "\n❌ **__Client Disconnected__** ❌\n**Username:**\n*{{ username|default:'Anonymous'|escapejs }}*\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Client ID:**\n*{{ client_id|default:'n/a'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:'Unknown'|escapejs }}*\n**Duration:**\n*{{ duration_minutes|escapejs }} min*\n**Data Sent:**\n*{{ total_megabytes|escapejs }} MB*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
 }
 {% endwith %}
 
 {# login_failed / Login Failed #}
 {
-	"content": "\n🔒 **__Login Failed__** 🔒\n**User:**\n*{{ user|default:username|default:'Unknown'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Invalid credentials'|escapejs }}*"
+	"content": "\n🔒 **__Login Failed__** 🔒\n**User:**\n*{{ user|default:username|default:'Anonymous'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Invalid credentials'|escapejs }}*"
 }
 
 {# epg_blocked / EPG Blocked #}
 {
-	"content": "\n🚫 **__EPG Blocked__** 🚫\n**User:**\n*{{ user|default:username|default:'Unknown'|escapejs }}*\n**Profile:**\n*{{ profile|default:'all'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Request blocked'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
+	"content": "\n🚫 **__EPG Blocked__** 🚫\n**User:**\n*{{ user|default:username|default:'Anonymous'|escapejs }}*\n**Profile:**\n*{{ profile|default:'all'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Request blocked'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
 }
 
 {# m3u_blocked / M3U Blocked #}
 {
-	"content": "\n🚫 **__M3U Blocked__** 🚫\n**User:**\n*{{ user|default:username|default:'Unknown'|escapejs }}*\n**Profile:**\n*{{ profile|default:'all'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Request blocked'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
+	"content": "\n🚫 **__M3U Blocked__** 🚫\n**User:**\n*{{ user|default:username|default:'Anonymous'|escapejs }}*\n**Profile:**\n*{{ profile|default:'all'|escapejs }}*\n**IP Address:**\n*{{ client_ip|default:ip_address|default:'Unknown'|escapejs }}*\n**Reason:**\n*{{ reason|default:error|default:message|default:'Request blocked'|escapejs }}*\n**User Agent:**\n*{{ user_agent|default:'Unknown'|escapejs }}*"
 }
