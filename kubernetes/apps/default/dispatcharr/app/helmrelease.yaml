@@ -135,6 +135,9 @@ spec:
           - port: metrics
             path: /metrics
             interval: 30s
+            metricRelabelings:
+              - action: labeldrop
+                regex: "endpoint|instance|job|namespace|pod|service"
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
