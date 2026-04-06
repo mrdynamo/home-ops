@@ -45,11 +45,7 @@ spec:
               readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
             resources:
-              requests:
-                cpu: 10m
-                memory: 1000Mi
               limits:
-                memory: 1500Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
