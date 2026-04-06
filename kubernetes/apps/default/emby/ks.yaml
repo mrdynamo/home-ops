@@ -10,8 +10,6 @@ spec:
     labels:
       app.kubernetes.io/name: *app
   components:
-    #- ../../../../components/defaults
-    #- ../../../../components/gatus/guarded
     - ../../../../components/nfs-scaler
     - ../../../../components/volsync
   dependsOn:
@@ -22,7 +20,7 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_CAPACITY: 8Gi
+      VOLSYNC_CAPACITY: 10Gi
       VOLSYNC_SCHEDULE: 0 15 * * 1  # Cron in UTC (CST: -6, CST: -5)
     substituteFrom:
       - name: cluster-secrets
