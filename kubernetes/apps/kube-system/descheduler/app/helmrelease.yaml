@@ -28,11 +28,11 @@ spec:
               args:
                 metricsUtilization:
                   source: KubernetesMetrics
-                thresholds:
+                thresholds: # Below ALL for Underutilized
                   cpu: 30
                   memory: 30
                   # pods: 50
-                targetThresholds:
+                targetThresholds: # Above ANY for Overutilized
                   cpu: 60
                   memory: 60
                   # pods: 60
