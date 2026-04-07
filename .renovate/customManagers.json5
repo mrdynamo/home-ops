@@ -10,17 +10,26 @@
         "/\\.yaml(?:\\.j2)?$/",
       ],
       matchStrings: [
-        // # renovate: datasource=docker depName=ghcr.io/foo/bar
-        // imageName: ghcr.io/foo/bar:v1.0.0@sha256:...
-        "datasource=docker depName=(?<depName>\\S+)\\n.+(:\\s|=)(&\\S+\\s)?(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?",
         // # renovate: datasource=github-releases depName=foo/bar
         // foobar_version: v1.0.0
         // # renovate: datasource=docker depName=ghcr.io/foo/bar
         // FOOBAR_VERSION=v1.0.0
-        "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n.+(:\\s|=)(&\\S+\\s)?(?<currentValue>\\S+)",
+        "datasource=(?<datasource>(?!docker)\\S+) depName=(?<depName>\\S+)\\n.+(:\\s|=)(&\\S+\\s)?(?<currentValue>\\S+)",
       ],
-      extractVersionTemplate: "^(?:[^:@\\s]+(?:/[^:@\\s]+)*:)?(?<version>[^@\\s]+)$",
       datasourceTemplate: "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
+    },
+    {
+      customType: "regex",
+      description: "Process CloudNativePG PostgreSQL cluster image",
+      managerFilePatterns: [
+        "/kubernetes/apps/database/cloudnative-pg/cluster/cluster\\.yaml$/",
+      ],
+      matchStrings: [
+        "imageName:\\s*ghcr\\.io/cloudnative-pg/postgresql:(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?",
+      ],
+      datasourceTemplate: "docker",
+      depNameTemplate: "ghcr.io/cloudnative-pg/postgresql",
+      versioningTemplate: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(?:-(?<compatibility>[a-z0-9.-]+))$",
     },
     {
       customType: "regex",
