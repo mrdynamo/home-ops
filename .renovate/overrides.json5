@@ -31,6 +31,19 @@
       ],
       "separateMajorMinor": true,
       "separateMinorPatch": true
+    },
+    {
+      "description": "Separate Major/Minor/Patch for CNPG PostgreSQL image upgrades",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/cloudnative-pg/postgresql"
+      ],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true,
+      "separateMultipleMajor": true,
+      "separateMultipleMinor": true
     }
     // {
     //   // Handle Dispatcharr tags
