@@ -125,8 +125,8 @@ spec:
               mountPath: /certs/postgres
       volumes: &volumes
         - name: root-ca-source
-          secret:
-            secretName: root-ca
+          configMap:
+            name: root-ca
         - name: postgres-certs-source
           secret:
             secretName: postgres-authentik-cert

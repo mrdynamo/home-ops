@@ -45,8 +45,8 @@ patches:
               - name: k8s.ksgate.org/database-applied
           persistence:
             root-ca:
-              type: secret
-              name: "root-ca"
+              type: configMap
+              name: root-ca
               defaultMode: 0440
               globalMounts:
                 - path: /var/run/secrets/root-ca
