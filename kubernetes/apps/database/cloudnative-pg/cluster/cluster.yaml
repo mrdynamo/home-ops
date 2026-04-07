@@ -22,6 +22,9 @@ spec:
     size: 8Gi
     storageClass: longhorn-fast
 
+  primaryUpdateMethod: switchover
+  primaryUpdateStrategy: unsupervised
+
   plugins:
     - name: &plugin barman-cloud.cloudnative-pg.io
       isWALArchiver: true
