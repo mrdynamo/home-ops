@@ -38,7 +38,7 @@ spec:
               PAPERLESS_DBNAME: paperless
               PAPERLESS_DBUSER: paperless
               PAPERLESS_DBSSLMODE: verify-full
-              PAPERLESS_DBSSLROOTCERT: /var/run/secrets/postgresql/ca.crt
+              PAPERLESS_DBSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
               PAPERLESS_DBSSLCERT: /var/run/secrets/postgresql/tls.crt
               PAPERLESS_DBSSLKEY: /var/run/secrets/postgresql/tls.key
               PAPERLESS_DB_POOLSIZE: 1

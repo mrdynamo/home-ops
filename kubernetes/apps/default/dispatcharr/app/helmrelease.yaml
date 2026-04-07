@@ -36,7 +36,7 @@ spec:
               POSTGRES_USER: *app
               POSTGRES_SSL: true
               POSTGRES_SSL_MODE: verify-full
-              POSTGRES_SSL_CA_CERT: /var/run/secrets/postgresql/ca.crt
+              POSTGRES_SSL_CA_CERT: /var/run/secrets/root-ca/ca.crt
               POSTGRES_SSL_CERT: /var/run/secrets/postgresql/tls.crt
               POSTGRES_SSL_KEY: /var/run/secrets/postgresql/tls.key
               ## Redis configuration for modular deployment

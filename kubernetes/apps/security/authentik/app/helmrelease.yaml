@@ -50,7 +50,7 @@ spec:
         - name: AUTHENTIK_POSTGRESQL__SSLMODE
           value: verify-full
         - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
-          value: /certs/postgres/pg-ca.crt
+          value: /certs/postgres/root-ca.crt
         - name: AUTHENTIK_POSTGRESQL__SSLCERT
           value: /certs/postgres/pg-tls.crt
         - name: AUTHENTIK_POSTGRESQL__SSLKEY
@@ -104,23 +104,29 @@ spec:
             - |
               # Copy and rename certificates for Postgres SSL connection
               echo "Copying certs"
-              cp -v /pg-certs/ca.crt /certs/postgres/pg-ca.crt
+              cp -v /root-ca/ca.crt /certs/postgres/root-ca.crt
               cp -v /pg-certs/tls.crt /certs/postgres/pg-tls.crt
               cp -v /pg-certs/tls.key /certs/postgres/pg-tls.key
               # Set proper ownership and permissions for authentik user (uid=1000)
               echo "Adjusting cert permissions"
-              chown -v 1000:1000 /certs/postgres/pg-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
-              chmod -v 644 /certs/postgres/pg-ca.crt
+              chown -v 1000:1000 /certs/postgres/root-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
+              chmod -v 644 /certs/postgres/root-ca.crt
               chmod -v 644 /certs/postgres/pg-tls.crt
               chmod -v 600 /certs/postgres/pg-tls.key
               echo "Cert copy and permission adjustment completed"
           volumeMounts:
+            - name: root-ca-source
+              mountPath: /root-ca
+              readOnly: true
             - name: postgres-certs-source
               mountPath: /pg-certs
               readOnly: true
             - name: postgres-certs
               mountPath: /certs/postgres
       volumes: &volumes
+        - name: root-ca-source
+          secret:
+            secretName: root-ca
         - name: postgres-certs-source
           secret:
             secretName: postgres-authentik-cert
