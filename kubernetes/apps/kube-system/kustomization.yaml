@@ -17,5 +17,6 @@ resources:
   - ./node-feature-discovery/ks.yaml
   - ./nvidia-k8s-device-plugin/ks.yaml
   - ./metrics-server/ks.yaml
+  - ./reflector/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml
