@@ -31,6 +31,16 @@
       ],
       "separateMajorMinor": true,
       "separateMinorPatch": true
+    },
+    {
+      description: "Handle CloudNativePG PostgreSQL tags with static image flavor/OS suffix",
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/cloudnative-pg/postgresql"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(?:-(?<compatibility>[a-z0-9.-]+))$",
     }
     // {
     //   // Handle Dispatcharr tags

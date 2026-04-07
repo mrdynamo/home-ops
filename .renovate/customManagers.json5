@@ -19,6 +19,7 @@
         // FOOBAR_VERSION=v1.0.0
         "datasource=(?<datasource>(?!docker)\\S+) depName=(?<depName>\\S+)\\n.+(:\\s|=)(&\\S+\\s)?(?<currentValue>\\S+)",
       ],
+      extractVersionTemplate: "^(?:[^:@\\s]+(?:/[^:@\\s]+)*:)?(?<version>[^@\\s]+)$",
       datasourceTemplate: "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
     },
     {
