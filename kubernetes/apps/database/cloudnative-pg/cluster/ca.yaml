@@ -1,73 +1,48 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: postgres-ca
+  name: &name postgres-server-ca
 spec:
   isCA: true
   commonName: postgres-ca
-  secretName: postgres-ca-secret
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
+  subject:
+    countries:
+      - USA
+    organizations:
+      - homelab-cluster
+    organizationalUnits:
+      - postgres
+  usages:
+    - cert sign
+    - crl sign
+  nameConstraints:
+    critical: true
+    permitted:
+      dnsDomains:
+        - .database.svc.cluster.local
+        - .database.svc
+        - postgres-rw
+        - postgres-ro
+        - postgres-r
+  duration: 8766h # 1 year
   privateKey:
     algorithm: ECDSA
-    size: 256
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
   issuerRef:
     name: cluster-ca
     kind: ClusterIssuer
     group: cert-manager.io
+  secretName: *name
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/issuer_v1.json
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: postgres-ca-issuer
+  name: &name postgres-server-ca
 spec:
   ca:
-    secretName: postgres-ca-secret
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: postgres-server-cert
-spec:
-  secretName: postgres-server-cert
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
-  usages:
-    - server auth
-  dnsNames:
-    - postgres-rw
-    - postgres-rw.database
-    - postgres-rw.database.svc
-    - postgres-rw.database.svc.cluster.local
-    - postgres-r
-    - postgres-r.database
-    - postgres-r.database.svc
-    - postgres-r.database.svc.cluster.local
-    - postgres-ro
-    - postgres-ro.database
-    - postgres-ro.database.svc
-    - postgres-ro.database.svc.cluster.local
-  issuerRef:
-    name: postgres-ca-issuer
-    kind: Issuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: postgres-client-cert
-spec:
-  secretName: postgres-client-cert
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
-  usages:
-    - client auth
-  commonName: streaming_replica
-  issuerRef:
-    name: postgres-client-ca-issuer
-    kind: ClusterIssuer
-    group: cert-manager.io
+    secretName: *name

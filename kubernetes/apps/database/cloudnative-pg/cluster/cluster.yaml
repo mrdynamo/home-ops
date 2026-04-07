@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/postgresql.cnpg.io/cluster_v1.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/postgresql.cnpg.io/cluster_v1.json
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -15,7 +15,7 @@ spec:
   certificates:
     serverTLSSecret: postgres-server-cert
     serverCASecret: postgres-server-cert
-    clientCASecret: postgres-client-cert
+    clientCASecret: postgres-client-ca
     replicationTLSSecret: postgres-client-cert
 
   storage:

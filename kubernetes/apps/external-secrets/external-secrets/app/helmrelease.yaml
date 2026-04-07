@@ -15,6 +15,12 @@ spec:
     image:
       repository: ghcr.io/external-secrets/external-secrets
     webhook:
+      certManager:
+        enabled: true
+        cert:
+          issuerRef:
+            name: selfsigned
+            kind: ClusterIssuer
       image:
         repository: ghcr.io/external-secrets/external-secrets
       serviceMonitor:
