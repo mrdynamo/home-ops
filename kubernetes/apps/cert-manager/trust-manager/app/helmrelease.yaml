@@ -14,9 +14,10 @@ spec:
       enabled: true
       authorizedSecrets:
         - root-ca
+        - postgres-client-ca
     app:
       webhook:
         tls:
           approverPolicy:
-            enabled: true
+            # enabled: true
             certManagerNamespace: cert-manager

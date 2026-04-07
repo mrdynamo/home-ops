@@ -1,0 +1,107 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &name postgres-server-cert
+spec:
+  commonName: postgres
+  dnsNames:
+    - postgres-rw
+    - postgres-ro
+    - postgres-r
+    - postgres-rw.database.svc
+    - postgres-ro.database.svc
+    - postgres-r.database.svc
+    - postgres-rw.database.svc.cluster.local
+    - postgres-ro.database.svc.cluster.local
+    - postgres-r.database.svc.cluster.local
+  subject:
+    countries:
+      - USA
+    organizations:
+      - homelab-cluster
+  usages:
+    - server auth
+  duration: 720h # 1 month
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""
+  issuerRef:
+    name: postgres-server-ca
+    kind: Issuer
+    group: cert-manager.io
+  secretName: *name
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &name postgres-client-cert
+spec:
+  secretName: *name
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""
+  usages:
+    - client auth
+  commonName: streaming_replica
+  issuerRef:
+    name: postgres-client-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &name pooler-server-cert
+spec:
+  commonName: pooler
+  dnsNames:
+    - pooler-rw.database.svc
+    - pooler-rw.database.svc.cluster.local
+  subject:
+    countries:
+      - USA
+    organizations:
+      - homelab-cluster
+  usages:
+    - server auth
+  duration: 720h # 1 month
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""
+  issuerRef:
+    name: postgres-server-ca
+    kind: Issuer
+    group: cert-manager.io
+  secretName: *name
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: &name pooler-client-cert
+spec:
+  secretName: *name
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""
+  usages:
+    - client auth
+  commonName: pooler-rw
+  issuerRef:
+    name: postgres-client-ca
+    kind: ClusterIssuer
+    group: cert-manager.io

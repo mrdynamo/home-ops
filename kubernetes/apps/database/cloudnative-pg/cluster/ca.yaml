@@ -3,87 +3,46 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: &name postgres-serving-ca
+  name: &name postgres-server-ca
 spec:
   isCA: true
   commonName: postgres-ca
-  secretName: *name
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
-  privateKey:
-    algorithm: ECDSA
-    size: 384
-  issuerRef:
-    name: cluster-ca
-    kind: ClusterIssuer
-    group: cert-manager.io
----
-# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/issuer_v1.json
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: postgres-ca-issuer
-spec:
-  ca:
-    secretName: postgres-ca-secret
----
-# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: &name postgres-serving-cert
-spec:
-  commonName: postgres
-  dnsNames:
-    - postgres-rw
-    - postgres-rw.database
-    - postgres-rw.database.svc
-    - postgres-rw.database.svc.cluster.local
-    - postgres-r
-    - postgres-r.database
-    - postgres-r.database.svc
-    - postgres-r.database.svc.cluster.local
-    - postgres-ro
-    - postgres-ro.database
-    - postgres-ro.database.svc
-    - postgres-ro.database.svc.cluster.local
   subject:
     countries:
       - USA
     organizations:
       - homelab-cluster
+    organizationalUnits:
+      - postgres
   usages:
-    - server auth
-  duration: 720h # 1 month
+    - cert sign
+    - crl sign
+  nameConstraints:
+    critical: true
+    permitted:
+      dnsDomains:
+        - .database.svc.cluster.local
+        - .database.svc
+        - postgres-rw
+        - postgres-ro
+        - postgres-r
+  duration: 8766h # 1 year
   privateKey:
     algorithm: ECDSA
     size: 384
     encoding: PKCS8
     rotationPolicy: Always
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
   issuerRef:
-    name: postgres-ca-issuer
-    kind: Issuer
+    name: cluster-ca
+    kind: ClusterIssuer
     group: cert-manager.io
   secretName: *name
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/certificate_v1.json
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/cert-manager.io/issuer_v1.json
 apiVersion: cert-manager.io/v1
-kind: Certificate
+kind: Issuer
 metadata:
-  name: &name postgres-replication-cert
+  name: &name postgres-server-ca
 spec:
-  secretName: *name
-  secretTemplate:
-    labels:
-      cnpg.io/reload: ""
-  usages:
-    - client auth
-  commonName: streaming_replica
-  issuerRef:
-    name: postgres-client-ca
-    kind: ClusterIssuer
-    group: cert-manager.io
+  ca:
+    secretName: *name

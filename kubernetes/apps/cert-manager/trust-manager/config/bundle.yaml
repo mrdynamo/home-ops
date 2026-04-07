@@ -5,13 +5,11 @@ metadata:
   name: root-ca
 spec:
   sources:
-    - useDefaultCAs: true
     - secret:
-        name: "root-ca-secret"
+        name: "cluster-ca-cert"
         key: "tls.crt"
   target:
     configMap:
       key: "ca.crt"
-      metadata:
-        labels:
-          cnpg.io/reload: ""
+    secret:
+      key: "ca.crt"
