@@ -13,10 +13,10 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:18.0-standard-trixie@sha256:ffd3687c9c71b74d8a19f24c4c56366f42ee96f7c516ad2bf31fbeec5b0f9747
 
   certificates:
-    serverTLSSecret: postgres-server-cert
-    serverCASecret: postgres-server-cert
-    clientCASecret: postgres-client-cert
-    replicationTLSSecret: postgres-client-cert
+    serverTLSSecret: postgres-serving-cert
+    serverCASecret: postgres-serving-cert
+    clientCASecret: postgres-replication-cert
+    replicationTLSSecret: postgres-replication-cert
 
   storage:
     size: 8Gi
