@@ -30,7 +30,7 @@ spec:
               # Modular deployment properties
               DISPATCHARR_ENV: modular
               ## PostgreSQL configuration for modular deployment
-              POSTGRES_HOST: pooler-rw.database.svc
+              POSTGRES_HOST: postgres-rw.database.svc
               POSTGRES_PORT: 5432
               POSTGRES_DB: *app
               POSTGRES_USER: *app

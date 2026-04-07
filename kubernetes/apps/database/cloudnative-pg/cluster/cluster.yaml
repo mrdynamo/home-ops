@@ -55,9 +55,7 @@ spec:
     pg_hba:
       - hostnossl all all 10.42.0.0/16      scram-sha-256
       - hostnossl all all 2001:cafe:42::/56 scram-sha-256
-      - hostssl   all all all               cert clientcert=verify-full map=pooler-map
-    pg_ident:
-      - pooler-map pooler-rw all
+      - hostssl   all all all               cert clientcert=verify-full
 
     shared_preload_libraries:
       - "vchord.so"
@@ -86,12 +84,6 @@ spec:
 
   managed:
     roles:
-
-      - name: pooler-rw
-        ensure: present
-        login: true
-        superuser: false
-        disablePassword: true
 
       - name: authentik
         ensure: present

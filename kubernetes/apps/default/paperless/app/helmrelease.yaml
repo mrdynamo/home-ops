@@ -34,7 +34,7 @@ spec:
               PAPERLESS_TIKA_ENDPOINT: http://paperless-tika.default.svc:9998
               # PostgreSQL Settings
               PAPERLESS_DBENGINE: postgresql
-              PAPERLESS_DBHOST: pooler-rw.database.svc
+              PAPERLESS_DBHOST: postgres-rw.database.svc
               PAPERLESS_DBNAME: paperless
               PAPERLESS_DBUSER: paperless
               PAPERLESS_DBSSLMODE: verify-full
