@@ -27,6 +27,8 @@ spec:
               - |
                 echo "Fixing permissions on Postgres cert private key"
                 chmod -R 640 /var/run/secrets/postgresql
+            securityContext:
+              readOnlyRootFilesystem: false
           gatus-sidecar:
             image:
               repository: ghcr.io/home-operations/gatus-sidecar
