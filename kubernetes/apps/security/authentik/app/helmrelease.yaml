@@ -146,9 +146,6 @@ spec:
         - name: postgres-certs
           mountPath: /certs/postgres
           readOnly: true
-        - name: postgres-certs-source
-          mountPath: /pg-cert-perms
-          readOnly: true
     worker:
       autoscaling: *autoscaling
       resources:
