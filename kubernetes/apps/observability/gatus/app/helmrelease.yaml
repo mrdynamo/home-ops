@@ -16,23 +16,17 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
-          # fix-cert-permissions:
-          #   image:
-          #     repository: busybox
-          #     tag: 1.37.0@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
-          #   command:
-          #     - /bin/sh
-          #     - -c
-          #   args:
-          #     - |
-          #       echo "fixing permissions on certs for non-root user"
-          #       chmod -R 640 /var/run/secrets/postgresql
-          #   resources:
-          #     requests:
-          #       cpu: 10m
-          #     limits:
-          #       memory: 64Mi
-          #   restartPolicy: OnFailure
+          fix-cert-permissions:
+            image:
+              repository: busybox
+              tag: 1.37.0@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
+            command:
+              - /bin/sh
+              - -c
+            args:
+              - |
+                echo "Fixing permissions on Postgres cert private key"
+                chmod -R 640 /var/run/secrets/postgresql
           gatus-sidecar:
             image:
               repository: ghcr.io/home-operations/gatus-sidecar
