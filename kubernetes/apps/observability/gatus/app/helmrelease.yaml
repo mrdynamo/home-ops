@@ -31,10 +31,10 @@ spec:
                 memory: 64Mi
             restartPolicy: Always
         containers:
-          app:
+          debug:
             image:
-              repository: ghcr.io/twin/gatus
-              tag: v5.35.0@sha256:21609f31be8c4e680ce3004b24276305666239c99aff58391503f3fb6142f39d
+              repository: busybox
+              tag: latest
             command:
               - /bin/sh
               - -c
@@ -44,6 +44,16 @@ spec:
                 id
                 umask
                 sleep infinity
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 64Mi
+            restartPolicy: Always
+          app:
+            image:
+              repository: ghcr.io/twin/gatus
+              tag: v5.35.0@sha256:21609f31be8c4e680ce3004b24276305666239c99aff58391503f3fb6142f39d
             env:
               TZ: America/Chicago
               GATUS_CONFIG_PATH: /config
