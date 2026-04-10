@@ -146,7 +146,7 @@ spec:
         - name: postgres-certs
           mountPath: /certs/postgres
           readOnly: true
-        - name: pg-certs-source
+        - name: postgres-certs-source
           mountPath: /var/run/secrets/postgresql
           readOnly: true
     worker:
