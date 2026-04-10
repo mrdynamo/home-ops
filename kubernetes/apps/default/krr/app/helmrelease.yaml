@@ -32,15 +32,15 @@ spec:
               - krr.py
               - simple
               - --history-duration
-              - "672" # DEFAULT: 336 hours (14 days)
+              - "336" # DEFAULT: 336 hours (14 days)
               - --cpu-percentile
               - "75"  # DEFAULT: 95
               - --memory-buffer-percentage
-              - "5"  # DEFAULT: 15
+              - "10"  # DEFAULT: 15
               - --allow_hpa
               - --use_oomkill_data
               - --oom-memory-buffer-percentage
-              - "10"  # DEFAULT: 25
+              - "20"  # DEFAULT: 25
               - --max-workers
               - "3"
               - --formatter
