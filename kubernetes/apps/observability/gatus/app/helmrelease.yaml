@@ -32,7 +32,7 @@ spec:
                 cp -v /var/run/secrets/postgresql/ca.crt /certs/runtime/postgresql/ca.crt
                 cp -v /var/run/secrets/root-ca/ca.crt /certs/runtime/root-ca/ca.crt
                 echo "Setting Postgres certs ownership"
-                chown -v 1000:100 /certs/runtime/postgresql/tls.key /certs/runtime/postgresql/tls.crt /certs/runtime/postgresql/ca.crt /certs/runtime/root-ca/ca.crt
+                chown -v 0:0 /certs/runtime/postgresql/tls.key /certs/runtime/postgresql/tls.crt /certs/runtime/postgresql/ca.crt /certs/runtime/root-ca/ca.crt
                 echo "Setting Postgres certs permissions"
                 chmod -v 600 /certs/runtime/postgresql/tls.key
                 chmod -v 644 /certs/runtime/postgresql/tls.crt /certs/runtime/postgresql/ca.crt /certs/runtime/root-ca/ca.crt
@@ -107,12 +107,12 @@ spec:
                     values:
                       - k8s-04
       hostUsers: false
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 100
-        fsGroup: 100
-        fsGroupChangePolicy: OnRootMismatch
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: 1000
+      #   runAsGroup: 100
+      #   fsGroup: 100
+      #   fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
