@@ -114,6 +114,23 @@ spec:
               chmod -v 644 /certs/postgres/pg-tls.crt
               chmod -v 600 /certs/postgres/pg-tls.key
               echo "Cert copy and permission adjustment completed"
+          volumes:
+            - name: root-ca-source
+              configMap:
+                name: root-ca
+            - name: postgres-certs-source
+              csi:
+                driver: csi.cert-manager.io
+                readOnly: true
+                volumeAttributes:
+                  csi.cert-manager.io/issuer-name: postgres-client-ca
+                  csi.cert-manager.io/issuer-kind: ClusterIssuer
+                  csi.cert-manager.io/key-algorithm: ECDSA
+                  csi.cert-manager.io/key-size: "384"
+                  csi.cert-manager.io/key-encoding: PKCS8
+                  csi.cert-manager.io/key-usages: client auth
+                  csi.cert-manager.io/common-name: *app
+                  csi.cert-manager.io/dns-names: $${POD_NAME}.$${POD_NAMESPACE}.svc.cluster.local
           volumeMounts:
             - name: root-ca-source
               mountPath: /root-ca
@@ -124,12 +141,6 @@ spec:
             - name: postgres-certs
               mountPath: /certs/postgres
       volumes: &volumes
-        - name: root-ca-source
-          configMap:
-            name: root-ca
-        - name: postgres-certs-source
-          secret:
-            secretName: postgres-authentik-cert
         - name: postgres-certs
           emptyDir: {}
       volumeMounts: &volumeMounts
