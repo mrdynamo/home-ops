@@ -3,15 +3,15 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: gatus
+  name: &app gatus
 spec:
   chartRef:
     kind: OCIRepository
-    name: gatus
+    name: *app
   interval: 1h
   values:
     controllers:
-      gatus:
+      *app :
         type: statefulset
         annotations:
           reloader.stakater.com/auto: "true"
@@ -31,8 +31,9 @@ spec:
                 cp -v /var/run/secrets/postgresql/tls.crt /certs/runtime/postgresql/tls.crt
                 cp -v /var/run/secrets/postgresql/ca.crt /certs/runtime/postgresql/ca.crt
                 cp -v /var/run/secrets/root-ca/ca.crt /certs/runtime/root-ca/ca.crt
-                echo "Setting Postgres certs ownership and permissions"
+                echo "Setting Postgres certs ownership"
                 chown -v 1000:1000 /certs/runtime/postgresql/tls.key /certs/runtime/postgresql/tls.crt /certs/runtime/postgresql/ca.crt /certs/runtime/root-ca/ca.crt
+                echo "Setting Postgres certs permissions"
                 chmod -v 600 /certs/runtime/postgresql/tls.key
                 chmod -v 644 /certs/runtime/postgresql/tls.crt /certs/runtime/postgresql/ca.crt /certs/runtime/root-ca/ca.crt
             securityContext:
@@ -133,7 +134,7 @@ spec:
             sectionName: https
     rbac:
       roles:
-        gatus:
+        *app :
           type: ClusterRole
           rules:
             - apiGroups:
@@ -154,14 +155,14 @@ spec:
                 - watch
                 - list
       bindings:
-        gatus:
+        *app :
           type: ClusterRoleBinding
           roleRef:
-            identifier: gatus
+            identifier: *app
           subjects:
-            - identifier: gatus
+            - identifier: *app
     serviceAccount:
-      gatus: {}
+      *app : {}
     persistence:
       cert-runtime:
         type: custom
