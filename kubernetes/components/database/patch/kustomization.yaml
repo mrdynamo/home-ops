@@ -51,7 +51,6 @@ patches:
                 - path: /var/run/secrets/root-ca
             postgres-certs:
               type: custom
-              defaultMode: 0640
               globalMounts:
                 - path: /var/run/secrets/postgresql
               volumeSpec:
