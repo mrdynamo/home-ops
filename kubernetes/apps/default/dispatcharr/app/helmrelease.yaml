@@ -21,7 +21,7 @@ spec:
               tag: 0.22.1@sha256:ccdfa7e407f48878567fed06dcf895e437e01b9240f7b944a486722ba8aa6c4d
             env: &env
               TZ: America/Chicago
-              DISPATCHARR_LOG_LEVEL: DEBUG
+              # DISPATCHARR_LOG_LEVEL: DEBUG
               # Process Priority Configuration (Optional)
               # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
               # Negative values require cap_add: SYS_NICE
