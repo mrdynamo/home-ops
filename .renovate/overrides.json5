@@ -44,6 +44,16 @@
       "separateMinorPatch": true,
       "separateMultipleMajor": true,
       "separateMultipleMinor": true
+    },
+    {
+      description: "Ignore Rancher shell images >= 7.0.0",
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "docker.io/rancher/shell"
+      ],
+      allowedVersions: "<7.0.0",
     }
     // {
     //   // Handle Dispatcharr tags
