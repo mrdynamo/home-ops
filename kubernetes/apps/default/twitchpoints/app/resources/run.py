@@ -137,13 +137,8 @@ twitch_miner.mine(
         Streamer("mattmalone"),
         Streamer("scump"),
         Streamer("datmodz"),
-        # Streamer("slr0xx"),
-        # Streamer("huntthefrontgaming"),
         Streamer("jesseenterkin25"),
-        Streamer("mummkey"),
         Streamer("jokehow"),
-        # Streamer("saggdad"),
-        Streamer("trinityviolette"),
         Streamer("saltyteemo"),
     ],  # Array of streamers (order = priority)
     followers=False,  # Automatic download the list of your followers
