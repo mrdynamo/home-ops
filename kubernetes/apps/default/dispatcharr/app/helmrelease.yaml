@@ -69,15 +69,25 @@ spec:
               # allowPrivilegeEscalation: false
               # readOnlyRootFilesystem: true
               # capabilities: {drop: ["ALL"], add: ["SYS_NICE"] }
-              capabilities: { add: ["SYS_NICE"] }
+              capabilities: {add: ["SYS_NICE"]}
             resources:
               # claims:
               #   - name: gpu
               limits:
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
+                memory: 1554Mi
+              requests:
+                cpu: 244m
+                memory: 1554Mi
           celery:
             image: *image
+            resources:
+              requests:
+                cpu: 674m
+                memory: 1004Mi
+              limits:
+                memory: 1004Mi
             command: ["/app/docker/entrypoint.celery.sh"]
             env:
               <<: *env

@@ -17,6 +17,12 @@ spec:
             image:
               repository: ghcr.io/kpirnie/kptv-fast
               tag: latest@sha256:ddcd078215318b3ab27bf5bb97d82be54fc3f7c5dc11095beddce023abdf7e06
+            resources:
+              requests:
+                cpu: 10m
+                memory: 1972Mi
+              limits:
+                memory: 1972Mi
             env:
               DEBUG: false
               CACHE_DURATION: 7200
