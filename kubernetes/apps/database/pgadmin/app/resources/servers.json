@@ -3,7 +3,7 @@
     "1": {
       "Name": "postgres",
       "Group": "Servers",
-      "Host": "postgres-rw.database.svc",
+      "Host": "pooler-rw.database.svc",
       "Port": 5432,
       "MaintenanceDB": "postgres",
       "Username": "pgadmin",

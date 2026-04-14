@@ -39,7 +39,7 @@ spec:
   cluster:
     name: postgres
 
-  instances: 1
+  instances: 2
   type: rw
   pgbouncer:
     poolMode: session

@@ -13,8 +13,8 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-standard-trixie@sha256:d879dfab951cb0eef9beac367f259d08ea1c04ae84699526854ff9ae478656be
 
   certificates:
-    serverTLSSecret: postgres-server-cert
     serverCASecret: postgres-server-cert
+    serverTLSSecret: postgres-server-cert
     clientCASecret: postgres-client-ca
     replicationTLSSecret: postgres-client-cert
 
@@ -53,9 +53,9 @@ spec:
 
   postgresql:
     pg_hba:
-      - hostnossl all all 10.42.0.0/16      scram-sha-256
-      - hostnossl all all 2001:cafe:42::/56 scram-sha-256
-      - hostssl   all all all               cert clientcert=verify-full
+      - hostssl   all all all cert clientcert=verify-full map=pooler-map
+    pg_ident:
+      - pooler-map pooler-rw all
 
     shared_preload_libraries:
       - "vchord.so"
@@ -84,6 +84,12 @@ spec:
 
   managed:
     roles:
+
+      - name: pooler-rw
+        ensure: present
+        login: true
+        superuser: false
+        disablePassword: true
 
       - name: authentik
         ensure: present

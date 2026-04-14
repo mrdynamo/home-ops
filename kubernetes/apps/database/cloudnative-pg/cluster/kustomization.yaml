@@ -9,7 +9,7 @@ resources:
   - ./externalsecret.yaml
   - ./objectstore.yaml
   ## https://github.com/cloudnative-pg/cloudnative-pg/issues/2841
-  # - ./pooler.yaml
+  - ./pooler.yaml
   - ./prometheusrule.yaml
   - ./scheduledbackup.yaml
   - ./secretstore.yaml
