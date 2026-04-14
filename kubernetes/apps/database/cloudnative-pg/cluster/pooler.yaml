@@ -60,7 +60,7 @@ spec:
       server_tls_sslmode: verify-full
       client_tls_sslmode: verify-full
       max_client_conn: "1000"
-      default_pool_size: "10"
+      default_pool_size: "50"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/monitoring.coreos.com/podmonitor_v1.json
 apiVersion: monitoring.coreos.com/v1
