@@ -156,3 +156,6 @@ spec:
       initContainers: *initContainer
       volumes: *volumes
       volumeMounts: *volumeMounts
+    prometheus:
+      rules:
+        enabled: true
