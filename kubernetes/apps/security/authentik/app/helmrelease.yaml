@@ -87,6 +87,11 @@ spec:
         - name: *volume-postgres
           mountPath: /var/run/secrets/postgres
           readOnly: true
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     postgresql:
       enabled: false
     redis:
