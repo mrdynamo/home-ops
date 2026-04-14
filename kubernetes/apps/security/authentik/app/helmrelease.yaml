@@ -47,13 +47,13 @@ spec:
           value: pooler-rw.database.svc
         - name: AUTHENTIK_POSTGRESQL__USER
           value: *app
-        - name: PGSSLMODE
+        - name: AUTHENTIK_POSTGRESQL__SSLMODE
           value: verify-full
-        - name: PGSSLROOTCERT
+        - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
           value: /certs/postgres/root-ca.crt
-        - name: PGSSLCERT
+        - name: AUTHENTIK_POSTGRESQL__SSLCERT
           value: /certs/postgres/pg-tls.crt
-        - name: PGSSLKEY
+        - name: AUTHENTIK_POSTGRESQL__SSLKEY
           value: /certs/postgres/pg-tls.key
         # SMTP settings
         - name: AUTHENTIK_EMAIL__USE_TLS
