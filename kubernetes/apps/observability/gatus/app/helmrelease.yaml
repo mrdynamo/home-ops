@@ -66,7 +66,7 @@ spec:
               GATUS_WEB_PORT: &port 80
               GATUS_DELAY_START_SECONDS: 15
               GATUS_LOG_LEVEL: debug
-              GATUS_POSTGRES_PATH: "postgresql://gatus@postgres-rw.database.svc:5432/gatus?sslmode=verify-full&sslcert=/certs/runtime/postgresql/tls.crt&sslkey=/certs/runtime/postgresql/tls.key&sslrootcert=/certs/runtime/root-ca/ca.crt"
+              GATUS_POSTGRES_PATH: "postgresql://gatus@pooler-rw.database.svc:5432/gatus?sslmode=verify-full&sslcert=/certs/runtime/postgresql/tls.crt&sslkey=/certs/runtime/postgresql/tls.key&sslrootcert=/certs/runtime/root-ca/ca.crt"
             probes:
               liveness: &probes
                 enabled: true
