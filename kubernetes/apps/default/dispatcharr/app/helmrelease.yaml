@@ -43,7 +43,11 @@ spec:
               REDIS_HOST: dragonfly.database.svc
               REDIS_PORT: 6379
               REDIS_DB: 5
-              REDIS_URL: redis://dragonfly.database.svc:6379/5
+              # REDIS_URL:
+              #   valueFrom:
+              #     secretKeyRef:
+              #       name: "{{ .Release.Name }}-dragonfly"
+              #       key: url
               # REDIS_SSL: true
               # REDIS_SSL_VERIFY: true
               # REDIS_SSL_CA_CERT: /certs/redis/ca.crt

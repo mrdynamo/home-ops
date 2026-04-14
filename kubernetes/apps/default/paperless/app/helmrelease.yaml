@@ -43,7 +43,11 @@ spec:
               PGSSLKEY: /var/run/secrets/postgresql/tls.key
               PGPOOLSIZE: 1
               # Redis Settings
-              PAPERLESS_REDIS: 'redis://dragonfly.database.svc:6379/13'
+              PAPERLESS_REDIS:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}-dragonfly"
+                    key: url
               # File Consumption Settings
               PAPERLESS_CONSUMER_POLLING: 60
               PAPERLESS_DATE_PARSER_LANGUAGES: en

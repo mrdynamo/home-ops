@@ -26,6 +26,7 @@ spec:
       NAMESPACE: *namespace
       VOLSYNC_CAPACITY: 2Gi
       VOLSYNC_SCHEDULE: 0 11 * * 5  # Cron in UTC (CST: -6, CST: -5)
+      REDIS_INDEX: "13"
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

@@ -20,6 +20,7 @@ spec:
   postBuild:
     substitute:
       APP: *app
+      REDIS_INDEX: "9"
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
