@@ -13,7 +13,7 @@ spec:
   values:
     global:
       podAnnotations:
-        secret.reloader.stakater.com/reload: "authentik-secret,postgres-authentik-cert"
+        secret.reloader.stakater.com/reload: "authentik-secret"
         k8s.ksgate.org/postgres-ready: |
           {
             "apiVersion": "postgresql.cnpg.io/v1",
@@ -50,11 +50,11 @@ spec:
         - name: AUTHENTIK_POSTGRESQL__SSLMODE
           value: verify-full
         - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
-          value: /certs/postgres/root-ca.crt
+          value: /var/run/secrets/root-ca/ca.crt
         - name: AUTHENTIK_POSTGRESQL__SSLCERT
-          value: /certs/postgres/pg-tls.crt
+          value: /var/run/secrets/postgres/tls.crt
         - name: AUTHENTIK_POSTGRESQL__SSLKEY
-          value: /certs/postgres/pg-tls.key
+          value: /var/run/secrets/postgres/tls.key
         # SMTP settings
         - name: AUTHENTIK_EMAIL__USE_TLS
           value: "true"
@@ -63,6 +63,30 @@ spec:
       envFrom:
         - secretRef:
             name: authentik-secret
+      volumes:
+        - name: &volume-ca root-ca
+          configMap:
+            name: root-ca
+        - name: &volume-postgres postgres-certs
+          csi:
+            driver: csi.cert-manager.io
+            readOnly: true
+            volumeAttributes:
+              csi.cert-manager.io/issuer-name: postgres-client-ca
+              csi.cert-manager.io/issuer-kind: ClusterIssuer
+              csi.cert-manager.io/key-algorithm: ECDSA
+              csi.cert-manager.io/key-size: "384"
+              csi.cert-manager.io/key-encoding: PKCS8
+              csi.cert-manager.io/key-usages: client auth
+              csi.cert-manager.io/common-name: *app
+              csi.cert-manager.io/dns-names: $${POD_NAME}.$${POD_NAMESPACE}.svc.cluster.local
+      volumeMounts:
+        - name: *volume-ca
+          mountPath: /var/run/secrets/root-ca
+          readOnly: true
+        - name: *volume-postgres
+          mountPath: /var/run/secrets/postgres
+          readOnly: true
     postgresql:
       enabled: false
     redis:
@@ -78,12 +102,13 @@ spec:
             stabilizationWindowSeconds: 300
           scaleDown:
             stabilizationWindowSeconds: 300
-      resources:
+      resources: &resources
         requests:
           cpu: 200m
         limits:
           memory: 1Gi
-      metrics:
+      metrics: &metrics
+        enabled: true
         prometheus:
           serviceMonitor:
             enabled: true
@@ -95,67 +120,10 @@ spec:
             - name: external
               namespace: kube-system
               sectionName: https
-      initContainers: &initContainer
-        - name: copy-certs
-          image: busybox:1.37.0@sha256:1487d0af5f52b4ba31c7e465126ee2123fe3f2305d638e7827681e7cf6c83d5e
-          command:
-            - sh
-            - -c
-            - |
-              # Copy and rename certificates for Postgres SSL connection
-              echo "Copying certs"
-              cp -v /root-ca/ca.crt /certs/postgres/root-ca.crt
-              cp -v /pg-certs/tls.crt /certs/postgres/pg-tls.crt
-              cp -v /pg-certs/tls.key /certs/postgres/pg-tls.key
-              # Set proper ownership and permissions for authentik user (uid=1000)
-              echo "Adjusting cert permissions"
-              chown -v 1000:1000 /certs/postgres/root-ca.crt /certs/postgres/pg-tls.crt /certs/postgres/pg-tls.key
-              chmod -v 644 /certs/postgres/root-ca.crt
-              chmod -v 644 /certs/postgres/pg-tls.crt
-              chmod -v 600 /certs/postgres/pg-tls.key
-              echo "Cert copy and permission adjustment completed"
-          volumeMounts:
-            - name: root-ca-source
-              mountPath: /root-ca
-              readOnly: true
-            - name: postgres-certs-source
-              mountPath: /pg-certs
-              readOnly: true
-            - name: postgres-certs
-              mountPath: /certs/postgres
-      volumes: &volumes
-        - name: root-ca-source
-          configMap:
-            name: root-ca
-        - name: postgres-certs-source
-          csi:
-            driver: csi.cert-manager.io
-            readOnly: true
-            volumeAttributes:
-              csi.cert-manager.io/issuer-name: postgres-client-ca
-              csi.cert-manager.io/issuer-kind: ClusterIssuer
-              csi.cert-manager.io/key-algorithm: ECDSA
-              csi.cert-manager.io/key-size: "384"
-              csi.cert-manager.io/key-encoding: PKCS8
-              csi.cert-manager.io/key-usages: client auth
-              csi.cert-manager.io/common-name: *app
-              csi.cert-manager.io/dns-names: $${POD_NAME}.$${POD_NAMESPACE}.svc.cluster.local
-        - name: postgres-certs
-          emptyDir: {}
-      volumeMounts: &volumeMounts
-        - name: postgres-certs
-          mountPath: /certs/postgres
-          readOnly: true
     worker:
       autoscaling: *autoscaling
-      resources:
-        requests:
-          cpu: 200m
-        limits:
-          memory: 1Gi
-      initContainers: *initContainer
-      volumes: *volumes
-      volumeMounts: *volumeMounts
+      resources: *resources
+      metrics: *metrics
     prometheus:
       rules:
         enabled: true
