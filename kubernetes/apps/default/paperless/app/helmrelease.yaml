@@ -30,18 +30,18 @@ spec:
               PAPERLESS_PORT: &port 8000
               # Tika/Gotenberg Settings
               PAPERLESS_TIKA_ENABLED: 1
-              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenburg.default.svc:3000
+              PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg.default.svc:3000
               PAPERLESS_TIKA_ENDPOINT: http://paperless-tika.default.svc:9998
               # PostgreSQL Settings
               PAPERLESS_DBENGINE: postgresql
               PAPERLESS_DBHOST: pooler-rw.database.svc
               PAPERLESS_DBNAME: paperless
               PAPERLESS_DBUSER: paperless
-              PAPERLESS_DBSSLMODE: verify-full
-              PAPERLESS_DBSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
-              PAPERLESS_DBSSLCERT: /var/run/secrets/postgresql/tls.crt
-              PAPERLESS_DBSSLKEY: /var/run/secrets/postgresql/tls.key
-              PAPERLESS_DB_POOLSIZE: 1
+              PGSSLMODE: verify-full
+              PGSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
+              PGSSLCERT: /var/run/secrets/postgresql/tls.crt
+              PGSSLKEY: /var/run/secrets/postgresql/tls.key
+              PGPOOLSIZE: 1
               # Redis Settings
               PAPERLESS_REDIS: 'redis://dragonfly.database.svc:6379/13'
               # File Consumption Settings
@@ -90,7 +90,7 @@ spec:
                 memory: 1847Mi
               limits:
                 memory: 1847Mi
-      gotenburg:
+      gotenberg:
         containers:
           app:
             image:
@@ -133,8 +133,8 @@ spec:
         ports:
           http:
             port: *port
-      gotenburg:
-        controller: gotenburg
+      gotenberg:
+        controller: gotenberg
         ports:
           http:
             port: 3000
