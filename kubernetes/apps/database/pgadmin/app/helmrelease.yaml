@@ -14,31 +14,6 @@ spec:
       pgadmin:
         annotations:
           reloader.stakater.com/auto: "true"
-        initContainers:
-          copy-certs:
-            image:
-              repository: busybox
-              tag: 1.37.0
-            command:
-              - sh
-              - -c
-              - |
-                # Copy and rename certificates for Postgres SSL connection
-                echo "Copying certs"
-                cp -v /var/run/secrets/root-ca/ca.crt /home/pgadmin/.postgresql/root.crt
-                cp -v /var/run/secrets/postgresql/tls.crt /home/pgadmin/.postgresql/postgresql.crt
-                cp -v /var/run/secrets/postgresql/tls.key /home/pgadmin/.postgresql/postgresql.key
-                # Set proper ownership and permissions for pgadmin user (uid=5050)
-                echo "Adjusting cert permissions"
-                chown -v 5050:5050 /home/pgadmin/.postgresql/root.crt /home/pgadmin/.postgresql/postgresql.crt /home/pgadmin/.postgresql/postgresql.key
-                chmod -v 644 /home/pgadmin/.postgresql/root.crt
-                chmod -v 644 /home/pgadmin/.postgresql/postgresql.crt
-                chmod -v 600 /home/pgadmin/.postgresql/postgresql.key
-                echo "Cert copy and permission adjustment completed"
-            securityContext:
-              allowPrivilegeEscalation: true
-              runAsUser: 0
-              runAsGroup: 0
         containers:
           app:
             image:
@@ -106,7 +81,3 @@ spec:
         globalMounts:
           - path: /pgadmin4/servers.json
             subPath: servers.json
-      certificates:
-        type: emptyDir
-        globalMounts:
-          - path: /home/pgadmin/.postgresql
