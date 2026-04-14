@@ -23,6 +23,9 @@ spec:
               TZ: America/Chicago
               PGADMIN_DISABLE_POSTFIX: "True"
               PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+              PGSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
+              PGSSLCERT: /var/run/secrets/postgresql/tls.crt
+              PGSSLKEY: /var/run/secrets/postgresql/tls.key
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
