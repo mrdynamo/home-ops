@@ -50,9 +50,9 @@ spec:
               #   - name: gpu
               requests:
                 cpu: 37m
-                memory: 2454Mi
+                memory: 2945Mi
               limits:
-                memory: 2454Mi
+                memory: 2945Mi
                 gpu.intel.com/i915: 1 # Request portion of share iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
