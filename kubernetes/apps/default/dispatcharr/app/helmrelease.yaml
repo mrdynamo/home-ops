@@ -133,7 +133,7 @@ spec:
               <<: *env
               BACKUP_ROOT: /data/backups
               BACKUP_MARKER: SIDECAR
-              BACKUP_CRON_ENABLED: "false"
+              BACKUP_CRON_ENABLED: "true"
               BACKUP_CRON_SCHEDULE: "0 */6 * * *"
               PGAPPNAME: dispatcharr-backup-sidecar
             securityContext:
