@@ -14,7 +14,7 @@ apply-ks dir ks="*":
 
 [doc('Browse a PVC')]
 browse-pvc namespace claim:
-    kubectl browse-pvc -n {{ namespace }} -i mirror.gcr.io/alpine:latest {{ claim }}
+    kubectl-browse-pvc -n {{ namespace }} -i mirror.gcr.io/alpine:latest {{ claim }}
 
 [doc('Delete local Flux Kustomization')]
 delete-ks dir ks="*":
