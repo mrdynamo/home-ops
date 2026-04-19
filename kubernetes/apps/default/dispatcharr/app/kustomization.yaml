@@ -10,6 +10,7 @@ resources:
 configMapGenerator:
   - name: dispatcharr
     files:
+      - backup-sidecar.sh=./resources/backup-sidecar.sh
       - dashboard.json=./resources/dashboard.json
 generatorOptions:
   disableNameSuffixHash: true
