@@ -20,9 +20,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 1972Mi
+                memory: 2367Mi
               limits:
-                memory: 1972Mi
+                memory: 2367Mi
             env:
               DEBUG: false
               CACHE_DURATION: 7200
