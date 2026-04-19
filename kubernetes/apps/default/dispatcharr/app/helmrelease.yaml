@@ -134,6 +134,9 @@ spec:
           metrics:
             appProtocol: http
             port: 9192
+          stream-cleanup:
+            appProtocol: http
+            port: 9193
     route:
       app:
         hostnames:
