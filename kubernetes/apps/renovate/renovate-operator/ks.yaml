@@ -3,22 +3,22 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &name renovate-operator
+  name: *app
   namespace: &namespace renovate
 spec:
   commonMetadata:
     labels:
-      app.kubernetes.io/name: *name
+      app.kubernetes.io/name: *app
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
-      name: *name
+      name: *app
       namespace: *namespace
   interval: 1h
   path: ./kubernetes/apps/renovate/renovate-operator/app
   postBuild:
     substitute:
-      APP: *name
+      APP: *app
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
@@ -34,12 +34,12 @@ spec:
 # apiVersion: kustomize.toolkit.fluxcd.io/v1
 # kind: Kustomization
 # metadata:
-#   name: &name renovate-operator-jobs
+#   name: &app renovate-operator-jobs
 #   namespace: &namespace renovate
 # spec:
 #   commonMetadata:
 #     labels:
-#       app.kubernetes.io/name: *name
+#       app.kubernetes.io/name: *app
 #   dependsOn:
 #     - name: renovate-operator
 #   interval: 1h
