@@ -18,6 +18,16 @@ spec:
         secretKeyRef:
           name: renovate-operator-jobs-dragonfly
           key: url
+    - name: DOCKERHUB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: renovate-github-secret
+          key: DOCKERHUB_USERNAME
+    - name: DOCKERHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: renovate-github-secret
+          key: DOCKERHUB_TOKEN
     - name: RENOVATE_HOST_RULES
       value: >-
         [
@@ -28,9 +38,6 @@ spec:
             "password": "$(DOCKERHUB_TOKEN)"
           }
         ]
-  envFrom:
-    - secretRef:
-        name: renovate-github-secret
   image: ghcr.io/renovatebot/renovate:43.136.0
   parallelism: 5
   resources:
