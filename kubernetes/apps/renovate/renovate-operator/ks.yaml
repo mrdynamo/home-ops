@@ -15,6 +15,10 @@ spec:
       namespace: renovate
   interval: 1h
   path: ./kubernetes/apps/renovate/renovate-operator/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
