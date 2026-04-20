@@ -40,10 +40,16 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+  components:
+    - ../../../../components/dragonfly
   dependsOn:
     - name: renovate-operator
   interval: 1h
   path: ./kubernetes/apps/renovate/renovate-operator/jobs
+  postBuild:
+    substitute:
+      APP: *app
+      REDIS_INDEX: "3"
   prune: true
   sourceRef:
     kind: GitRepository
