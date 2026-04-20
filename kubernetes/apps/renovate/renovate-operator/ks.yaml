@@ -3,7 +3,8 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: renovate-operator
+  name: &name renovate-operator
+  namespace: &namespace renovate
 spec:
   commonMetadata:
     labels:
@@ -11,8 +12,8 @@ spec:
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
-      name: renovate-operator
-      namespace: renovate
+      name: *name
+      namespace: *namespace
   interval: 1h
   path: ./kubernetes/apps/renovate/renovate-operator/app
   postBuild:
@@ -24,7 +25,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: renovate
+  targetNamespace: *namespace
   timeout: 5m
 # ---
 # # yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
