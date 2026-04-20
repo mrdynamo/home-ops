@@ -21,3 +21,21 @@ spec:
           sectionName: https
     webhook:
       enabled: true
+      annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 401"]
+      route:
+        hostnames:
+          - "renovate-webhook.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: external
+            namespace: kube-system
+            sectionName: https
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+      dashboard:
+        enabled: true
+        grafanaDashboard:
+          allowCrossNamespaceImport: true
