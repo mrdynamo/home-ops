@@ -31,6 +31,11 @@ spec:
           - name: external
             namespace: kube-system
             sectionName: https
+      authentication:
+        enabled: true
+        secretRef:
+          name: renovate-webhook-token-secret
+          key: token
     metrics:
       enabled: true
       serviceMonitor:
