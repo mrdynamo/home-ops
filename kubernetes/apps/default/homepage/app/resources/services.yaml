@@ -199,6 +199,12 @@
         icon: flux-cd.svg
         namespace: flux-system
         app: flux-operator
+    - Renovate:
+        href: https://renovate.${INTERNAL_SECRET_DOMAIN}/
+        description: Kubernetes GitOps dashboards
+        icon: renovate.svg
+        namespace: renovate
+        app: renovate-operator
     - Gatus:
         href: https://status.${SECRET_DOMAIN}/
         description: Uptime monitoring dashboard
