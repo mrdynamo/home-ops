@@ -119,15 +119,15 @@ spec:
                 EOF
                 chmod 0755 /tmp/dispatcharr-backup-cron
                 mkdir -p /tmp/crontabs
-                printf '%s %s\n' "${BACKUP_CRON_SCHEDULE}" "/tmp/dispatcharr-backup-cron" > /tmp/crontabs/root
+                printf '%s %s\n' "$${BACKUP_CRON_SCHEDULE}" "/tmp/dispatcharr-backup-cron" > /tmp/crontabs/root
                 chmod 0600 /tmp/crontabs/root
                 echo "Dispatcharr backup sidecar ready"
-                if [ "${BACKUP_CRON_ENABLED:-true}" != "true" ]; then
+                if [ "$${BACKUP_CRON_ENABLED:-true}" != "true" ]; then
                   echo "Backup schedule disabled"
                   trap 'exit 0' TERM INT
                   while true; do sleep 3600; done
                 fi
-                echo "Backup schedule: ${BACKUP_CRON_SCHEDULE}"
+                echo "Backup schedule: $${BACKUP_CRON_SCHEDULE}"
                 exec crond -f -d 8 -c /tmp/crontabs
             env:
               <<: *env
