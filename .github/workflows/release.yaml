@@ -12,11 +12,21 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        if: secrets.HOPS_BOT_APP_ID != '' && secrets.HOPS_BOT_APP_PRIVATE_KEY != ''
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.HOPS_BOT_APP_ID }}
+          private-key: ${{ secrets.HOPS_BOT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
       - name: Get Previous Release Tag and Determine Next Tag
         id: determine-next-tag
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: "${{ steps.app-token.outputs.token || github.token }}"
           result-encoding: string
           script: |
             const { data: releases } = await github.rest.repos.listReleases({
@@ -52,4 +62,4 @@ jobs:
         with:
           generateReleaseNotes: true
           tag: "${{ steps.determine-next-tag.outputs.result }}"
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ steps.app-token.outputs.token || github.token }}"
