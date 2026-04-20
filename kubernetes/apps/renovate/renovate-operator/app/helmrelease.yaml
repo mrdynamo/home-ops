@@ -40,3 +40,14 @@ spec:
         enabled: true
         grafanaDashboard:
           allowCrossNamespaceImport: true
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: GrafanaDashboard
+              name: renovate-operator-dashboard
+            patch: |-
+              - op: replace
+                path: /spec/instanceSelector/matchLabels
+                value:
+                  dashboards: grafana
