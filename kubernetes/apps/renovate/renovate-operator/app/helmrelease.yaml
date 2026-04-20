@@ -22,8 +22,8 @@ spec:
     webhook:
       enabled: true
       annotations:
-          gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == 401"]
+        gatus.home-operations.com/endpoint: |-
+          conditions: ["[STATUS] == 401"]
       route:
         enabled: true
         hostnames:
@@ -32,11 +32,6 @@ spec:
           - name: external
             namespace: kube-system
             sectionName: https
-      authentication:
-        enabled: true
-        secretRef:
-          name: renovate-webhook-token-secret
-          key: token
     metrics:
       enabled: true
       serviceMonitor:
