@@ -88,7 +88,7 @@ spec:
             image: *image
             resources:
               requests:
-                cpu: 674m
+                cpu: 328m
                 memory: 1004Mi
               limits:
                 memory: 1004Mi
