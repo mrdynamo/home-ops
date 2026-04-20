@@ -1,40 +1,36 @@
 ---
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: "Label Sync"
+name: Label Sync
 
 on:
   workflow_dispatch:
   push:
-    branches: ["main"]
-    paths: [".github/labels.yaml"]
+    branches:
+      - main
+    paths:
+      - .github/labels.yaml
+  schedule:
+    - cron: 0 0 * * *
+
+permissions:
+  contents: read
 
 jobs:
-  label-sync:
-    name: Label Sync
+  main:
+    name: Label Sync - Sync Labels
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
     steps:
-      - name: Generate GitHub App token
-        if: secrets.HOPS_BOT_APP_ID != '' && secrets.HOPS_BOT_APP_PRIVATE_KEY != ''
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.HOPS_BOT_APP_ID }}
-          private-key: ${{ secrets.HOPS_BOT_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.app-token.outputs.token || github.token }}
+          sparse-checkout: .github/labels.yaml
 
       - name: Sync Labels
         uses: EndBug/label-sync@52074158190acb45f3077f9099fea818aa43f97a # v2.3.3
         with:
           config-file: .github/labels.yaml
           delete-other-labels: true
-          token: ${{ steps.app-token.outputs.token || github.token }}
