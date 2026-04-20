@@ -201,7 +201,7 @@
         app: flux-operator
     - Renovate:
         href: https://renovate.${INTERNAL_SECRET_DOMAIN}/
-        description: Kubernetes GitOps dashboards
+        description: Kubernetes GitOps dashboard
         icon: renovate.svg
         namespace: renovate
         app: renovate-operator
