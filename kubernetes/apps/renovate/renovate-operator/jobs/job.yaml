@@ -23,6 +23,11 @@ spec:
   secretRef: homeops-bot
   webhook:
     enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: renovate-webhook-token-secret
+        key: token
   provider:
     name: github
     endpoint: https://api.github.com
