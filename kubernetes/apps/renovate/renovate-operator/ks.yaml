@@ -29,26 +29,26 @@ spec:
     namespace: flux-system
   targetNamespace: *namespace
   timeout: 5m
-# ---
-# # yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
-# apiVersion: kustomize.toolkit.fluxcd.io/v1
-# kind: Kustomization
-# metadata:
-#   name: &app renovate-operator-jobs
-#   namespace: &namespace renovate
-# spec:
-#   commonMetadata:
-#     labels:
-#       app.kubernetes.io/name: *app
-#   dependsOn:
-#     - name: renovate-operator
-#   interval: 1h
-#   path: ./kubernetes/apps/renovate/renovate-operator/jobs
-#   prune: true
-#   sourceRef:
-#     kind: GitRepository
-#     name: flux-system
-#     namespace: flux-system
-#   targetNamespace: *namespace
-#   timeout: 5m
-#   wait: false
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app renovate-operator-jobs
+  namespace: &namespace renovate
+spec:
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: renovate-operator
+  interval: 1h
+  path: ./kubernetes/apps/renovate/renovate-operator/jobs
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: *namespace
+  timeout: 5m
+  wait: false

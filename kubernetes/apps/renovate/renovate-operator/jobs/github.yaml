@@ -1,0 +1,37 @@
+---
+# yaml-schema: https://kubernetes-schemas-eov.pages.dev/generators.external-secrets.io/githubaccesstoken_v1alpha1.json
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: GithubAccessToken
+metadata:
+  name: homeops-bot-auth-token
+spec:
+  appID: "2605154"
+  installID: "102901665"
+  auth:
+    privateKey:
+      secretRef:
+        name: homeops-bot-pem
+        key: private_key_pem
+---
+# yaml-schema: https://kubernetes-schemas-eov.pages.dev/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: homeops-bot-auth-token
+spec:
+  refreshInterval: "30m0s"
+  target:
+    name: homeops-bot
+    template:
+      type: Opaque
+      engineVersion: v2
+      data:
+        GITHUB_COM_TOKEN: "{{ .token }}"
+        GITHUB_COM_USER: bXJkeW5hbW8K
+        RENOVATE_TOKEN: "{{ .token }}"
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: GithubAccessToken
+          name: homeops-bot-auth-token

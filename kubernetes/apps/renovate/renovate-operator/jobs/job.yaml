@@ -1,0 +1,28 @@
+---
+# yaml-schema: https://kubernetes-schemas-eov.pages.dev/renovate-operator.mogenius.com/renovatejob_v1alpha1.json
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: renovate-github
+  namespace: renovate
+spec:
+  discoveryFilters:
+    - "mrdynamo/home-ops"
+  extraEnv:
+    - name: LOG_LEVEL
+      value: debug
+    - name: RENOVATE_ALLOWED_COMMANDS
+      value: '["pnpm run bundle"]'
+  image: ghcr.io/renovatebot/renovate:43.135.0
+  parallelism: 5
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  schedule: 0 * * * * # Run every hour
+  secretRef: homeops-bot
+  webhook:
+    enabled: true
+  provider:
+    name: github
+    endpoint: https://api.github.com
