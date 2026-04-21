@@ -2178,7 +2178,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-RdYlGr"
+            "mode": "thresholds"
           },
           "decimals": 0,
           "mappings": [],
@@ -2188,15 +2188,15 @@
             "steps": [
               {
                 "color": "red",
-                "value": 0
-              },
-              {
-                "color": "yellow",
                 "value": 1
               },
               {
-                "color": "green",
+                "color": "yellow",
                 "value": 2
+              },
+              {
+                "color": "green",
+                "value": 3
               }
             ]
           },
@@ -2244,14 +2244,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_stream_available_streams\n* on(channel_uuid, channel_number) group_left(channel_name)\n  dispatcharr_stream_metadata - 1",
+          "expr": "dispatcharr_stream_available_streams\n* on(channel_uuid, channel_number) group_left(channel_name)\n  dispatcharr_stream_metadata",
           "instant": true,
           "legendFormat": "{{channel_name}}",
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Total Available Streams For Current Channels",
+      "title": "Available Streams For Current Channels",
       "type": "bargauge"
     }
   ],
