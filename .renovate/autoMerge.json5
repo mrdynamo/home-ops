@@ -2,6 +2,22 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   packageRules: [
     {
+      description: "Auto-merge Renovate updates",
+      matchDatasources: [
+        "docker"
+      ],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: [
+        "digest",
+        "minor",
+      ],
+      matchPackageNames: [
+        "/renovatebot/"
+      ],
+      ignoreTests: false,
+    },
+    {
       description: "Auto-merge trusted container digests",
       matchDatasources: [
         "docker"
@@ -84,5 +100,6 @@
       ],
       ignoreTests: true,
     },
+
   ],
 }
