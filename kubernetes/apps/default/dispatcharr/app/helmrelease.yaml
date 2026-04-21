@@ -119,15 +119,12 @@ spec:
                 } > /etc/crontabs/root
                 chmod 0600 /etc/crontabs/root
                 echo "Dispatcharr backup sidecar ready"
-                echo "Crontab contents:"
-                cat /etc/crontabs/root
                 if [ "$${BACKUP_CRON_ENABLED:-true}" != "true" ]; then
                   echo "Backup schedule disabled"
                   trap 'exit 0' TERM INT
                   while true; do sleep 3600; done
                 fi
-                echo "Backup schedule: $${BACKUP_CRON_SCHEDULE}"
-                exec crond -f -d 0 -c /etc/crontabs
+                exec crond -f -c /etc/crontabs
             env:
               <<: *env
               BACKUP_ROOT: /data/backups
