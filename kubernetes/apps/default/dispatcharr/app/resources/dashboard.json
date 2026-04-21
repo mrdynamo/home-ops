@@ -103,7 +103,9 @@
         "orientation": "vertical",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "/^Dispatcharr Version$/",
           "values": false
         },
@@ -135,7 +137,9 @@
         {
           "id": "labelsToFields",
           "options": {
-            "keepLabels": ["version"],
+            "keepLabels": [
+              "version"
+            ],
             "mode": "columns"
           }
         },
@@ -191,7 +195,9 @@
         "orientation": "vertical",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "/^Exporter Version$/",
           "values": false
         },
@@ -223,7 +229,9 @@
         {
           "id": "labelsToFields",
           "options": {
-            "keepLabels": ["version"],
+            "keepLabels": [
+              "version"
+            ],
             "mode": "columns"
           }
         },
@@ -317,7 +325,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 120
+                "value": 250
               },
               {
                 "id": "custom.align",
@@ -361,6 +369,10 @@
                   "applyToRow": true,
                   "type": "color-background"
                 }
+              },
+              {
+                "id": "custom.width",
+                "value": 500
               },
               {
                 "id": "custom.wrapText",
@@ -482,7 +494,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 175
+                "value": 500
               }
             ]
           },
@@ -1203,7 +1215,7 @@
       },
       "id": 2,
       "options": {
-        "displayMode": "lcd",
+        "displayMode": "basic",
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -1216,7 +1228,9 @@
         "namePlacement": "auto",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -1273,7 +1287,9 @@
       "id": 200,
       "options": {
         "legend": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -1294,7 +1310,7 @@
           "exemplar": false,
           "expr": "dispatcharr_profile_connections",
           "instant": false,
-          "legendFormat": "{{account_name}}",
+          "legendFormat": "{{account_name}} - {{profile_name}}",
           "range": true,
           "refId": "A"
         },
@@ -1358,7 +1374,7 @@
       },
       "id": 3,
       "options": {
-        "displayMode": "basic",
+        "displayMode": "gradient",
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -1371,7 +1387,9 @@
         "namePlacement": "auto",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -1439,7 +1457,9 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -1536,7 +1556,10 @@
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": ["value", "percent"]
+          "values": [
+            "value",
+            "percent"
+          ]
         },
         "pieType": "donut",
         "tooltip": {
@@ -2053,7 +2076,10 @@
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": ["value", "percent"]
+          "values": [
+            "value",
+            "percent"
+          ]
         },
         "pieType": "donut",
         "tooltip": {
@@ -2114,7 +2140,10 @@
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": ["value", "percent"]
+          "values": [
+            "value",
+            "percent"
+          ]
         },
         "pieType": "donut",
         "tooltip": {
@@ -2149,7 +2178,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "mode": "continuous-RdYlGr"
           },
           "decimals": 0,
           "mappings": [],
@@ -2196,7 +2225,9 @@
         "namePlacement": "auto",
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -2213,14 +2244,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_stream_available_streams\n* on(channel_uuid, channel_number) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "expr": "dispatcharr_stream_available_streams\n* on(channel_uuid, channel_number) group_left(channel_name)\n  dispatcharr_stream_metadata - 1",
           "instant": true,
           "legendFormat": "{{channel_name}}",
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "Available Fallback Slots",
+      "title": "Total Available Streams For Current Channels",
       "type": "bargauge"
     }
   ],
