@@ -10,6 +10,7 @@
       automergeType: "pr",
       matchUpdateTypes: [
         "digest",
+        "patch",
         "minor",
       ],
       matchPackageNames: [
