@@ -26,15 +26,17 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
-      - uses: anthropics/claude-code-action@5d5c10a4f389689f992ea10bb14dcb6fcc83146d # v1
+      - name: Claude Code Action
+        uses: anthropics/claude-code-action@5d5c10a4f389689f992ea10bb14dcb6fcc83146d # v1
         # env:
         #   ANTHROPIC_BASE_URL: "https://api.minimax.io/anthropic"
         with:
-          github-token: ${{ steps.app-token.outputs.token }}
+          github_token: ${{ steps.app-token.outputs.token }}
           # anthropic_api_key: ${{ secrets.MINIMAX_API_KEY }}
           anthropic_api_key: ${{ secrets.CLAUDE_API_KEY }}
           allowed_bots: "robot-rosey[bot]"
