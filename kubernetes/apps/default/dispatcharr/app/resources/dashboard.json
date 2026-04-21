@@ -2183,6 +2183,7 @@
           "decimals": 0,
           "mappings": [],
           "min": 0,
+          "max": 3,
           "thresholds": {
             "mode": "absolute",
             "steps": [
