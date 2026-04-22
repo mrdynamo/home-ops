@@ -156,5 +156,5 @@ spec:
   - name: homeassistant-powercycle-k8s-04
     webhookConfigs:
       - urlSecret:
-          name: alertmanager-secret
+          name: *secret
           key: HOMEASSISTANT_WEBHOOK_POWERCYCLE_K8S-04
