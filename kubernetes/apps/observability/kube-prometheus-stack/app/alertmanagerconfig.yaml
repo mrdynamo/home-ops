@@ -157,4 +157,4 @@ spec:
     webhookConfigs:
       - urlSecret:
           name: *secret
-          key: HOMEASSISTANT_WEBHOOK_POWERCYCLE_K8S-04
+          key: HOMEASSISTANT_WEBHOOK_POWERCYCLE_K8S_04
