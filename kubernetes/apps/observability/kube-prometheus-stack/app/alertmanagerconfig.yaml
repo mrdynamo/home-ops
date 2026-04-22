@@ -26,6 +26,15 @@ spec:
       #     - name: alertname
       #       value: Watchdog
       #       matchType: =
+      - receiver: homeassistant-powercycle-k8s-04
+        continue: true
+        matchers:
+          - name: alertname
+            value: KubeNodeUnreachable
+            matchType: =
+          - name: node
+            value: k8s-04
+            matchType: =
       - receiver: all-receivers
         matchers:
           - name: alertname
@@ -144,3 +153,8 @@ spec:
           key: *pushoverKey
         url: https://siren.${INTERNAL_SECRET_DOMAIN}/alerts
         urlTitle: View in Siren
+  - name: homeassistant-powercycle-k8s-04
+    webhookConfigs:
+      - urlSecret:
+          name: alertmanager-secret
+          key: HOMEASSISTANT_WEBHOOK_POWERCYCLE_K8S-04
