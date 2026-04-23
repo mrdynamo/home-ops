@@ -32,6 +32,7 @@ spec:
               SYSTEM_GOOGLEVISIBILITY: false
               SYSTEM_SHOW_UPDATE: false
               # SSO Configuration
+              # https://github.com/Stirling-Tools/Stirling-PDF/issues/6078
               SECURITY_OAUTH2_ENABLED: true
               SECURITY_OAUTH2_PROVIDER: authentik
               SECURITY_OAUTH2_ISSUER: https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/
