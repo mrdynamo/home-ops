@@ -50,7 +50,7 @@ spec:
       annotations:
         description: The used storage of disk {{$labels.disk}} on node {{$labels.node}} is at {{$value}}% capacity for
           more than 5 minutes.
-        summary:  The used storage of disk is over 90% of the capacity.
+        summary:  The used storage of disk is over 80% of the capacity.
       expr: (longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes) * 100 > 80
       for: 5m
       labels:
