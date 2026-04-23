@@ -39,6 +39,7 @@ spec:
               SECURITY_OAUTH2_USEASUSERNAME: preferred_username
               SECURITY_OAUTH2_AUTOCREATEUSER: true
               SECURITY_OAUTH2_BLOCKREGISTRATION: false
+              LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2: DEBUG
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
