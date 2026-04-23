@@ -31,6 +31,17 @@ spec:
               SECURITY_ENABLE_LOGIN: true
               SYSTEM_GOOGLEVISIBILITY: false
               SYSTEM_SHOW_UPDATE: false
+              # SSO Configuration
+              SECURITY_OAUTH2_ENABLED: true
+              SECURITY_OAUTH2_PROVIDER: authentik
+              SECURITY_OAUTH2_ISSUER: "https://auth.${SECRET_DOMAIN}/application/o/stirling-pdf/"
+              SECURITY_OAUTH2_SCOPES: "openid profile email"
+              SECURITY_OAUTH2_USEASUSERNAME: preferred_useername
+              SECURITY_OAUTH2_AUTOCREATEUSER: true
+              SECURITY_OAUTH2_BLOCKREGISTRATION: false
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness: &probe
                 enabled: true
