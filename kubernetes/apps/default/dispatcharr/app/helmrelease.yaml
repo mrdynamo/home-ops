@@ -110,12 +110,25 @@ spec:
                 if ! command -v zip >/dev/null 2>&1; then
                   apk add --no-cache zip
                 fi
-                export -p > /etc/dispatcharr-backup.env
-                mkdir -p /etc/crontabs
+                mkdir -p /etc/crontabs /var/log/backup
+                cat > /usr/local/bin/backup-cron-wrapper << 'WRAPPER_EOF'
+                #!/bin/bash
+                # Wrapper for backup cron job with proper environment loading
+                set -euo pipefail
+
+                # Source shell profile to ensure environment is fully loaded
+                [ -f /etc/profile ] && source /etc/profile
+                [ -f ~/.bashrc ] && source ~/.bashrc 2>/dev/null || true
+
+                # Run backup with logging
+                /usr/local/bin/dispatcharr-backup 2>&1 | tee -a /var/log/backup/latest.log
+                WRAPPER_EOF
+                chmod 0755 /usr/local/bin/backup-cron-wrapper
                 {
                   echo 'SHELL=/bin/bash'
                   echo 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-                  printf '%s %s\n' "$${BACKUP_CRON_SCHEDULE}" "/bin/bash -lc 'source /etc/dispatcharr-backup.env && /usr/local/bin/dispatcharr-backup >> /proc/1/fd/1 2>> /proc/1/fd/2'"
+                  echo 'TZ=America/Chicago'
+                  printf '%s %s\n' "$${BACKUP_CRON_SCHEDULE}" "/bin/bash -l /usr/local/bin/backup-cron-wrapper >> /proc/1/fd/1 2>> /proc/1/fd/2"
                 } > /etc/crontabs/root
                 chmod 0600 /etc/crontabs/root
                 echo "Dispatcharr backup sidecar ready"
@@ -233,3 +246,9 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
+      backup-logs:
+        type: emptyDir
+        advancedMounts:
+          dispatcharr:
+            backup:
+              - path: /var/log/backup
