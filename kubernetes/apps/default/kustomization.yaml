@@ -33,6 +33,7 @@ resources:
   - ./seerr/ks.yaml
   - ./shelfmark/ks.yaml
   - ./sonarr/ks.yaml
+  - ./stirling-pdf/ks.yaml
   - ./syncthing/ks.yaml
   - ./tautulli/ks.yaml
   - ./tracearr/ks.yaml

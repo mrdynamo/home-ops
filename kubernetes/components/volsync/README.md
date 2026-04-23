@@ -32,6 +32,7 @@
 | seerr                    | 1 Gi  | Tuesday @ 04:00              | `0 4 * * 2`     | `0 9 * * 2`        | `0 10 * * 2`       |
 | shelfmark                | 1 Gi  | Tuesday @ 09:00              | `0 9 * * 2`     | `0 14 * * 2`       | `0 15 * * 2`       |
 | sonarr                   | 4 Gi  | Wednesday @ 04:00            | `0 4 * * 3`     | `0 9 * * 3`        | `0 10 * * 3`       |
+| stirling-pdf             | 1 Gi  | Tuesday @ 09:00              | `0 9 * * 2`     | `0 14 * * 2`       | `0 15 * * 2`       |
 | streamflow               | 1 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
 | syncthing                | 1 Gi  | Monday @ 12:00               | `0 12 * * 1`    | `0 17 * * 1`       | `0 18 * * 1`       |
 | teamarr                  | 1 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |

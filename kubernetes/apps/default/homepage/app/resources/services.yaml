@@ -106,6 +106,12 @@
         icon: karakeep.svg
         namespace: default # The kubernetes namespace the app resides in
         app: karakeep # The name of the deployed app
+    - Stirling PDF:
+        href: https://stirling-pdf.${INTERNAL_SECRET_DOMAIN}/
+        description: PDF management and generation service
+        icon: stirling-pdf.svg
+        namespace: default
+        app: stirling-pdf
     - Syncthing:
         href: https://syncthing.${INTERNAL_SECRET_DOMAIN}/
         description: Syncthing Server on k8s

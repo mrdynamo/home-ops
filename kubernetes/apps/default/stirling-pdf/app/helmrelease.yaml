@@ -1,0 +1,87 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app stirling-pdf
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: *app
+  values:
+    controllers:
+      stirling-pdf:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/stirling-tools/s-pdf
+              tag: 2.9.2@sha256:3fcfa4d6b6ff22fdbf96ff2aae98dc2fb6d8c1ba0afab1dd2fdfdcdc9ab543c4
+            env:
+              TZ: America/Chicago
+              DOCKER_ENABLE_SECURITY: false
+              LANGS: en_US
+              METRICS_ENABLED: false
+              SYSTEM_CUSTOMPATHS_OPERATIONS_WEASYPRINT: "/opt/venv/bin/weasyprint"
+              SYSTEM_CUSTOMPATHS_OPERATIONS_UNOCONVERT: "/opt/venv/bin/unoconvert"
+              SYSTEM_DEFAULTLOCALE: en-US
+              SYSTEM_ENABLEANALYTICS: false
+              SECURITY_ENABLE_LOGIN: false
+              SYSTEM_GOOGLEVISIBILITY: false
+              SYSTEM_SHOW_UPDATE: false
+            probes:
+              liveness: &probe
+                enabled: true
+                type: HTTP
+                path: /api/v1/info/status
+              readiness: *probe
+              startup:
+                <<: *probe
+                spec:
+                  failureThreshold: 90
+                  periodSeconds: 5
+            # securityContext:
+            #   allowPrivilegeEscalation: false
+            #   readOnlyRootFilesystem: true
+            #   capabilities:
+            #     drop: ["ALL"]
+    # defaultPodOptions:
+    #   securityContext:
+    #     runAsNonRoot: true
+    #     runAsUser: 1000
+    #     runAsGroup: 1000
+    #     fsGroup: 1000
+    #     fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: 8080
+    route:
+      app:
+        hostnames:
+          - "stirling-pdf.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /configs
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /customFiles
+            subPath: customFiles
+          - path: /logs
+            subPath: logs
+          - path: /pipeline
+            subPath: pipeline
+          - path: /tmp
+            subPath: tmp
+          - path: /usr/share/tessdata
+            subPath: tessdata
