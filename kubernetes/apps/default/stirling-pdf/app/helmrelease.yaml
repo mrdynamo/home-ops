@@ -28,7 +28,7 @@ spec:
               SYSTEM_CUSTOMPATHS_OPERATIONS_UNOCONVERT: "/opt/venv/bin/unoconvert"
               SYSTEM_DEFAULTLOCALE: en-US
               SYSTEM_ENABLEANALYTICS: false
-              SECURITY_ENABLE_LOGIN: false
+              SECURITY_ENABLE_LOGIN: true
               SYSTEM_GOOGLEVISIBILITY: false
               SYSTEM_SHOW_UPDATE: false
             probes:
