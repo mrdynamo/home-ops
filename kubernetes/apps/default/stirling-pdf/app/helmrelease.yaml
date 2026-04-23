@@ -34,7 +34,7 @@ spec:
               # SSO Configuration
               SECURITY_OAUTH2_ENABLED: true
               SECURITY_OAUTH2_PROVIDER: authentik
-              SECURITY_OAUTH2_ISSUER: https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration
+              SECURITY_OAUTH2_ISSUER: https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/
               SECURITY_OAUTH2_SCOPES: openid, profile, email
               SECURITY_OAUTH2_USEASUSERNAME: preferred_username
               SECURITY_OAUTH2_AUTOCREATEUSER: true
