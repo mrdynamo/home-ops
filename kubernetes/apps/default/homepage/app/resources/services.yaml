@@ -191,11 +191,17 @@
         href: {{HOMEPAGE_VAR_GCLOUD_URL}}
         description: Google Cloud DNS Console
         icon: google-cloud-platform.svg
+    - KGuardian:
+        href: https://kguardian.${INTERNAL_SECRET_DOMAIN}/
+        description: Kubernetes cluster dashboard
+        icon: kguardian.svg
+        namespace: kguardian
+        app: kguardian
 
 - Observability:
     - Headlamp:
         href: https://headlamp.${INTERNAL_SECRET_DOMAIN}/
-        description: Kubernetes cluster dashboard
+        description: Kubernetes neetwork security dashboard
         icon: headlamp.svg
         namespace: observability
         app: headlamp
