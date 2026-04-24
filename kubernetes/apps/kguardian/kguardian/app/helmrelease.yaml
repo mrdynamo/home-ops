@@ -13,3 +13,10 @@ spec:
     controller:
       excludedNamespaces:
         - *app
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 500m
+          memory: 128Mi
