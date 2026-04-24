@@ -8,4 +8,4 @@ components:
   - ../../components/common
 resources:
   - ./namespace.yaml
-  - ./kguardian-operator/ks.yaml
+  - ./kguardian/ks.yaml
