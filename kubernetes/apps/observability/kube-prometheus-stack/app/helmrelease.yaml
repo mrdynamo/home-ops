@@ -99,6 +99,16 @@ spec:
               resources:
                 requests:
                   storage: 32Gi
+    prometheusOperator:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
     prometheus-node-exporter:
       # extraArgs:
       #   - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($|/)
