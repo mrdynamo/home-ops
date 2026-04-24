@@ -30,10 +30,7 @@ spec:
         continue: true
         matchers:
           - name: alertname
-            value: KubeNodeUnreachable
-            matchType: =
-          - name: node
-            value: k8s-04
+            value: HomeAssistantPowercycleK8s04Trigger
             matchType: =
       - receiver: all-receivers
         matchers:

@@ -1,0 +1,65 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kube-prometheus-stack-homeassistant-triggers
+spec:
+  groups:
+    - name: kubernetes-system-kubelet
+      rules:
+        - alert: KubeNodeNotReadyHomeAssistantTrigger
+          annotations:
+            description: >-
+              {{ $labels.node }} has been unready for more than 15 minutes on
+              cluster {{ $labels.cluster }}.
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodenotready
+            summary: Node is not ready.
+          expr: >-
+            kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"}
+            == 0
+
+            and on (cluster, node)
+
+            kube_node_spec_unschedulable{job="kube-state-metrics"} == 0
+          for: 3m
+          labels:
+            severity: warning
+        - alert: KubeNodeUnreachableHomeAssistantTrigger
+          annotations:
+            description: >-
+              {{ $labels.node }} is unreachable and some workloads may be
+              rescheduled on cluster {{ $labels.cluster }}.
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubenodeunreachable
+            summary: Node is unreachable.
+          expr: >-
+            (kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"}
+            unless ignoring(key,value)
+            kube_node_spec_taint{job="kube-state-metrics",key=~"ToBeDeletedByClusterAutoscaler|cloud.google.com/impending-node-termination|aws-node-termination-handler/spot-itn"})
+            == 1
+          for: 3m
+          labels:
+            severity: warning
+    - name: homeassistant-triggers
+      rules:
+        - alert: HomeAssistantPowercycleK8s04Trigger
+          annotations:
+            description: >-
+              Node k8s-04 satisfies all three powercycle preconditions:
+              KubeNodeNotReadyHomeAssistantTrigger,
+              KubeNodeUnreachableHomeAssistantTrigger, and
+              LonghornNodeDownHomeAssistantTrigger.
+            summary: All three k8s-04 powercycle preconditions are firing.
+          expr: >-
+            max by (node) (ALERTS{alertname="KubeNodeNotReadyHomeAssistantTrigger",alertstate="firing",node="k8s-04"} == 1)
+
+            and on (node)
+
+            max by (node) (ALERTS{alertname="KubeNodeUnreachableHomeAssistantTrigger",alertstate="firing",node="k8s-04"} == 1)
+
+            and on (node)
+
+            max by (node) (ALERTS{alertname="LonghornNodeDownHomeAssistantTrigger",alertstate="firing",node="k8s-04"} == 1)
+          for: 1m
+          labels:
+            severity: critical

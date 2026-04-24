@@ -85,3 +85,13 @@ spec:
       labels:
         issue: Longhorn node {{$labels.node}} experiences high CPU pressure.
         severity: warning
+    - alert: LonghornNodeDownHomeAssistantTrigger
+      annotations:
+        description: Longhorn ready status metric for node k8s-04 has been missing for more than 3 minutes.
+        summary: Longhorn node k8s-04 is missing from longhorn_node_status
+      expr: absent(longhorn_node_status{condition="ready",node="k8s-04"})
+      for: 3m
+      labels:
+        issue: Longhorn node k8s-04 is missing from longhorn_node_status.
+        node: k8s-04
+        severity: critical
