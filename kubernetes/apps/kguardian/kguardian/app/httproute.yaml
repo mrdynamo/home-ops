@@ -6,7 +6,7 @@ metadata:
   name: kguardian
 spec:
   hostnames:
-    - "kguardian.{$INTERNAL_SECRET_DOMAIN}"
+    - "kguardian.${INTERNAL_SECRET_DOMAIN}"
   parentRefs:
     - name: internal
       namespace: kube-system
