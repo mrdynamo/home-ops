@@ -193,7 +193,7 @@
         icon: google-cloud-platform.svg
     - KGuardian:
         href: https://kguardian.${INTERNAL_SECRET_DOMAIN}/
-        description: Kubernetes cluster dashboard
+        description: Kubernetes neetwork security dashboard
         icon: kguardian.svg
         namespace: kguardian
         app: kguardian
@@ -201,7 +201,7 @@
 - Observability:
     - Headlamp:
         href: https://headlamp.${INTERNAL_SECRET_DOMAIN}/
-        description: Kubernetes neetwork security dashboard
+        description: Kubernetes cluster dashboard
         icon: headlamp.svg
         namespace: observability
         app: headlamp
