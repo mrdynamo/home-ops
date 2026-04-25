@@ -76,10 +76,10 @@ spec:
               capabilities: {add: ["SYS_NICE"]}
             resources:
               requests:
-                cpu: 244m
-                memory: 1554Mi
+                cpu: 332m
+                memory: 1865Mi
               limits:
-                memory: 1554Mi
+                memory: 1865Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
