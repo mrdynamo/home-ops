@@ -3,15 +3,15 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: emby
+  name: &app emby
 spec:
   interval: 1h
   chartRef:
     kind: OCIRepository
-    name: emby
+    name: *app
   values:
     controllers:
-      emby:
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -99,6 +99,10 @@ spec:
         globalMounts:
           - path: /media
             readOnly: false
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /config/cache
       tmp:
         type: emptyDir
       transcode:
