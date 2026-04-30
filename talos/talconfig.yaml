@@ -25,7 +25,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
+    talosImageURL: factory.talos.dev/installer/ec4ab973e3af0198d0fa09d324f874a78ec085b18c7b9d299042b0b75a3823d6
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -45,7 +45,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
+    talosImageURL: factory.talos.dev/installer/ec4ab973e3af0198d0fa09d324f874a78ec085b18c7b9d299042b0b75a3823d6
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -65,7 +65,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Control Base
-    talosImageURL: factory.talos.dev/installer/bfa4b4ca2352bdac573ca5b6fa4f906e63537f5089a9742d408542073bd3405e
+    talosImageURL: factory.talos.dev/installer/ec4ab973e3af0198d0fa09d324f874a78ec085b18c7b9d299042b0b75a3823d6
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -85,7 +85,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker GPU - Intel UHD 750 iGPU
-    talosImageURL: factory.talos.dev/installer/2d7f9c9620a30e589ff73e0d1b1b66929d5284c9ec7422ef7f0833622ed31288
+    talosImageURL: factory.talos.dev/installer/2d15e47582029529952009c448e1e3c6759d306fcc9fd954eca545cfbb496ea7
     patches:
       # - "@./patches/intel-gpu/machine-files.yaml"
       - "@./patches/intel-gpu/machine-udevd.yaml"
@@ -107,7 +107,7 @@ nodes:
     machineSpec:
       secureboot: false
     # Worker Base
-    talosImageURL: factory.talos.dev/installer/db1f0bb5f933304b8e73362aa057fd2c11802cb1e1633f421d387167e9af1915
+    talosImageURL: factory.talos.dev/installer/76b8c0bae954a11b3b9ac35b9427e996e69d764c4a226ee34d08aa7479efae9f
     controlPlane: false
     networkInterfaces:
       - deviceSelector:
