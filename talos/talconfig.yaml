@@ -124,8 +124,8 @@ nodes:
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
-    # Worker GPU - Nvidia Production Proprietary (570.172.08)
-    talosImageURL: factory.talos.dev/installer/29e1023e2acd556ea000e431b368effa1cc5d1a13598cbbd4d6926046d0ac216
+    # Worker GPU - Nvidia LTS Proprietary (580.126.20)
+    talosImageURL: factory.talos.dev/installer/c611e56816907adf65d0f5c8a775ddeffbb80348f6f6c3fa66e5b41496a951da
     patches:
       - "@./patches/nvidia-gpu/machine-kernel.yaml"
       - "@./patches/nvidia-gpu/machine-sysctls.yaml"
