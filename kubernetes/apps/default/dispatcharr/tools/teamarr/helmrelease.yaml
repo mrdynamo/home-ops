@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/pharaoh-labs/teamarr
-              tag: 2.4.3@sha256:1a7915fe301afa81c04618b632775482971f6c535e78ec6c4dd114d899a2ce3a
+              tag: 2.4.4@sha256:ac2f2359206c7d8c6a216be13040ff7b1e5bf8660b7b31a5550891e15bccd4a4
             env:
               TZ: America/Chicago
               PORT: &port 9195
