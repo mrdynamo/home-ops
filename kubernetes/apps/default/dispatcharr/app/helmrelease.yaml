@@ -77,9 +77,9 @@ spec:
             resources:
               requests:
                 cpu: 332m
-                memory: 1865Mi
+                memory: 2238Mi
               limits:
-                memory: 1865Mi
+                memory: 2238Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
