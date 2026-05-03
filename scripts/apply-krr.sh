@@ -902,6 +902,13 @@ def main() -> int:
 		if hr_ref in hr_index or hr_ref.name in all_known_hr_names:
 			skipped_by_severity[sev] = skipped_by_severity.get(sev, 0) + 1
 
+	# Pre-compute which files actually have content changes (diff against original
+	# raw text) so the summary can report accurate file counts before writing.
+	actually_changed: List[Path] = [
+		fp for fp, (raw, docs, yaml) in changed_files.items()
+		if _dump_all_yaml_docs(yaml, docs) != raw
+	]
+
 	# ---- Summary ----
 	print(f"\nSummary")
 	print(f"  Severity filter (min: {args.min_severity.upper()})")
@@ -915,12 +922,11 @@ def main() -> int:
 	if unmatched:
 		print(f"    No match: {len(unmatched)} target(s) (not app-template or missing Flux labels)")
 	print(f"  Resource values")
-	print(f"    Changed : {total_changed_targets} target(s) need updates")
+	print(f"    Changed : {total_changed_targets} target(s) need updates across {len(actually_changed)} file(s)")
 	if total_already_ok_targets:
 		print(f"    Already : {total_already_ok_targets} target(s) already at recommended values")
 	if total_skipped_targets:
 		print(f"    Skipped : {total_skipped_targets} target(s) — controller/container key not found in HelmRelease values")
-	print(f"  Files     : {len(changed_files)} file(s) touched, across {total_changed_targets} target change(s)")
 
 
 	if total_changed_targets == 0:
@@ -928,15 +934,14 @@ def main() -> int:
 		return 0
 
 	if not args.write:
-		print(f"\nDRY-RUN: would update {len(changed_files)} file(s), {total_changed_targets} target(s). Use --write to apply.")
+		print(f"\nDRY-RUN: would update {len(actually_changed)} file(s), {total_changed_targets} target(s). Use --write to apply.")
 		return 0
 
-	actually_changed: List[Path] = []
 	for fp, (raw, docs, yaml) in changed_files.items():
+		if fp not in set(actually_changed):
+			continue
 		new_txt = _dump_all_yaml_docs(yaml, docs)
-		if new_txt != raw:
-			fp.write_text(new_txt, encoding="utf-8")
-			actually_changed.append(fp)
+		fp.write_text(new_txt, encoding="utf-8")
 
 	print(f"\nWROTE: updated {len(actually_changed)} file(s).")
 
