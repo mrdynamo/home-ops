@@ -118,10 +118,6 @@ spec:
                 # Wrapper for backup cron job with proper environment loading
                 set -euo pipefail
 
-                # Source shell profile to ensure environment is fully loaded
-                [ -f /etc/profile ] && source /etc/profile
-                [ -f ~/.bashrc ] && source ~/.bashrc 2>/dev/null || true
-
                 # Run backup with logging
                 /usr/local/bin/dispatcharr-backup 2>&1 | tee -a /var/log/backup/latest.log
                 WRAPPER_EOF
@@ -130,7 +126,7 @@ spec:
                   echo 'SHELL=/bin/bash'
                   echo 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
                   echo 'TZ=America/Chicago'
-                  printf '%s %s\n' "$${BACKUP_CRON_SCHEDULE}" "/bin/bash -l /usr/local/bin/backup-cron-wrapper >> /proc/1/fd/1 2>> /proc/1/fd/2"
+                  printf '%s %s\n' "$${BACKUP_CRON_SCHEDULE}" "/bin/bash /usr/local/bin/backup-cron-wrapper >> /proc/1/fd/1 2>> /proc/1/fd/2"
                 } > /etc/crontabs/root
                 chmod 0600 /etc/crontabs/root
                 echo "Dispatcharr backup sidecar ready"
