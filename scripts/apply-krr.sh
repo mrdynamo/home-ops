@@ -519,16 +519,46 @@ def _find_key_by_str(m: CommentedMap, wanted: str) -> Optional[Any]:
 	return None
 
 
+def _norm_name(s: str) -> str:
+	# Normalize common naming differences (case and '_' vs '-')
+	return str(s).strip().lower().replace("_", "-")
+
+
 def _pick_controller_key(controllers: CommentedMap, wanted: str, hr_name: str) -> Optional[Any]:
 	k = _find_key_by_str(controllers, wanted)
 	if k is not None:
 		return k
-	k = _find_key_by_str(controllers, "main")
-	if k is not None:
-		return k
-	k = _find_key_by_str(controllers, hr_name)
-	if k is not None:
-		return k
+
+	# Prefer normalized exact match first (case and '_' vs '-').
+	nw = _norm_name(wanted)
+	norm_to_keys: Dict[str, List[Any]] = {}
+	for key in controllers.keys():
+		norm_to_keys.setdefault(_norm_name(str(key)), []).append(key)
+
+	exact_norm = norm_to_keys.get(nw) or []
+	if len(exact_norm) == 1:
+		return exact_norm[0]
+
+	# Support names like "<workload>-<controller>" when KRR/controller labels
+	# include prefixes but Helm values use short controller keys.
+	if nw:
+		suffix_matches: List[Any] = []
+		for key in controllers.keys():
+			nk = _norm_name(str(key))
+			if nk and nw.endswith(f"-{nk}"):
+				suffix_matches.append(key)
+		if len(suffix_matches) == 1:
+			return suffix_matches[0]
+
+	# If controller label equals HR name and there is exactly one explicit
+	# non-empty controller key, use it.
+	if nw and nw == _norm_name(hr_name):
+		non_empty_keys = [k for k in controllers.keys() if str(k).strip()]
+		if len(non_empty_keys) == 1:
+			return non_empty_keys[0]
+
+	# Only allow single-controller fallback. For multi-controller charts,
+	# forcing "main"/HR-name fallback can patch the wrong controller.
 	if len(controllers.keys()) == 1:
 		return next(iter(controllers.keys()))
 	return None
@@ -538,10 +568,29 @@ def _pick_container_key(containers: CommentedMap, wanted: str) -> Optional[Any]:
 	k = _find_key_by_str(containers, wanted)
 	if k is not None:
 		return k
-	for fb in ("app", "main"):
-		k = _find_key_by_str(containers, fb)
-		if k is not None:
-			return k
+
+	# Try normalized key matching and common KRR naming variants like
+	# "<workload>-<container>" (for example: "dispatcharr-celery" -> "celery").
+	nw = _norm_name(wanted)
+	norm_to_keys: Dict[str, List[Any]] = {}
+	for key in containers.keys():
+		norm_to_keys.setdefault(_norm_name(str(key)), []).append(key)
+
+	exact_norm = norm_to_keys.get(nw) or []
+	if len(exact_norm) == 1:
+		return exact_norm[0]
+
+	if nw:
+		suffix_matches: List[Any] = []
+		for key in containers.keys():
+			nk = _norm_name(str(key))
+			if nk and nw.endswith(f"-{nk}"):
+				suffix_matches.append(key)
+		if len(suffix_matches) == 1:
+			return suffix_matches[0]
+
+	# Only allow single-container fallback. For multi-container controllers,
+	# fallback-to-app/main is unsafe and can patch the wrong container.
 	if len(containers.keys()) == 1:
 		return next(iter(containers.keys()))
 	return None
@@ -579,6 +628,8 @@ def _apply_to_hr_doc(
 	if ctrl_key is None:
 		notes.append(f"SKIP: controller {target.controller!r} not found (controllers: {[str(k) for k in controllers.keys()]})")
 		return False, notes
+	if str(ctrl_key) != target.controller:
+		notes.append(f"NOTE: mapped controller {target.controller!r} -> {str(ctrl_key)!r}")
 
 	ctrl_def = controllers.get(ctrl_key)
 	if not isinstance(ctrl_def, CommentedMap):
@@ -596,6 +647,8 @@ def _apply_to_hr_doc(
 	if ctr_key is None:
 		notes.append(f"SKIP: container {target.container!r} not found (containers: {[str(k) for k in containers.keys()]})")
 		return False, notes
+	if str(ctr_key) != target.container:
+		notes.append(f"NOTE: mapped container {target.container!r} -> {str(ctr_key)!r}")
 
 	ctr_def = containers.get(ctr_key)
 	if not isinstance(ctr_def, CommentedMap):
