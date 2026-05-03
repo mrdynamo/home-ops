@@ -316,10 +316,14 @@ def _merge_max(a: Optional[float], b: Optional[float]) -> Optional[float]:
 	return max(a, b)
 
 
-def _aggregate_krr(json_path: Path, *, min_severity: str) -> Dict[TargetKey, RecommendedResources]:
+def _aggregate_krr(
+	json_path: Path, *, min_severity: str
+) -> Tuple[Dict[TargetKey, RecommendedResources], List[Tuple[str, Optional[HrRef]]]]:
 	"""
-	Returns a map:
-		(HR ns/name, controller, container) -> max(recommended resources)
+	Returns a tuple of:
+	  - map: (HR ns/name, controller, container) -> max(recommended resources)
+	  - skipped_entries: list of (severity, HrRef|None) for scans dropped by severity filter
+	    HrRef is None when the scan lacks Flux labels (can never match a HR).
 
 	We rely on Flux labels:
 	- helm.toolkit.fluxcd.io/name
@@ -334,6 +338,7 @@ def _aggregate_krr(json_path: Path, *, min_severity: str) -> Dict[TargetKey, Rec
 	data = json.loads(json_path.read_text(encoding="utf-8"))
 	scans = data.get("scans") or []
 	out: Dict[TargetKey, RecommendedResources] = {}
+	skipped_entries: List[Tuple[str, Optional[HrRef]]] = []
 
 	severity_rank = {
 		"UNKNOWN": -1,
@@ -349,6 +354,12 @@ def _aggregate_krr(json_path: Path, *, min_severity: str) -> Dict[TargetKey, Rec
 			continue
 		sev = str(scan.get("severity") or "UNKNOWN").upper()
 		if severity_rank.get(sev, -1) < min_rank:
+			obj = scan.get("object") or {}
+			labels = obj.get("labels") or {}
+			hr_name = labels.get("helm.toolkit.fluxcd.io/name") if isinstance(labels, dict) else None
+			hr_ns = labels.get("helm.toolkit.fluxcd.io/namespace") if isinstance(labels, dict) else None
+			hr_ref = HrRef(namespace=str(hr_ns), name=str(hr_name)) if hr_name and hr_ns else None
+			skipped_entries.append((sev, hr_ref))
 			continue
 
 		obj = scan.get("object") or {}
@@ -399,7 +410,7 @@ def _aggregate_krr(json_path: Path, *, min_severity: str) -> Dict[TargetKey, Rec
 			prev.lim_cpu_cores = _merge_max(prev.lim_cpu_cores, rec.lim_cpu_cores)
 			prev.lim_mem_bytes = _merge_max(prev.lim_mem_bytes, rec.lim_mem_bytes)
 
-	return out
+	return out, skipped_entries
 
 
 # -----------------------------
@@ -602,7 +613,8 @@ def _apply_to_hr_doc(
 	target: TargetKey,
 	rec: RecommendedResources,
 	only_missing: bool,
-) -> Tuple[bool, List[str]]:
+) -> Tuple[str, List[str]]:
+	"""Returns (status, notes) where status is 'changed', 'ok', or 'skip'."""
 	changed = False
 	notes: List[str] = []
 
@@ -627,7 +639,7 @@ def _apply_to_hr_doc(
 	ctrl_key = _pick_controller_key(controllers, target.controller, target.hr.name)
 	if ctrl_key is None:
 		notes.append(f"SKIP: controller {target.controller!r} not found (controllers: {[str(k) for k in controllers.keys()]})")
-		return False, notes
+		return "skip", notes
 	if str(ctrl_key) != target.controller:
 		notes.append(f"NOTE: mapped controller {target.controller!r} -> {str(ctrl_key)!r}")
 
@@ -646,7 +658,7 @@ def _apply_to_hr_doc(
 	ctr_key = _pick_container_key(containers, target.container)
 	if ctr_key is None:
 		notes.append(f"SKIP: container {target.container!r} not found (containers: {[str(k) for k in containers.keys()]})")
-		return False, notes
+		return "skip", notes
 	if str(ctr_key) != target.container:
 		notes.append(f"NOTE: mapped container {target.container!r} -> {str(ctr_key)!r}")
 
@@ -689,7 +701,7 @@ def _apply_to_hr_doc(
 	if rec.lim_mem_bytes is not None:
 		_set("limits", "memory", _mem_qty(rec.lim_mem_bytes))
 
-	return changed, notes
+	return ("changed" if changed else "ok"), notes
 
 
 # -----------------------------
@@ -733,7 +745,7 @@ def main() -> int:
 		print("ERROR: not inside a git repo (or git unavailable).", file=sys.stderr)
 		return 2
 
-	krr_map = _aggregate_krr(args.krr_json, min_severity=args.min_severity)
+	krr_map, skipped_entries = _aggregate_krr(args.krr_json, min_severity=args.min_severity)
 	if not krr_map:
 		print("No applicable KRR entries found (after severity filter, or missing Flux labels).", file=sys.stderr)
 		return 2
@@ -815,6 +827,9 @@ def main() -> int:
 	# We'll lazily load/write files only if we touch them
 	changed_files: Dict[Path, Tuple[str, List[Any], YAML]] = {}
 	total_changed_targets = 0
+	total_matched_targets = 0
+	total_already_ok_targets = 0
+	total_skipped_targets = 0
 	unmatched: List[TargetKey] = []
 
 	def _ensure_loaded(fp: Path) -> Tuple[str, List[Any], YAML]:
@@ -843,13 +858,14 @@ def main() -> int:
 			unmatched.append(target)
 			continue
 
+		total_matched_targets += 1
 		for loc in locs:
 			raw, docs, yaml = _ensure_loaded(loc.path)
 			doc = docs[loc.doc_index]
 			if not isinstance(doc, CommentedMap):
 				continue
 
-			changed, notes = _apply_to_hr_doc(
+			status, notes = _apply_to_hr_doc(
 				doc,
 				target=target,
 				rec=rec,
@@ -861,8 +877,12 @@ def main() -> int:
 				for n in notes:
 					print(f"\t{n}")
 
-			if changed:
+			if status == "changed":
 				total_changed_targets += 1
+			elif status == "skip":
+				total_skipped_targets += 1
+			else:
+				total_already_ok_targets += 1
 
 	if unmatched:
 		print("\nUnmatched KRR targets (no matching app-template HelmRelease found):", file=sys.stderr)
@@ -870,6 +890,38 @@ def main() -> int:
 			print(f"\t- {t.hr.namespace}/{t.hr.name} controller={t.controller} container={t.container}", file=sys.stderr)
 		if len(unmatched) > 200:
 			print(f"\t… and {len(unmatched) - 200} more", file=sys.stderr)
+
+	# Filter skipped entries to only those whose HR is known to the index
+	# (i.e. is an app-template HR we can actually patch). Entries without
+	# Flux labels can never match and belong in the HR-matching bucket instead.
+	all_known_hr_names = set(hr_index_by_name.keys())
+	skipped_by_severity: Dict[str, int] = {}
+	for sev, hr_ref in skipped_entries:
+		if hr_ref is None:
+			continue
+		if hr_ref in hr_index or hr_ref.name in all_known_hr_names:
+			skipped_by_severity[sev] = skipped_by_severity.get(sev, 0) + 1
+
+	# ---- Summary ----
+	print(f"\nSummary")
+	print(f"  Severity filter (min: {args.min_severity.upper()})")
+	print(f"    Passed  : {len(krr_map)} target(s) at or above threshold")
+	for sev_label in ("OK", "GOOD", "UNKNOWN"):
+		count = skipped_by_severity.get(sev_label, 0)
+		if count:
+			print(f"    Skipped : {count} target(s) at severity {sev_label} → use --min-severity {sev_label} to include")
+	print(f"  HelmRelease matching")
+	print(f"    Matched : {total_matched_targets} target(s) to app-template HelmReleases")
+	if unmatched:
+		print(f"    No match: {len(unmatched)} target(s) (not app-template or missing Flux labels)")
+	print(f"  Resource values")
+	print(f"    Changed : {total_changed_targets} target(s) need updates")
+	if total_already_ok_targets:
+		print(f"    Already : {total_already_ok_targets} target(s) already at recommended values")
+	if total_skipped_targets:
+		print(f"    Skipped : {total_skipped_targets} target(s) — controller/container key not found in HelmRelease values")
+	print(f"  Files     : {len(changed_files)} file(s) touched, across {total_changed_targets} target change(s)")
+
 
 	if total_changed_targets == 0:
 		print("\nNo changes needed.")
