@@ -79,9 +79,9 @@ spec:
             resources:
               requests:
                 cpu: 263m
-                memory: 3224Mi
+                memory: 3869Mi
               limits:
-                memory: 3224Mi
+                memory: 3869Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
@@ -96,10 +96,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 328m
-                memory: 1004Mi
+                cpu: 129m
+                memory: 1205Mi
               limits:
-                memory: 1004Mi
+                memory: 1205Mi
           backup:
             image:
               repository: docker.io/library/postgres
@@ -154,10 +154,10 @@ spec:
                 type: RuntimeDefault
             resources:
               requests:
-                cpu: 25m
-                memory: 128Mi
+                cpu: 10m
+                memory: 100Mi
               limits:
-                memory: 256Mi
+                memory: 100Mi
     # defaultPodOptions:
     #   securityContext:
     #     runAsNonRoot: true

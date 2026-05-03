@@ -19,10 +19,10 @@ spec:
               tag: latest@sha256:ddcd078215318b3ab27bf5bb97d82be54fc3f7c5dc11095beddce023abdf7e06
             resources:
               requests:
-                cpu: 10m
-                memory: 2367Mi
+                cpu: 93m
+                memory: 1460Mi
               limits:
-                memory: 2367Mi
+                memory: 1460Mi
             env:
               DEBUG: false
               CACHE_DURATION: 7200

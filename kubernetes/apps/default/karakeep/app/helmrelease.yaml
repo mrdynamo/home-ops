@@ -59,14 +59,14 @@ spec:
               readiness: *probes
             resources:
               requests:
-                cpu: 178m
-                memory: 1143Mi
+                cpu: 29m
+                memory: 914Mi
               limits:
-                memory: 1143Mi
+                memory: 914Mi
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
-              capabilities: { DROP: ["ALL"] }
+              capabilities: {DROP: ["ALL"]}
 
       chrome:
         pod:
@@ -91,9 +91,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 285Mi
+                memory: 342Mi
               limits:
-                memory: 285Mi
+                memory: 342Mi
 
       meilisearch:
         pod:
@@ -129,9 +129,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 512Mi
+                memory: 615Mi
               limits:
-                memory: 512Mi
+                memory: 615Mi
             securityContext: *sc
 
     defaultPodOptions:
@@ -141,7 +141,7 @@ spec:
         runAsNonRoot: true
         fsGroup: 1000
         fsGroupChangePolicy: "OnRootMismatch"
-        seccompProfile: { type: RuntimeDefault }
+        seccompProfile: {type: RuntimeDefault}
 
     service:
       app:

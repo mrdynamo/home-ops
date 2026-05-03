@@ -90,10 +90,10 @@ spec:
             #   capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 15m
-                memory: 1847Mi
+                cpu: 17m
+                memory: 1688Mi
               limits:
-                memory: 1847Mi
+                memory: 1688Mi
       gotenberg:
         containers:
           app:
@@ -119,9 +119,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 413Mi
+                memory: 300Mi
               limits:
-                memory: 413Mi
+                memory: 300Mi
     defaultPodOptions:
       hostUsers: true
       securityContext:
