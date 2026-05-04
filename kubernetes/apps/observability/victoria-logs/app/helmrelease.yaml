@@ -40,3 +40,5 @@ spec:
         enabled: true
     dashboards:
       enabled: true
+    vector:
+      enabled: false
