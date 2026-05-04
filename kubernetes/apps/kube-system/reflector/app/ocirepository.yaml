@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 10.0.40
+    digest: sha256:6d15b24661a79d5d0f45f9896346324eafa96a20123ab720eb043fe30b9c5f89
   url: oci://ghcr.io/emberstack/helm-charts/reflector

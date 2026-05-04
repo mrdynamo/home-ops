@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 11.9.2
+    digest: sha256:ce001525a832ebea6dbee1cee93c5f73877c41749fa616fb46ecc3dcf7c568da
   url: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter

@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 0.41.0
+    digest: sha256:ea8e0fa063f3d2d196ecc7d162026617b12f873a7b9176dd81ade42e94381c4a
   url: oci://ghcr.io/home-operations/charts-mirror/headlamp

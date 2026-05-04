@@ -12,3 +12,4 @@ spec:
   url: oci://ghcr.io/ksgate/charts/ksgate
   ref:
     tag: 0.6.2
+    digest: sha256:89c2357f030a92dca37a812e2a7bff2f311fb3711cb2c09012c2bdbb3051ab69

@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 1.11.1
+    digest: sha256:1565cc92017277ac14f3e55b326f7aeaad84c4ac1f4758de9be1ea89ff90655a
   url: oci://ghcr.io/home-operations/charts-mirror/longhorn
