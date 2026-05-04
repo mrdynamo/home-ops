@@ -11,6 +11,6 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: home-prod
-value: 555555
+value: 77777
 globalDefault: false
 description: "This priority class should be used for high priority 'prod' workloads."
