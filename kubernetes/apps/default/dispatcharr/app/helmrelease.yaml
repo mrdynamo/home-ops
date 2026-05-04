@@ -100,7 +100,7 @@ spec:
                 memory: 1205Mi
               limits:
                 memory: 1205Mi
-      dispatcharr-backup:
+      backup:
         type: cronjob
         cronjob:
           schedule: "0 */6 * * *"
@@ -230,7 +230,7 @@ spec:
         name: *app
         defaultMode: 0755
         advancedMounts:
-          dispatcharr-backup:
+          backup:
             app:
               - path: /usr/local/bin/dispatcharr-backup
                 subPath: backup-sidecar.sh
@@ -241,6 +241,6 @@ spec:
       backup-logs:
         type: emptyDir
         advancedMounts:
-          dispatcharr-backup:
+          backup:
             app:
               - path: /var/log/backup
