@@ -325,7 +325,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 200
+                "value": 150
               },
               {
                 "id": "custom.align",
@@ -494,7 +494,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 350
+                "value": 300
               }
             ]
           },
