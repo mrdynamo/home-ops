@@ -11,7 +11,7 @@ spec:
     name: *app
   values:
     controllers:
-      dispatcharr:
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -171,7 +171,8 @@ spec:
     #     operator: Exists
     #     effect: NoSchedule
     service:
-      app:
+      *app :
+        controller: *app
         type: LoadBalancer
         annotations:
           lbipam.cilium.io/ips: 192.168.30.112
@@ -194,6 +195,10 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
     serviceMonitor:
       app:
         enabled: true
