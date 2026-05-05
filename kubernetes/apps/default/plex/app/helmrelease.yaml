@@ -56,6 +56,7 @@ spec:
                 gpu.intel.com/i915: 1 # Request portion of share iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
+      priorityClassName: home-prod
       # resourceClaims:
       #   - name: gpu
       #     resourceClaimTemplateName: plex

@@ -124,6 +124,7 @@ spec:
                 memory: 300Mi
     defaultPodOptions:
       hostUsers: true
+      priorityClassName: home-prod
       securityContext:
         # runAsNonRoot: true
         # runAsUser: *uid

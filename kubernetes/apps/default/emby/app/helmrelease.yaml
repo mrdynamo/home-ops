@@ -53,6 +53,7 @@ spec:
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
+      priorityClassName: home-prod
       # runtimeClassName: nvidia
       # affinity:
       #   nodeAffinity:
