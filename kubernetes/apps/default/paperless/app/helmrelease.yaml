@@ -28,6 +28,7 @@ spec:
               PAPERLESS_APP_TITLE: 'Document Archive'
               PAPERLESS_URL: 'https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}'
               PAPERLESS_PORT: &port 8000
+              PAPERLESS_DATE_PARSER_LANGUAGES: en
               # Tika/Gotenberg Settings
               PAPERLESS_TIKA_ENABLED: 1
               PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless-gotenberg.default.svc:3000
@@ -50,7 +51,7 @@ spec:
                     key: url
               # File Consumption Settings
               PAPERLESS_CONSUMER_POLLING: 60
-              PAPERLESS_DATE_PARSER_LANGUAGES: en
+              PAPERLESS_CONSUMER_RECURSIVE: true
               # Email Settings
               PAPERLESS_EMAIL_USE_TLS: true
               # Barcode Settings
