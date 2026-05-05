@@ -41,10 +41,10 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 896Mi
+                memory: 1076Mi
               limits:
                 cpu: 2000m
-                memory: 896Mi
+                memory: 1076Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
