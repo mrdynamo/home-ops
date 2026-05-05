@@ -98,8 +98,8 @@ A wide array of self-hosted applications including media management (Plex, Radar
 | Unifi UCG Ultra | 1 | - | - | - | Gateway/Router |
 | Dell PowerEdge R730XD | 1 | 2x Intel Xeon E5-2690v4 @ 2.60 GHz | 192 GB | 2x 2 TB Enterprise SSD (RAID-1) | vSphere Hypervisor (Primary) |
 | Dell PowerEdge R710 | 1 | 2x Intel Xeon E5-2649 @ 2.53 GHz | 96 GB | 1 TB Consumer SSD | vSphere Hypervisor (Secondary) |
-| Control Planes (VMs) | 3     | 4 vCPU    | 6 GB   | 16 GB SSD       | Kubernetes control plane |
-| Worker Nodes (VMs)                | 2     | 4 vCPU    | 28 GB  | 256 GB SSD      | Kubernetes workers      |
+| Control Planes (VMs) | 3     | 4 vCPU    | 6 GB   | 24 GB SSD       | Kubernetes control plane |
+| Worker Nodes (VMs)                | 2     | 6 vCPU    | 32 GB  | 320 GB SSD      | Kubernetes workers      |
 | Lenovo M90q | 1 | Intel i5-11500 | 16 GB | 512 GB NVMe | Kubernetes worker (iGPU)
 | TrueNAS Core (VM) | 1 | 4 vCPU | 48 GB | 6x 8 TB HDD (RAID-Z2) | NAS - Bulk storage (NFS, SMB, Backups, etc) |
 
