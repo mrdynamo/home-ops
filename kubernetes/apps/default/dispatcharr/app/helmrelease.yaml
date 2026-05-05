@@ -202,7 +202,6 @@ spec:
     serviceMonitor:
       app:
         enabled: true
-        service: *app
         endpoints:
           - port: metrics
             path: /metrics
