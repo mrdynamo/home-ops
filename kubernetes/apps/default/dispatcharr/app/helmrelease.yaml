@@ -147,7 +147,8 @@ spec:
                 memory: 100Mi
         pod:
           restartPolicy: Never
-    # defaultPodOptions:
+    defaultPodOptions:
+      priorityClassName: home-prod
     #   securityContext:
     #     runAsNonRoot: true
     #     runAsUser: 1000
