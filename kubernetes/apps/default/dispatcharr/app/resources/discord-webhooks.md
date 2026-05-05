@@ -23,7 +23,7 @@ This document contains the Dispatcharr webhook templates (Jinja/Django-style) fo
 
 ```jinja
 {
-	"content": "\n▶️ **__Channel Started__** ▶️\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Stream:**\n*{{ stream_name|default:'Unknown stream'|escapejs }}*\n**Provider:**\n*{{ provider_name|default:'Unknown provider'|escapejs }}*\n**Profile:**\n*{{ profile_used|default:'Default'|escapejs }}*\n**Stream ID:**\n*{{ stream_id|default:'n/a'|escapejs }}*"
+    "content": "\n▶️ **__Channel Started__** ▶️\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Stream:**\n*{{ stream_name|default:'Unknown stream'|escapejs }}*\n**Provider:**\n*{{ provider_name|default:'Unknown provider'|escapejs }}*\n**Stream ID:**\n*{{ stream_id|default:'n/a'|escapejs }}*"
 }
 ```
 
@@ -34,7 +34,7 @@ This document contains the Dispatcharr webhook templates (Jinja/Django-style) fo
 {% widthratio runtime_seconds 60 1 as runtime_minutes %}
 {% widthratio bytes_total 1048576 1 as total_megabytes %}
 {
-	"content": "\n⏹️ **__Channel Stopped__** ⏹️\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Runtime:**\n*{{ runtime_minutes|escapejs }} min*\n**Total Data:**\n*{{ total_megabytes|escapejs }} MB*"
+    "content": "\n⏹️ **__Channel Stopped__** ⏹️\n**Channel:**\n*{{ channel_name|default:'Unknown channel'|escapejs }}*\n**Runtime:**\n*{{ runtime_minutes|escapejs }} min*\n**Total Data:**\n*{{ total_megabytes|escapejs }} MB*"
 }
 {% endwith %}
 ```
