@@ -3,12 +3,12 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: open-webui
+  name: &app open-webui
 spec:
   interval: 1h
   chartRef:
     kind: OCIRepository
-    name: open-webui
+    name: *app
   values:
     controllers:
       open-webui:
@@ -67,6 +67,7 @@ spec:
       app:
         ports:
           http:
+            appProtocol: kubernetes.io/ws
             port: *port
     route:
       app:
