@@ -17,6 +17,21 @@ spec:
           reloader.stakater.com/auto: "true"
         replicas: 1
         strategy: RollingUpdate
+        initContainers:
+          prisma-cert:
+            image:
+              repository: docker.io/library/alpine
+              tag: 3.22.2
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                apk add --no-cache openssl
+                openssl pkcs12 -export \
+                  -in /var/run/secrets/postgresql/tls.crt \
+                  -inkey /var/run/secrets/postgresql/tls.key \
+                  -out /var/run/secrets/prisma/client-identity.p12 \
+                  -passout pass:
         containers:
           app:
             image:
@@ -32,11 +47,7 @@ spec:
               # ROOT_REDIRECT_URL: /ui
               UI_USERNAME: admin
               # Postgres Settings
-              DATABASE_URL:
-                valueFrom:
-                  secretKeyRef:
-                    name: "{{ .Release.Name }}-postgres"
-                    key: url
+              DATABASE_URL: postgresql://litellm@pooler-rw.database.svc:5432/litellm?sslmode=require&sslidentity=/var/run/secrets/prisma/client-identity.p12&sslcert=/var/run/secrets/root-ca/ca.crt
               # REDIS_HOST: "{{ .Release.Name }}-dragonfly"
               # REDIS_PORT: "6379"
               # CHATGPT_TOKEN_DIR: /app/chatgpt_tokens
@@ -89,3 +100,11 @@ spec:
           litellm:
             app:
               - path: /app/cache
+      prisma-certs:
+        type: emptyDir
+        advancedMounts:
+          litellm:
+            prisma-cert:
+              - path: /var/run/secrets/prisma
+            app:
+              - path: /var/run/secrets/prisma
