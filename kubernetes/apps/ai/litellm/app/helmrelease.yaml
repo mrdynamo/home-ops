@@ -53,7 +53,6 @@ spec:
               GENERIC_SCOPE: "openid profile email litellm-role"
               GENERIC_USER_ROLE_ATTRIBUTE: "role"
               PROXY_BASE_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
-              PROXY_ADMIN_ID: mrdynamo
               # Postgres Settings
               DATABASE_URL: "postgresql://litellm@pooler-rw.database.svc:5432/litellm?sslmode=require&sslidentity=/var/run/secrets/prisma/client-identity.p12&sslcert=/var/run/secrets/root-ca/ca.crt"
               # REDIS_HOST: "{{ .Release.Name }}-dragonfly"
