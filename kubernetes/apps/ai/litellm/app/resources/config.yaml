@@ -5,7 +5,16 @@ model_list:
     litellm_params:
       model: openai/llama3.2:3b
       api_base: os.environ/OLLAMA_BASE_URL
-      # api_key: llama-server
+
+  - model_name: llava:7b
+    litellm_params:
+      model: openai/llava:7b
+      api_base: os.environ/OLLAMA_BASE_URL
+
+  - model_name: minicpm-v:8b
+    litellm_params:
+      model: openai/minicpm-v:8b
+      api_base: os.environ/OLLAMA_BASE_URL
 
   # - model_name: self-hosted
   #   litellm_params:
