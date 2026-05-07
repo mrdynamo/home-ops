@@ -1,0 +1,87 @@
+model_list:
+  # These aliases keep the client-facing names stable while LiteLLM
+  # forwards the upstream model IDs that each llama.cpp server expects.
+  - model_name: llama3.2:3b
+    litellm_params:
+      model: openai/llama3.2:3b
+      api_base: os.environ/OLLAMA_BASE_URL
+      # api_key: llama-server
+
+  # - model_name: self-hosted
+  #   litellm_params:
+  #     model: openai/self-hosted
+  #     api_base: http://llama-server.llm:8080/v1
+  #     api_key: llama-server
+
+  # - model_name: vision
+  #   litellm_params:
+  #     model: openai/vision
+  #     api_base: http://llama-vision.llm:8080/v1
+  #     api_key: llama-vision
+
+  # - model_name: llama-intel
+  #   litellm_params:
+  #     model: openai/llama-intel
+  #     api_base: http://llama-intel.llm:8080/v1
+  #     api_key: llama-intel
+
+  # - model_name: minimax/MiniMax-M2.7
+  #   litellm_params:
+  #     model: minimax/MiniMax-M2.7
+  #     api_base: https://api.minimax.io/v1
+  #     api_key: os.environ/MINIMAX_API_KEY
+
+  # - model_name: moonshot/kimi-k2.5
+  #   litellm_params:
+  #     model: moonshot/kimi-k2.5
+  #     api_base: https://api.moonshot.ai/v1
+  #     api_key: os.environ/MOONSHOT_API_KEY
+
+  # - model_name: moonshot/kimi-k2.6
+  #   litellm_params:
+  #     model: moonshot/kimi-k2.6
+  #     api_base: https://api.moonshot.ai/v1
+  #     api_key: os.environ/MOONSHOT_API_KEY
+
+  # - model_name: chatgpt/gpt-5.5
+  #   model_info:
+  #     mode: responses
+  #   litellm_params:
+  #     model: chatgpt/gpt-5.5
+
+  # - model_name: chatgpt/gpt-5.3-instant
+  #   model_info:
+  #     mode: responses
+  #   litellm_params:
+  #     model: chatgpt/gpt-5.3-instant
+
+  # - model_name: chatgpt/gpt-5.3-codex
+  #   model_info:
+  #     mode: responses
+  #   litellm_params:
+  #     model: chatgpt/gpt-5.3-codex
+
+general_settings:
+  health_check_endpoint: /v1/health
+
+router_settings:
+  routing_strategy: simple-shuffle
+  # redis_host: os.environ/REDIS_HOST
+  # redis_port: os.environ/REDIS_PORT
+
+litellm_settings:
+  success_callback: ["prometheus"]
+  prometheus_adapter: true
+  # cache: true
+  # cache_params:
+  #   type: redis
+  #   host: os.environ/REDIS_HOST
+  #   port: os.environ/REDIS_PORT
+  drop_params: true
+  set_verbose: false
+
+environment: []
+  # - MINIMAX_API_KEY
+  # - MOONSHOT_API_KEY
+  # - REDIS_HOST
+  # - REDIS_PORT
