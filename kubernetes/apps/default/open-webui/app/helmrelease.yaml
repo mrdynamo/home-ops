@@ -26,7 +26,7 @@ spec:
               WEBUI_URL: "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
               # SSO Settings
               OAUTH_PROVIDER_NAME: Authentik
-              OPENID_PROVIDER_URL: "https://auth.${SECRET_DOMAIN}/o/{{ .Release.Name }}/.well-known/openid-configuration"
+              OPENID_PROVIDER_URL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration"
               OPENID_REDIRECT_URI: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}/oauth/oidc/callback"
               ENABLE_OAUTH_SIGNUP: true
               OAUTH_MERGE_ACCOUNTS_BY_EMAIL: true
