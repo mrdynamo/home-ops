@@ -27,7 +27,7 @@ spec:
             env:
               LITELLM_LOG: INFO
               LITELLM_MODE: PRODUCTION
-              POSTGRES_URL:
+              DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
                     name: "{{ .Release.Name }}-postgres"

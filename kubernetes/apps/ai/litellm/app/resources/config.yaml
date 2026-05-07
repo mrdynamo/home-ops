@@ -82,7 +82,7 @@ litellm_settings:
   set_verbose: false
 
 environment:
-  - POSTGRES_URL
+  - DATABASE_URL
   # - MINIMAX_API_KEY
   # - MOONSHOT_API_KEY
   # - REDIS_HOST
