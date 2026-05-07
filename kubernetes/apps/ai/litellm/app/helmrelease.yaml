@@ -25,7 +25,7 @@ spec:
             args:
               - --config=/app/config.yaml
             env:
-              LITELLM_LOG: INFO
+              LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
               DATABASE_URL:
                 valueFrom:
