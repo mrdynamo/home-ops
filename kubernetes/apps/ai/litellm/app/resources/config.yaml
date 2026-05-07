@@ -63,6 +63,7 @@ model_list:
 
 general_settings:
   health_check_endpoint: /v1/health
+  database_url: os.environ/POSTGRES_URL
 
 router_settings:
   routing_strategy: simple-shuffle

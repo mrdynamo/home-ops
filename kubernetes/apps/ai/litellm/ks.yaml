@@ -9,16 +9,16 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
-  # dependsOn:
-  #   - name: cloudnative-pg
-  #     namespace: *namespace
-  #   - name: cloudnative-pg-cluster
-  #     namespace: *namespace
+  dependsOn:
+    - name: cloudnative-pg
+      namespace: *namespace
+    - name: cloudnative-pg-cluster
+      namespace: *namespace
   #   - name: longhorn
   #     namespace: storage
-  # components:
-  #   - ../../../../components/volsync
-  #   - ../../../../components/database
+  components:
+    # - ../../../../components/volsync
+    - ../../../../components/database
   interval: 1h
   path: ./kubernetes/apps/ai/litellm/app
   postBuild:
