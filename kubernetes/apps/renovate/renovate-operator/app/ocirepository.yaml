@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 4.7.0
+    tag: 4.7.1
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:502ba722d5eb392860441bee595b949efbc3b8d4fdc7dbed83c12084d15d1a12
   url: oci://ghcr.io/mogenius/helm-charts/renovate-operator
