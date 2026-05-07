@@ -12,7 +12,7 @@ spec:
   dependsOn:
     - name: cloudnative-pg
       namespace: database
-    - name: cloudnative-pg-cluster
+    - name: cloudnative-pg-clusters
       namespace: database
   #   - name: longhorn
   #     namespace: storage
