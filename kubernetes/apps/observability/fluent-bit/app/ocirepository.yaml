@@ -11,5 +11,6 @@ spec:
     operation: copy
   ref:
     tag: 0.57.3
-    digest: sha256:f3a67c41eed916324c2943c3af0f4f62e001d9635395c3b1a64fd9e6b76c59c6
+    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
+    # digest: sha256:f3a67c41eed916324c2943c3af0f4f62e001d9635395c3b1a64fd9e6b76c59c6
   url: oci://ghcr.io/fluent/helm-charts/fluent-bit

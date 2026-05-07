@@ -10,5 +10,6 @@ spec:
     operation: copy
   ref:
     tag: 0.1.21
-    digest: sha256:0e8b38452916f7088c07c6b6ddc79ec0d12cad5c1eef6f3156d3c3a503a3a55b
+    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
+    # digest: sha256:0e8b38452916f7088c07c6b6ddc79ec0d12cad5c1eef6f3156d3c3a503a3a55b
   url: oci://ghcr.io/home-operations/charts/tuppr
