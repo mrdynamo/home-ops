@@ -25,8 +25,13 @@ spec:
             args:
               - --config=/app/config.yaml
             env:
+              # General App Settings
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
+              DOCS_URL: /docs
+              ROOT_REDIRECT_URL: /ui
+              UI_USERNAME: admin
+              # Postgres Settings
               DATABASE_URL:
                 valueFrom:
                   secretKeyRef:
