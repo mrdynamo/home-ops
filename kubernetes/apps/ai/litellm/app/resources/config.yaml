@@ -63,7 +63,8 @@ model_list:
 
 general_settings:
   health_check_endpoint: /v1/health
-  # database_url: os.environ/POSTGRES_URL
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
 
 router_settings:
   routing_strategy: simple-shuffle
@@ -81,7 +82,7 @@ litellm_settings:
   drop_params: true
   set_verbose: false
 
-environment: []
+environment_variables: []
   # - DATABASE_URL
   # - MINIMAX_API_KEY
   # - MOONSHOT_API_KEY

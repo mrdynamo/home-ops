@@ -27,11 +27,11 @@ spec:
             env:
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
-              # DATABASE_URL:
-              #   valueFrom:
-              #     secretKeyRef:
-              #       name: "{{ .Release.Name }}-postgres"
-              #       key: url
+              DATABASE_URL:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}-postgres"
+                    key: url
               # REDIS_HOST: "{{ .Release.Name }}-dragonfly"
               # REDIS_PORT: "6379"
               # CHATGPT_TOKEN_DIR: /app/chatgpt_tokens
@@ -55,6 +55,13 @@ spec:
         ports:
           http:
             port: *port
+    # serviceMonitor:
+    #   app:
+    #     enabled: true
+    #     endpoints:
+    #       - port: metrics
+    #         path: /metrics
+    #         interval: 30s
     route:
       app:
         hostnames:
