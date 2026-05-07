@@ -43,8 +43,8 @@ spec:
               # General App Settings
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
-              # DOCS_URL: /docs
-              # ROOT_REDIRECT_URL: /ui
+              DOCS_URL: /docs
+              ROOT_REDIRECT_URL: /ui
               UI_USERNAME: admin
               # SSO Settings
               GENERIC_AUTHORIZATION_ENDPOINT: https://auth.${SECRET_DOMAIN}/application/o/authorize/
