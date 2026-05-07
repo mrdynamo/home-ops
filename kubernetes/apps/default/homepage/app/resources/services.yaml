@@ -112,6 +112,12 @@
         icon: open-webui.svg
         namespace: default
         app: open-webui
+    - Lite LLM:
+        href: https://litellm.${INTERNAL_SECRET_DOMAIN}/
+        description: LLM model usage tracking
+        icon: litellm.svg
+        namespace: ai
+        app: litellm
     - Stirling PDF:
         href: https://stirling-pdf.${INTERNAL_SECRET_DOMAIN}/
         description: PDF management and generation service
