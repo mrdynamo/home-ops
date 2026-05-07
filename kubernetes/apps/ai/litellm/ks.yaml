@@ -11,9 +11,9 @@ spec:
       app.kubernetes.io/name: *app
   dependsOn:
     - name: cloudnative-pg
-      namespace: *namespace
+      namespace: database
     - name: cloudnative-pg-cluster
-      namespace: *namespace
+      namespace: database
   #   - name: longhorn
   #     namespace: storage
   components:
