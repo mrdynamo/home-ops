@@ -21,7 +21,7 @@ spec:
           prisma-cert:
             image:
               repository: docker.io/library/alpine
-              tag: 3.22.2
+              tag: 3.23.4
             command:
               - /bin/sh
               - -ec
