@@ -23,7 +23,7 @@ spec:
               TZ: America/Chicago
               # Image Generation Settings
               # Open-WebUI Settings
-              WEBUI_URL: "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+              WEBUI_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
               # SSO Settings
               OAUTH_PROVIDER_NAME: Authentik
               OPENID_PROVIDER_URL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration"
