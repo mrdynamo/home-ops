@@ -21,7 +21,7 @@ spec:
               TZ: America/Chicago
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
               # LLM Configuration
-              OPENAI_BASE_URL: http://litellm.ai.svc.cluster.local:4000/openai
+              OPENAI_BASE_URL: http://litellm.ai.svc.cluster.local:4000
               LLM_LANGUAGE: English
               LLM_PROVIDER: openai
               LLM_MODEL: llama3.2:3b
