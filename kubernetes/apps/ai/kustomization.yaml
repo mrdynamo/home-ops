@@ -8,4 +8,4 @@ components:
   - ../../components/common
 resources:
   - ./namespace.yaml
-  - ./litellm/ks.yaml
+  # - ./litellm/ks.yaml
