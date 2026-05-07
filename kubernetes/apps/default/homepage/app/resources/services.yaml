@@ -106,6 +106,12 @@
         icon: karakeep.svg
         namespace: default # The kubernetes namespace the app resides in
         app: karakeep # The name of the deployed app
+    - Open WebUI:
+        href: https://open-webui.${INTERNAL_SECRET_DOMAIN}/
+        description: Self-hosted AI web interface
+        icon: open-webui.svg
+        namespace: default
+        app: open-webui
     - Stirling PDF:
         href: https://stirling-pdf.${INTERNAL_SECRET_DOMAIN}/
         description: PDF management and generation service
