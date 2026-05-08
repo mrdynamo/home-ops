@@ -19,6 +19,12 @@ model_list:
       api_base: os.environ/OLLAMA_BASE_URL
       api_key: ollama
 
+  - model_name: gpt-oss:20b
+    litellm_params:
+      model: openai/gpt-oss:20b
+      api_base: os.environ/OLLAMA_BASE_URL
+      api_key: ollama
+
   # - model_name: self-hosted
   #   litellm_params:
   #     model: openai/self-hosted
