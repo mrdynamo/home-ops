@@ -13,7 +13,7 @@ jobs:
   review:
     if: github.event.pull_request.user.login == 'robot-rosey[bot]'
     name: Breaking Change Analysis
-    runs-on: ubuntu-latest
+    runs-on: home-ops-runner
     timeout-minutes: 15
 
     permissions:
@@ -37,18 +37,18 @@ jobs:
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@939ae9c056ecf8a1a01409ddd1c4eadec5f8c77b # v1
-        # env:
-        #   ANTHROPIC_BASE_URL: "https://api.minimax.io/anthropic"
+        env:
+          ANTHROPIC_BASE_URL: "http://litellm.ai.svc.cluster.local:4000"
         with:
           github_token: ${{ steps.app-token.outputs.token }}
           # anthropic_api_key: ${{ secrets.MINIMAX_API_KEY }}
-          anthropic_api_key: ${{ secrets.CLAUDE_API_KEY }}
+          anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
           allowed_bots: "robot-rosey[bot]"
           # claude_args: |
           #   --model MiniMax-M2.7
           #   --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
           claude_args: |
-            --model claude-haiku-4-5
+            --model llama3.2:3b
             --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
           prompt: |
             You research dependency upgrades in Renovate pull requests and submit a GitHub PR review
