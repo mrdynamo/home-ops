@@ -47,7 +47,7 @@ jobs:
           grep -q 'gpt-oss:20b' /tmp/litellm-models.json
 
       - name: Claude Code Action
-        uses: anthropics/claude-code-action@939ae9c056ecf8a1a01409ddd1c4eadec5f8c77b # v1
+        uses: anthropics/claude-code-action@034cbdb008291e7eeeac420d315fc3b45fca3781 # v1
         env:
           ANTHROPIC_BASE_URL: "http://litellm.ai.svc.cluster.local:4000"
           ANTHROPIC_MODEL: "gpt-oss:20b"
