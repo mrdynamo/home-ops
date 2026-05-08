@@ -40,16 +40,15 @@ jobs:
           LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
         run: |
           set -euo pipefail
-          getent hosts litellm.ai.svc.cluster.local
           curl -fsS \
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
-            http://litellm.ai.svc.cluster.local:4000/v1/models > /tmp/litellm-models.json
-          grep -q 'gpt-oss:20b' /tmp/litellm-models.json
+            http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
+          grep -q 'llama3.2:3b' /tmp/litellm-models.json
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@034cbdb008291e7eeeac420d315fc3b45fca3781 # v1
         env:
-          ANTHROPIC_BASE_URL: "http://litellm.ai.svc.cluster.local:4000"
+          ANTHROPIC_BASE_URL: "http://litellm.ai.svc:4000"
         with:
           github_token: ${{ steps.app-token.outputs.token }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
