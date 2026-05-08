@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 11.9.2
+    tag: 11.10.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:ce001525a832ebea6dbee1cee93c5f73877c41749fa616fb46ecc3dcf7c568da
   url: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
