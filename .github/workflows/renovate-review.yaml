@@ -47,6 +47,15 @@ jobs:
           # claude_args: |
           #   --model MiniMax-M2.7
           #   --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": "gpt-oss:20b",
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": "gpt-oss:20b",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "gpt-oss:20b",
+                "CLAUDE_CODE_SUBAGENT_MODEL": "gpt-oss:20b",
+              }
+            }
           claude_args: |
             --model gpt-oss:20b
             --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
