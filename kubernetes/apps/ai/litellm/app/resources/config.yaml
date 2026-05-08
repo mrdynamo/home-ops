@@ -23,7 +23,7 @@ model_list:
 
   - model_name: gpt-oss:20b
     litellm_params:
-      model: ollama_chat/gpt-oss:20b
+      model: ollama/gpt-oss:20b
       api_base: os.environ/OLLAMA_BASE_URL
       api_key: ollama
 
