@@ -1,3 +1,7 @@
+_ollama_params: &ollama_params
+  api_base: os.environ/OLLAMA_BASE_URL
+  api_key: ollama
+
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
   # forwards the upstream model IDs that each llama.cpp server expects.
@@ -6,10 +10,9 @@ model_list:
   # Ollama Local Models   #
   #########################
   - model_name: llama3.2:3b
-    litellm_params: &ollama_params
+    litellm_params:
+      <<: *ollama_params
       model: ollama/llama3.2:3b
-      api_base: os.environ/OLLAMA_BASE_URL
-      api_key: ollama
 
   - model_name: llava:7b
     litellm_params:
