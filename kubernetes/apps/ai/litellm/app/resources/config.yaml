@@ -1,26 +1,14 @@
-#########################
-# YAML Anchors          #
-#########################
-
 _ollama_params: &ollama_params
   api_base: os.environ/OLLAMA_BASE_URL
   api_key: ollama
-  num_ctx: 8192
-
-# _github_copilot_params: &github_copilot_params
-#   extra_headers:
-#     {
-#       "Editor-Version": "vscode/1.85.1",
-#       "Copilot-Integration-Id": "vscode-chat",
-#     }
 
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
   # forwards the upstream model IDs that each llama.cpp server expects.
 
-  ############################
+  #########################
   # Ollama Local Models   #
-  ############################
+  #########################
   - model_name: llama3.2:3b
     litellm_params:
       <<: *ollama_params
@@ -95,7 +83,6 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/qwen2.5-coder:7b
-      num_ctx: 32768
 
   - model_name: qwen2.5:32b
     litellm_params:
@@ -122,21 +109,9 @@ model_list:
       <<: *ollama_params
       model: ollama/deepseek-r1:7b
 
-  ############################
-  # Minimax API Models       #
-  ############################
-  - model_name: minimax/MiniMax-M2.7
-    litellm_params:
-      model: minimax/MiniMax-M2.7
-      api_base: https://api.minimax.io/v1
-      api_key: os.environ/MINIMAX_API_KEY
-    model_info:
-      input_cost_per_token: 0.0000003
-      output_cost_per_token: 0.0000012
-
-  ############################
-  # Github Copilot Models    #
-  ############################
+  #########################
+  # Minimax API Models    #
+  #########################
   - model_name: minimax/MiniMax-M2.7
     litellm_params:
       model: minimax/MiniMax-M2.7
