@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.41.0
+    tag: 0.42.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:ea8e0fa063f3d2d196ecc7d162026617b12f873a7b9176dd81ade42e94381c4a
   url: oci://ghcr.io/home-operations/charts-mirror/headlamp
