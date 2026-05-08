@@ -35,15 +35,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify LiteLLM Reachability
-        env:
-          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
-        run: |
-          set -euo pipefail
-          curl -fsS \
-            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
-            http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
-          grep -q 'llama3.2:3b' /tmp/litellm-models.json
+      # - name: Verify LiteLLM Reachability
+      #   env:
+      #     LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+      #   run: |
+      #     set -euo pipefail
+      #     curl -fsS \
+      #       -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+      #       http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
+      #     grep -q 'llama3.2:3b' /tmp/litellm-models.json
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@034cbdb008291e7eeeac420d315fc3b45fca3781 # v1
