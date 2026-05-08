@@ -40,6 +40,9 @@ general_settings:
   health_check_endpoint: /v1/health
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/DATABASE_URL
+  user_header_mappings:
+    - header_name: X-OpenWebUI-User-Id
+      litellm_user_role: internal_user
 
 router_settings:
   routing_strategy: simple-shuffle

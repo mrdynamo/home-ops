@@ -24,6 +24,7 @@ spec:
               # Image Generation Settings
               # Open-WebUI Settings
               WEBUI_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
+              ENABLE_FORWARD_USER_INFO_HEADERS: true
               # SSO Settings
               OAUTH_PROVIDER_NAME: Authentik
               OPENID_PROVIDER_URL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration"
