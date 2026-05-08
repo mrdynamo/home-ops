@@ -35,15 +35,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Verify LiteLLM Reachability
-      #   env:
-      #     LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
-      #   run: |
-      #     set -euo pipefail
-      #     curl -fsS \
-      #       -H "Authorization: Bearer ${LITELLM_API_KEY}" \
-      #       http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
-      #     grep -q 'llama3.2:3b' /tmp/litellm-models.json
+      - name: Verify LiteLLM Reachability
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+            http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
+          grep -q 'minimax/MiniMax-M2.7' /tmp/litellm-models.json
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@034cbdb008291e7eeeac420d315fc3b45fca3781 # v1
@@ -179,6 +179,14 @@ jobs:
             ## Constraints
 
             - NEVER modify repository files; you are read-only
+            - NEVER include, quote, or infer sensitive information in PR comments or reviews.
+              This includes (but is not limited to): internal/private IPs, hostnames, domains,
+              cluster/service DNS names, gateway/router identifiers, secret values, tokens,
+              credentials, keys, and any private infrastructure metadata. If discovered during
+              analysis, redact it and refer to it only in generic terms (for example,
+              "internal gateway", "private endpoint", or "redacted").
+            - Do not paste raw command output, logs, or full diffs into the review body; summarize
+              findings using sanitized, high-level wording only.
             - Check git history for context: `git log --oneline --grep="<package>" -n 10`
             - If unclear, research more rather than guess
             - When stuck (private repo, ambiguous package, no changelog anywhere), report what you
