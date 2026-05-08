@@ -43,17 +43,17 @@ general_settings:
 
 router_settings:
   routing_strategy: simple-shuffle
-  # redis_host: os.environ/REDIS_HOST
-  # redis_port: os.environ/REDIS_PORT
+  redis_host: os.environ/REDIS_HOST
+  redis_port: os.environ/REDIS_PORT
 
 litellm_settings:
   success_callback: ["prometheus"]
   prometheus_adapter: true
-  # cache: true
-  # cache_params:
-  #   type: redis
-  #   host: os.environ/REDIS_HOST
-  #   port: os.environ/REDIS_PORT
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: os.environ/REDIS_PORT
   drop_params: true
   set_verbose: false
 
