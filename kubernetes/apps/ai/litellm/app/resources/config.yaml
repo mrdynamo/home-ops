@@ -41,8 +41,11 @@ general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/DATABASE_URL
   user_header_mappings:
-    - header_name: X-OpenWebUI-User-Id
+    - header_name: X-OpenWebUI-User-Name
       litellm_user_role: internal_user
+    - header_name: X-OpenWebUI-User-Email
+      litellm_user_role: customer
+  store_prompts_in_spend_logs: true
 
 router_settings:
   routing_strategy: simple-shuffle
