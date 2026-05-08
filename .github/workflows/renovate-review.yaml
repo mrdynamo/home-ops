@@ -50,39 +50,13 @@ jobs:
         uses: anthropics/claude-code-action@034cbdb008291e7eeeac420d315fc3b45fca3781 # v1
         env:
           ANTHROPIC_BASE_URL: "http://litellm.ai.svc.cluster.local:4000"
-          ANTHROPIC_MODEL: "gpt-oss:20b"
-          ANTHROPIC_DEFAULT_OPUS_MODEL: "gpt-oss:20b"
-          ANTHROPIC_DEFAULT_SONNET_MODEL: "gpt-oss:20b"
-          ANTHROPIC_DEFAULT_HAIKU_MODEL: "gpt-oss:20b"
-          CLAUDE_CODE_SUBAGENT_MODEL: "gpt-oss:20b"
-          CLASSIFY_INLINE_COMMENTS: "false"
         with:
           github_token: ${{ steps.app-token.outputs.token }}
-          # anthropic_api_key: ${{ secrets.MINIMAX_API_KEY }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
-          show_full_output: 'true'
           allowed_bots: "robot-rosey[bot]"
-          classify_inline_comments: 'false'
-          # claude_args: |
-          #   --model MiniMax-M2.7
-          #   --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
-          settings: |
-            {
-              "model": "gpt-oss:20b",
-              "env": {
-                "ANTHROPIC_BASE_URL": "http://litellm.ai.svc.cluster.local:4000",
-                "ANTHROPIC_MODEL": "gpt-oss:20b",
-                "ANTHROPIC_DEFAULT_OPUS_MODEL": "gpt-oss:20b",
-                "ANTHROPIC_DEFAULT_SONNET_MODEL": "gpt-oss:20b",
-                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "gpt-oss:20b",
-                "CLAUDE_CODE_SUBAGENT_MODEL": "gpt-oss:20b",
-                "CLASSIFY_INLINE_COMMENTS": "false"
-              }
-            }
           claude_args: |
-            --model "gpt-oss:20b"
+            --model minimax/MiniMax-M2.7
             --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
-            --disallowedTools "mcp__github_inline_comment__create_inline_comment"
           prompt: |
             You research dependency upgrades in Renovate pull requests and submit a GitHub PR review
             with your findings. You do not make changes to files; you investigate and report.
