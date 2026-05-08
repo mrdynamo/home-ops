@@ -35,6 +35,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify LiteLLM Reachability
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: |
+          set -euo pipefail
+          getent hosts litellm.ai.svc.cluster.local
+          curl -fsS \
+            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+            http://litellm.ai.svc.cluster.local:4000/v1/models > /tmp/litellm-models.json
+          grep -q 'gpt-oss:20b' /tmp/litellm-models.json
+
       - name: Claude Code Action
         uses: anthropics/claude-code-action@939ae9c056ecf8a1a01409ddd1c4eadec5f8c77b # v1
         env:
@@ -49,6 +60,7 @@ jobs:
           github_token: ${{ steps.app-token.outputs.token }}
           # anthropic_api_key: ${{ secrets.MINIMAX_API_KEY }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
+          show_full_output: 'true'
           allowed_bots: "robot-rosey[bot]"
           classify_inline_comments: 'false'
           # claude_args: |
@@ -58,10 +70,13 @@ jobs:
             {
               "model": "gpt-oss:20b",
               "env": {
+                "ANTHROPIC_BASE_URL": "http://litellm.ai.svc.cluster.local:4000"
+                "ANTHROPIC_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_OPUS_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_SONNET_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_HAIKU_MODEL": "gpt-oss:20b",
                 "CLAUDE_CODE_SUBAGENT_MODEL": "gpt-oss:20b"
+                "CLASSIFY_INLINE_COMMENTS": "false"
               }
             }
           claude_args: |
