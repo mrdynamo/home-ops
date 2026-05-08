@@ -70,12 +70,12 @@ jobs:
             {
               "model": "gpt-oss:20b",
               "env": {
-                "ANTHROPIC_BASE_URL": "http://litellm.ai.svc.cluster.local:4000"
+                "ANTHROPIC_BASE_URL": "http://litellm.ai.svc.cluster.local:4000",
                 "ANTHROPIC_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_OPUS_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_SONNET_MODEL": "gpt-oss:20b",
                 "ANTHROPIC_DEFAULT_HAIKU_MODEL": "gpt-oss:20b",
-                "CLAUDE_CODE_SUBAGENT_MODEL": "gpt-oss:20b"
+                "CLAUDE_CODE_SUBAGENT_MODEL": "gpt-oss:20b",
                 "CLASSIFY_INLINE_COMMENTS": "false"
               }
             }
