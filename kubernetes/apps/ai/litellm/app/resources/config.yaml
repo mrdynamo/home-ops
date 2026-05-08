@@ -115,7 +115,7 @@ model_list:
   - model_name: minimax/MiniMax-M2.7
     litellm_params:
       model: minimax/MiniMax-M2.7
-      api_base: https://api.minimax.io/v1
+      api_base: https://api.minimax.io/anthropic
       api_key: os.environ/MINIMAX_API_KEY
     model_info:
       input_cost_per_token: 0.0000003
