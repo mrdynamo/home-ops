@@ -24,6 +24,12 @@ jobs:
       actions: read # Required for Claude to read CI results on PRs
 
     steps:
+      - name: Generate Claude Bot Token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: claude-token
+        with:
+          app-id: ${{ secrets.CLAUDE_BOT_APP_ID }}
+          private-key: ${{ secrets.CLAUDE_BOT_APP_PRIVATE_KEY }}
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -54,7 +60,7 @@ jobs:
                 "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
               }
             }
-          github_token: ${{ github.token }}
+          github_token: ${{ steps.claude-token.outputs.token }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
           show_full_output: true
           allowed_bots: "robot-rosey[bot]"
