@@ -146,6 +146,20 @@ spec:
               limits:
                 memory: 100Mi
         pod:
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - *app
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - *app
+                  topologyKey: kubernetes.io/hostname
           restartPolicy: Never
     defaultPodOptions:
       priorityClassName: home-prod
