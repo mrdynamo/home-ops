@@ -121,6 +121,16 @@ model_list:
       input_cost_per_token: 0.0000003
       output_cost_per_token: 0.0000012
       cache_read_input_token_cost: 0.00000006
+      litellm_provider: minimax
+      mode: chat
+      max_input_tokens: 204800
+      max_output_tokens: 131072
+      max_tokens: 131072
+      supports_tool_choice: true
+      supports_reasoning: true
+      supports_vision: false
+      supports_prompt_caching: true
+      supports_computer_use: false
 
 
 #########################
