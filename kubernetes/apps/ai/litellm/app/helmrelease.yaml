@@ -47,6 +47,7 @@ spec:
               - --config=/app/config.yaml
             env:
               # General App Settings
+              TZ: America/Chicago
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
               DOCS_URL: "/docs"
