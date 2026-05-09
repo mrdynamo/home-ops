@@ -50,6 +50,16 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: "http://litellm.ai.svc:4000"
         with:
+          settings: |
+            {
+              "model": "minimax/MiniMax-M2.7",
+              "env": {
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": "minimax/MiniMax-M2.7",
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": "minimax/MiniMax-M2.7",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "minimax/MiniMax-M2.7",
+                "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+              }
+            }
           github_token: ${{ steps.app-token.outputs.token }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
           show_full_output: true
