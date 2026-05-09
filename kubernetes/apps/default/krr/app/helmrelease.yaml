@@ -38,7 +38,7 @@ spec:
               - --memory-buffer-percentage
               - "10"  # DEFAULT: 15
               - --allow_hpa
-              - --use_oomkill_data
+              # - --use_oomkill_data
               - --oom-memory-buffer-percentage
               - "20"  # DEFAULT: 25
               - --max-workers
