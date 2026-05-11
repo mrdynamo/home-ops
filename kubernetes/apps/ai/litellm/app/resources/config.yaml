@@ -126,6 +126,13 @@ model_list:
     model_info:
       <<: *ollama_model_info
 
+  - model_name: qwen2.5vl:7b
+    litellm_params:
+      <<: *ollama_params
+      model: ollama/qwen2.5vl:7b
+    model_info:
+      <<: *ollama_model_info
+
   - model_name: deepseek-r1:14b
     litellm_params:
       <<: *ollama_params
