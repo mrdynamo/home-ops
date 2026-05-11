@@ -24,6 +24,7 @@ spec:
               API_ENDPOINT: &api_endpoint "https://spotty.${SECRET_DOMAIN}/api"
               CLIENT_ENDPOINT: "https://spotty.${SECRET_DOMAIN}"
               MONGO_ENDPOINT: "mongodb://{{ .Release.Name }}-mongodb:27017/your_spotify"
+              MONGO_NO_ADMIN_RIGHTS: "true"
               PORT: &port 80
             envFrom:
               - secretRef:
