@@ -97,6 +97,7 @@ spec:
               accessMode: ReadWriteOnce
               size: 2Gi
     defaultPodOptions:
+      automountServiceAccountToken: true
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
