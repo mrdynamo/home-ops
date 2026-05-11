@@ -1,0 +1,285 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudnative-pg-chart-rules
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    - name: cloudnative-pg.rules
+      rules:
+        - alert: CNPGClusterHACritical
+          annotations:
+            summary: CNPG Cluster has no standby replicas!
+            description: |-
+              CloudNativePG cluster "{{ $labels.job }}" has no ready standby replicas. Your cluster is at a severe risk of data loss and downtime if the primary instance fails.
+
+              The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint will fail. The `-r` endpoint is operating at reduced capacity and all traffic is being served by the main.
+
+              This can happen during a normal fail-over or automated minor version upgrades in a cluster with 2 or less instances. The replaced instance may need some time to catch-up with the cluster primary instance.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHACritical.md
+          expr: |
+            max by (job) (cnpg_pg_replication_streaming_replicas{namespace=~".+"} - cnpg_pg_replication_is_wal_receiver_up{namespace=~".+"}) < 1
+          for: 5m
+          labels:
+            severity: critical
+        - alert: CNPGClusterHAWarning
+          annotations:
+            summary: CNPG Cluster less than 2 standby replicas.
+            description: |-
+              CloudNativePG Cluster "{{ $labels.job }}" has only {{ $value }} standby replicas, putting your cluster at risk if another instance fails. The cluster is still able to operate normally, although the `-ro` and `-r` endpoints operate at reduced capacity.
+
+              This can happen during a normal fail-over or automated minor version upgrades. The replaced instance may need some time to catch-up with the cluster primary instance.
+
+              This alarm will be constantly triggered if your cluster is configured to run with less than 3 instances. In this case you may want to silence it.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHAWarning.md
+          expr: |
+            max by (job) (cnpg_pg_replication_streaming_replicas{namespace=~".+"} - cnpg_pg_replication_is_wal_receiver_up{namespace=~".+"}) < 2
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterHighConnectionsCritical
+          annotations:
+            summary: CNPG Instance maximum number of connections critical!
+            description: |-
+              CloudNativePG instance {{ $labels.pod }} is using {{ $value }}% of the maximum number of connections.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighConnectionsCritical.md
+          expr: |
+            sum by (pod) (cnpg_backends_total{namespace=~".+", pod=~".+"}) / max by (pod) (cnpg_pg_settings_setting{name="max_connections", namespace=~".+", pod=~".+"}) * 100 > 95
+          for: 5m
+          labels:
+            severity: critical
+        - alert: CNPGClusterHighConnectionsWarning
+          annotations:
+            summary: CNPG Instance is approaching the maximum number of connections.
+            description: |-
+              CloudNativePG instance {{ $labels.pod }} is using {{ $value }}% of the maximum number of connections.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighConnectionsWarning.md
+          expr: |
+            sum by (pod) (cnpg_backends_total{namespace=~".+", pod=~".+"}) / max by (pod) (cnpg_pg_settings_setting{name="max_connections", namespace=~".+", pod=~".+"}) * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterHighReplicationLag
+          annotations:
+            summary: CNPG Cluster high replication lag
+            description: |-
+              CloudNativePG cluster is experiencing a high replication lag of {{ $value }}s.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace=~".+",pod=~".+"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterInstancesOnSameNode
+          annotations:
+            summary: CNPG Cluster instances are located on the same node.
+            description: |-
+              CloudNativePG cluster has {{ $value }} instances on the same node {{ $labels.node }}.
+
+              A failure or scheduled downtime of a single node will lead to a potential service disruption and/or data loss.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterInstancesOnSameNode.md
+          expr: |
+            count by (node) (kube_pod_info{namespace=~".+", pod=~".+"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterLogicalReplicationErrorsCritical
+          annotations:
+            summary: CNPG Cluster critical logical replication errors
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription has experienced {{ $value }} errors in the last 5 minutes.
+
+              CRITICAL: High error rate indicates persistent replication issues requiring immediate attention. This could lead to significant data inconsistency or complete replication failure. Errors include both apply errors and sync errors. The subscription may stop working if errors continue.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          expr: |
+            label_replace(increase(max by (namespace, job, subname) (cnpg_pg_stat_subscription_apply_error_count + cnpg_pg_stat_subscription_sync_error_count)[5m]), "cluster", "$1", "job", ".+/(.+)") >= 5
+          for: 0m
+          labels:
+            severity: critical
+        - alert: CNPGClusterLogicalReplicationErrors
+          annotations:
+            summary: CNPG Cluster logical replication errors detected
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription has experienced {{ $value }} errors.
+
+              This includes both apply errors (during normal replication) and sync errors (during initial table sync). Errors indicate data consistency issues that need immediate attention to prevent data divergence.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationErrors.md
+          expr: |
+            label_replace(increase(max by (namespace, job, subname) (cnpg_pg_stat_subscription_apply_error_count + cnpg_pg_stat_subscription_sync_error_count)[5m]), "cluster", "$1", "job", ".+/(.+)") > 0
+          for: 1m
+          labels:
+            severity: warning
+        - alert: CNPGClusterLogicalReplicationLaggingCritical
+          annotations:
+            summary: CNPG Cluster critical logical replication lag
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription is experiencing critical replication lag!
+
+              {{- if $labels.lag_type }}
+              Lag type: {{ $labels.lag_type }}
+              {{- end }}
+              Current lag: {{ $value }}s
+
+              CRITICAL: The subscriber is significantly behind the publisher. Immediate action required. This could lead to significant data inconsistency, disk space exhaustion on publisher, or extended recovery time.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+          expr: |
+            (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_receipt_lag_seconds), "cluster", "$1", "job", ".+/(.+)") > 300
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_apply_lag_seconds), "cluster", "$1", "job", ".+/(.+)") > 300
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 4
+            )
+          for: 2m
+          labels:
+            severity: critical
+        - alert: CNPGClusterLogicalReplicationLagging
+          annotations:
+            summary: CNPG Cluster logical replication lagging
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription is experiencing replication lag.
+
+              {{- if $labels.lag_type }}
+              Lag type: {{ $labels.lag_type }}
+              {{- end }}
+              Current lag: {{ $value }}s
+
+              This alert indicates the subscriber is falling behind the publisher. The lag could be receipt lag (not receiving WAL data fast enough due to network issues), apply lag (receiving data but not applying it fast enough due to resource contention), or LSN distance (large amount of pending data to be applied).
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationLagging.md
+          expr: |
+            (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_receipt_lag_seconds), "cluster", "$1", "job", ".+/(.+)") > 60
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_apply_lag_seconds), "cluster", "$1", "job", ".+/(.+)") > 60
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 1
+            )
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterLogicalReplicationStoppedCritical
+          annotations:
+            summary: CNPG Cluster logical replication subscription CRITICAL
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription is in a critical state.
+
+              CRITICAL: The subscription has been stopped for more than 15 minutes. This will lead to significant data divergence and requires immediate intervention.
+
+              Status: {{ $labels.stop_reason }}
+              Duration: {{ $value }}s
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+          expr: |
+            (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 0
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 1
+              and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid), "cluster", "$1", "job", ".+/(.+)") == ""
+              and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 0.1
+            )
+          for: 15m
+          labels:
+            severity: critical
+        - alert: CNPGClusterLogicalReplicationStopped
+          annotations:
+            summary: CNPG Cluster logical replication subscription stopped
+            description: |-
+              CloudNativePG cluster "{{ $labels.cluster }}" "{{ $labels.subname }}" subscription is stopped.
+
+              Status: {{ $labels.stop_reason }}
+
+              The subscription is not actively replicating data. This could be intentional (disabled) or due to an issue preventing the subscription from working.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLogicalReplicationStopped.md
+          expr: |
+            (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 0
+            ) or (
+              label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_enabled), "cluster", "$1", "job", ".+/(.+)") == 1
+              and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_pid), "cluster", "$1", "job", ".+/(.+)") == ""
+              and label_replace(max by (namespace, job, subname) (cnpg_pg_stat_subscription_buffered_lag_bytes), "cluster", "$1", "job", ".+/(.+)") / 1024^3 > 0.1
+            )
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterLowDiskSpaceCritical
+          annotations:
+            summary: CNPG Instance is running out of disk space!
+            description: |-
+              CloudNativePG cluster is running extremely low on disk space. Check attached PVCs!
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLowDiskSpaceCritical.md
+          expr: |
+            max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=~".+", persistentvolumeclaim=~".+"} / kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+"})) * 100 > 90 OR
+            max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=~".+", persistentvolumeclaim=~".+-wal"} / kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+-wal"})) * 100 > 90 OR
+            max(sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~".+", persistentvolumeclaim=~".+-tbs.*"}) / sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+-tbs.*"}) * on(namespace, persistentvolumeclaim) group_left(volume) kube_pod_spec_volumes_persistentvolumeclaims_info{pod=~".+"}) * 100 > 90
+          for: 5m
+          labels:
+            severity: critical
+        - alert: CNPGClusterLowDiskSpaceWarning
+          annotations:
+            summary: CNPG Instance is running low on disk space.
+            description: |-
+              CloudNativePG cluster is running low on disk space. Check attached PVCs.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterLowDiskSpaceWarning.md
+          expr: |
+            max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=~".+", persistentvolumeclaim=~".+"} / kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+"})) * 100 > 70 OR
+            max(max by(persistentvolumeclaim) (1 - kubelet_volume_stats_available_bytes{namespace=~".+", persistentvolumeclaim=~".+-wal"} / kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+-wal"})) * 100 > 70 OR
+            max(sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~".+", persistentvolumeclaim=~".+-tbs.*"}) / sum by (namespace,persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~".+", persistentvolumeclaim=~".+-tbs.*"}) * on(namespace, persistentvolumeclaim) group_left(volume) kube_pod_spec_volumes_persistentvolumeclaims_info{pod=~".+"}) * 100 > 70
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterOffline
+          annotations:
+            summary: CNPG Cluster has no running instances!
+            description: |-
+              CloudNativePG cluster has no ready instances.
+
+              Having an offline cluster means your applications will not be able to access the database, leading to potential service disruption and/or data loss.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterOffline.md
+          expr: |
+            (count(cnpg_collector_up{namespace=~".+",pod=~".+"}) OR on() vector(0)) == 0
+          for: 5m
+          labels:
+            severity: critical
+        - alert: CNPGClusterPhysicalReplicationLagCritical
+          annotations:
+            summary: CNPG Cluster very high physical replication lag
+            description: |-
+              CloudNativePG cluster is experiencing a very high physical replication lag of {{ $value }}ms.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace=~".+",pod=~".+"}) > 15
+          for: 5m
+          labels:
+            severity: critical
+        - alert: CNPGClusterPhysicalReplicationLagWarning
+          annotations:
+            summary: CNPG Cluster high physical replication lag
+            description: |-
+              CloudNativePG cluster is experiencing a high physical replication lag of {{ $value }}ms.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace=~".+",pod=~".+"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+        - alert: CNPGClusterZoneSpreadWarning
+          annotations:
+            summary: CNPG Cluster instances in the same zone.
+            description: |-
+              CloudNativePG cluster has instances in the same availability zone.
+
+              A disaster in one availability zone will lead to a potential service disruption and/or data loss.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterZoneSpreadWarning.md
+          expr: |
+            count(count by (label_topology_kubernetes_io_zone) (kube_pod_info{namespace=~".+", pod=~".+"} * on(node,instance) group_left(label_topology_kubernetes_io_zone) kube_node_labels)) < 2
+          for: 5m
+          labels:
+            severity: warning
