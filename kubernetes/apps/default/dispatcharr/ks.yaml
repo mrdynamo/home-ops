@@ -256,7 +256,7 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      VOLSYNC_CAPACITY: 10Gi
+      VOLSYNC_CAPACITY: 12Gi
       VOLSYNC_SCHEDULE: 0 15 * * 2 # Cron in UTC (CST: -6, CST: -5)
       VOLSYNC_ENABLE_FILE_DELETION: "false"
     substituteFrom:
