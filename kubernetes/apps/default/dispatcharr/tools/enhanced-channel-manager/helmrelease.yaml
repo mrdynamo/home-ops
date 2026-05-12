@@ -27,6 +27,10 @@ spec:
               - "0.0.0.0"
               - --port
               - "6100"
+              - --limit-concurrency
+              - "100"
+              - --timeout-keep-alive
+              - "30"
             env:
               TZ: America/Chicago
             probes:
