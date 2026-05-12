@@ -20,7 +20,7 @@ spec:
     cleanupCachePVC: false    ## Both need to be false for:
     cleanupTempPVC: false     ## https://github.com/backube/volsync/issues/1504
     copyMethod: Snapshot
-    enableFileDeletion: false ## Also false for above
+    enableFileDeletion: ${VOLSYNC_ENABLE_FILE_DELETION:=false} ## Also false for above
     moverSecurityContext:
       runAsUser: ${VOLSYNC_PUID:=1000}
       runAsGroup: ${VOLSYNC_PGID:=1000}
