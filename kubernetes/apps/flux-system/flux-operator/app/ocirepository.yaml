@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.48.0
+    tag: 0.49.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:8feb57a9af903333443e0024916f4cd65ec9df05402463daa3880863249b903d
   url: oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator
