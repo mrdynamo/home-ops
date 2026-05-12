@@ -51,8 +51,8 @@ spec:
               - /bin/sh
               - -ec
               - |
-                cp -a /var/lib/litellm/ui/. /app/var/litellm/ui/
-                cp -a /var/lib/litellm/assets/. /app/var/litellm/assets/
+                cp -a /var/lib/litellm/ui/* /app/var/litellm/ui/
+                cp -a /var/lib/litellm/assets/* /app/var/litellm/assets/
         containers:
           app:
             image:
