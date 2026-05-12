@@ -43,16 +43,16 @@ spec:
                 /app/.venv/bin/python -m ensurepip --upgrade
                 /app/.venv/bin/python -m pip install --no-cache-dir --upgrade pip
                 /app/.venv/bin/python -m pip install --no-cache-dir Pillow
-          setup-ui:
-            image:
-              repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
-            command:
-              - /bin/sh
-              - -ec
-              - |
-                cp -r /var/lib/litellm/ui/* /app/var/litellm/ui/
-                cp -r /var/lib/litellm/assets/* /app/var/litellm/assets/
+          # setup-ui:
+          #   image:
+          #     repository: ghcr.io/berriai/litellm
+          #     tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
+          #   command:
+          #     - /bin/sh
+          #     - -ec
+          #     - |
+          #       cp -r /var/lib/litellm/ui/* /app/var/litellm/ui/
+          #       cp -r /var/lib/litellm/assets/* /app/var/litellm/assets/
         containers:
           app:
             image:
@@ -67,11 +67,11 @@ spec:
               LITELLM_MODE: PRODUCTION
               # Non-Root Settings
               LITELLM_NON_ROOT: "true"
-              LITELLM_UI_PATH: /app/var/litellm/ui
-              LITELLM_ASSETS_PATH: /app/var/litellm/assets
-              LITELLM_MIGRATION_DIR: /app/migrations
-              PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
-              XDG_CACHE_HOME: /app/cache
+              # LITELLM_UI_PATH: /app/var/litellm/ui
+              # LITELLM_ASSETS_PATH: /app/var/litellm/assets
+              # LITELLM_MIGRATION_DIR: /app/migrations
+              # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
+              # XDG_CACHE_HOME: /app/cache
               # UI Settings
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
