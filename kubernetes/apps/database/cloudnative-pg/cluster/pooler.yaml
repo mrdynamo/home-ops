@@ -56,11 +56,17 @@ spec:
 
     parameters:
       # server_tls_protocols: tlsv1.3
-      auth_type: cert
-      server_tls_sslmode: verify-full
-      client_tls_sslmode: verify-full
-      max_client_conn: "1000"
-      default_pool_size: "25"
+      auth_type: cert # Require TLS client certificate auth for incoming clients.
+      server_tls_sslmode: verify-full # Verify PgBouncer -> Postgres server cert + hostname.
+      client_tls_sslmode: verify-full # Verify app -> PgBouncer server cert + hostname.
+      tcp_keepalive: "1" # Enable TCP keepalives so dead sockets are detected proactively.
+      tcp_keepidle: "30" # Start keepalive probes after 30s of idle TCP connection.
+      tcp_keepintvl: "10" # Send keepalive probes every 10s after keepalive starts.
+      tcp_keepcnt: "3" # Mark socket dead after 3 unanswered keepalive probes.
+      server_idle_timeout: "300" # Close idle PgBouncer -> Postgres server connections after 5m.
+      server_login_retry: "5" # Wait 5s before retrying backend login after connection failure.
+      max_client_conn: "1000" # Maximum number of client connections accepted by PgBouncer.
+      default_pool_size: "25" # Default number of server connections per database/user pool.
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/monitoring.coreos.com/podmonitor_v1.json
 apiVersion: monitoring.coreos.com/v1
