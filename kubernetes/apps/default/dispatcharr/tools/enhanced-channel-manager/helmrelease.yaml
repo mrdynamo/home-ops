@@ -19,16 +19,10 @@ spec:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager
               tag: 0.16.0@sha256:b160233f16fbf8bbdcd0218b52406c10d03256bf707b203ca159b69ec95b7141
-            command:
-              - uvicorn
-            args:
-              - main:app
-              - --host
-              - "0.0.0.0"
-              - --port
-              - "6100"
             env:
               TZ: America/Chicago
+              PUID: 1000
+              PGID: 1000
             probes:
               liveness: &probes
                 enabled: false
