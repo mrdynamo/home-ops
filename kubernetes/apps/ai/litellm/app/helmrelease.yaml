@@ -67,11 +67,11 @@ spec:
               LITELLM_MODE: PRODUCTION
               # Non-Root Settings
               LITELLM_NON_ROOT: "true"
-              # LITELLM_UI_PATH: /app/var/litellm/ui
-              # LITELLM_ASSETS_PATH: /app/var/litellm/assets
-              # LITELLM_MIGRATION_DIR: /app/migrations
-              # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
-              # XDG_CACHE_HOME: /app/cache
+              LITELLM_UI_PATH: /app/var/litellm/ui
+              LITELLM_ASSETS_PATH: /app/var/litellm/assets
+              LITELLM_MIGRATION_DIR: /app/migrations
+              PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
+              XDG_CACHE_HOME: /app/cache
               # UI Settings
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
