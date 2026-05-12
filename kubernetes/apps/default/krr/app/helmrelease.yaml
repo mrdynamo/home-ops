@@ -48,6 +48,9 @@ spec:
               - --fileoutput
               - /data/krr.json
 
+    defaultPodOptions:
+      automountServiceAccountToken: true
+
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
