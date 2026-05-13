@@ -42,8 +42,6 @@ spec:
               - /bin/sh
               - -ec
               - |
-                /app/.venv/bin/python -m ensurepip --upgrade
-                /app/.venv/bin/python -m pip install --no-cache-dir --upgrade pip
                 /app/.venv/bin/python -m pip install --no-cache-dir Pillow
           # setup-ui:
           #   image:
@@ -130,10 +128,10 @@ spec:
             #     memory: 1556Mi
             #   limits:
             #     memory: 1556Mi
-    # defaultPodOptions:
-    #   securityContext:
-    #     fsGroup: 1000
-    #     fsGroupChangePolicy: OnRootMismatch
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
