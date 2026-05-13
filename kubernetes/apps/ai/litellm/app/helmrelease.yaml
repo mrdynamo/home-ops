@@ -94,8 +94,10 @@ spec:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
               runAsNonRoot: true
-              runAsUser: 101
-              runAsGroup: 101
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
+              fsGroupChangePolicy: OnRootMismatch
               capabilities: {drop: ["ALL"]}
             probes:
               liveness:
