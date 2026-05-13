@@ -42,6 +42,8 @@ spec:
               - /bin/sh
               - -ec
               - |
+                /app/.venv/bin/python -m ensurepip --upgrade
+                /app/.venv/bin/python -m pip install --no-cache-dir --upgrade pip
                 /app/.venv/bin/python -m pip install --no-cache-dir Pillow
           # setup-ui:
           #   image:
