@@ -68,7 +68,7 @@ spec:
               LITELLM_MODE: PRODUCTION
               # Non-Root Settings
               # LITELLM_NON_ROOT: "true"
-              LITELLM_UI_PATH: /app/var/litellm/ui
+              LITELLM_UI_PATH: /writable/litellm/ui
               # LITELLM_ASSETS_PATH: /app/var/litellm/assets
               # LITELLM_MIGRATION_DIR: /app/migrations
               # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
@@ -175,7 +175,7 @@ spec:
             subPath: .config
           - path: /usr/lib/python3.13/site-packages/litellm_proxy_extras/migrations
             subPath: migrations
-          - path: /app/var/litellm/ui
+          - path: /writable/litellm/ui
             subPath: ui
       certs:
         type: emptyDir
