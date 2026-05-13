@@ -32,6 +32,8 @@ spec:
                   -inkey /var/run/secrets/postgresql/tls.key \
                   -out /var/run/secrets/prisma/client-identity.p12 \
                   -passout pass:
+                chown 1000:1000 /var/run/secrets/prisma/client-identity.p12
+                chmod 0400 /var/run/secrets/prisma/client-identity.p12
           install-deps:
             image:
               repository: ghcr.io/berriai/litellm
@@ -128,6 +130,10 @@ spec:
             #     memory: 1556Mi
             #   limits:
             #     memory: 1556Mi
+    # defaultPodOptions:
+    #   securityContext:
+    #     fsGroup: 1000
+    #     fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
@@ -175,29 +181,3 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /var/run/secrets/prisma
-            subPath: prisma-certs
-      # writable:
-      #   type: emptyDir
-      #   advancedMounts:
-      #     litellm:
-      #       prisma-cert:
-      #         - path: /var/run/secrets/prisma
-      #           subPath: prisma-certs
-      #       # setup-ui:
-      #       #   - path: /app/var/litellm/ui
-      #       #     subPath: ui
-      #       #   - path: /app/var/litellm/assets
-      #       #     subPath: assets
-      #       app:
-      #         # - path: /app/cache
-      #         #   subPath: cache
-      #         - path: /tmp
-      #           subPath: tmp
-      #         # - path: /app/var/litellm/ui
-      #         #   subPath: ui
-      #         # - path: /app/var/litellm/assets
-      #         #   subPath: assets
-      #         # - path: /app/migrations
-      #         #   subPath: migrations
-      #         - path: /var/run/secrets/prisma
-      #           subPath: prisma-certs
