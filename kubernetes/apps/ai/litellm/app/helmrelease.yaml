@@ -109,12 +109,12 @@ spec:
                   periodSeconds: 10
                   failureThreshold: 3
               readiness: *probes
-            resources:
-              requests:
-                cpu: 574m
-                memory: 1556Mi
-              limits:
-                memory: 1556Mi
+            # resources:
+            #   requests:
+            #     cpu: 574m
+            #     memory: 1556Mi
+            #   limits:
+            #     memory: 1556Mi
     service:
       app:
         ports:
