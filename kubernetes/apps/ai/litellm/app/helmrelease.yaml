@@ -83,6 +83,12 @@ spec:
                   periodSeconds: 10
                   timeoutSeconds: 10
                   failureThreshold: 30
+            resources:
+              requests:
+                cpu: 978m
+                memory: 1806m
+              limits:
+                memory: 1806m
     service:
       app:
         ports:
