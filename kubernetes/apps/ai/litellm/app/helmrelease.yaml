@@ -153,28 +153,46 @@ spec:
           - path: /app/config.yaml
             subPath: config.yaml
             readOnly: true
-      writable:
+      cache:
         type: emptyDir
-        advancedMounts:
-          litellm:
-            prisma-cert:
-              - path: /var/run/secrets/prisma
-                subPath: prisma-certs
-            # setup-ui:
-            #   - path: /app/var/litellm/ui
-            #     subPath: ui
-            #   - path: /app/var/litellm/assets
-            #     subPath: assets
-            app:
-              # - path: /app/cache
-              #   subPath: cache
-              - path: /tmp
-                subPath: tmp
-              # - path: /app/var/litellm/ui
-              #   subPath: ui
-              # - path: /app/var/litellm/assets
-              #   subPath: assets
-              # - path: /app/migrations
-              #   subPath: migrations
-              - path: /var/run/secrets/prisma
-                subPath: prisma-certs
+        globalMounts:
+          - path: /.cache
+            subPath: cache
+          - path: /.npm
+            subPath: npm
+          - path: /tmp
+            subPath: tmp
+          - path: /app/.config
+            subPath: .config
+          - path: /usr/lib/python3.13/site-packages/litellm_proxy_extras/migrations
+            subPath: migrations
+      certs:
+        type: emptyDir
+        globalMounts:
+          - path: /var/run/secrets/prisma
+            subPath: prisma-certs
+      # writable:
+      #   type: emptyDir
+      #   advancedMounts:
+      #     litellm:
+      #       prisma-cert:
+      #         - path: /var/run/secrets/prisma
+      #           subPath: prisma-certs
+      #       # setup-ui:
+      #       #   - path: /app/var/litellm/ui
+      #       #     subPath: ui
+      #       #   - path: /app/var/litellm/assets
+      #       #     subPath: assets
+      #       app:
+      #         # - path: /app/cache
+      #         #   subPath: cache
+      #         - path: /tmp
+      #           subPath: tmp
+      #         # - path: /app/var/litellm/ui
+      #         #   subPath: ui
+      #         # - path: /app/var/litellm/assets
+      #         #   subPath: assets
+      #         # - path: /app/migrations
+      #         #   subPath: migrations
+      #         - path: /var/run/secrets/prisma
+      #           subPath: prisma-certs
