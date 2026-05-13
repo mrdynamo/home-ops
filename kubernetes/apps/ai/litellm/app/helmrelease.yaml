@@ -43,20 +43,20 @@ spec:
                 /app/.venv/bin/python -m ensurepip --upgrade
                 /app/.venv/bin/python -m pip install --no-cache-dir --upgrade pip
                 /app/.venv/bin/python -m pip install --no-cache-dir Pillow
-          setup-ui:
-            image:
-              repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
-            command:
-              - /bin/sh
-              - -ec
-              - |
-                cp -r /app/.venv/lib/python3.13/site-packages/litellm/proxy/_experimental/out/* /app/var/litellm/ui/
+          # setup-ui:
+          #   image:
+          #     repository: ghcr.io/berriai/litellm
+          #     tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
+          #   command:
+          #     - /bin/sh
+          #     - -ec
+          #     - |
+          #       cp -r /app/.venv/lib/python3.13/site-packages/litellm/proxy/_experimental/out/* /app/var/litellm/ui/
         containers:
           app:
             image:
-              repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
+              repository: ghcr.io/berriai/litellm-non_root
+              tag: v1.83.14-stable@sha256:5bb1d45eefe9b8bdc8d1b34617b8112d03bfc78fc247bea62d7ebd89918c875c
             args:
               - --config=/app/config.yaml
             env:
@@ -149,21 +149,21 @@ spec:
             prisma-cert:
               - path: /var/run/secrets/prisma
                 subPath: prisma-certs
-            setup-ui:
-              - path: /app/var/litellm/ui
-                subPath: ui
-              - path: /app/var/litellm/assets
-                subPath: assets
+            # setup-ui:
+            #   - path: /app/var/litellm/ui
+            #     subPath: ui
+            #   - path: /app/var/litellm/assets
+            #     subPath: assets
             app:
-              - path: /app/cache
-                subPath: cache
+              # - path: /app/cache
+              #   subPath: cache
               - path: /tmp
                 subPath: tmp
-              - path: /app/var/litellm/ui
-                subPath: ui
-              - path: /app/var/litellm/assets
-                subPath: assets
-              - path: /app/migrations
-                subPath: migrations
+              # - path: /app/var/litellm/ui
+              #   subPath: ui
+              # - path: /app/var/litellm/assets
+              #   subPath: assets
+              # - path: /app/migrations
+              #   subPath: migrations
               - path: /var/run/secrets/prisma
                 subPath: prisma-certs
