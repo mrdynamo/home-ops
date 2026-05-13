@@ -66,7 +66,7 @@ spec:
               LITELLM_MODE: PRODUCTION
               # Non-Root Settings
               # LITELLM_NON_ROOT: "true"
-              # LITELLM_UI_PATH: /app/var/litellm/ui
+              LITELLM_UI_PATH: /app/var/litellm/ui
               # LITELLM_ASSETS_PATH: /app/var/litellm/assets
               # LITELLM_MIGRATION_DIR: /app/migrations
               # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
@@ -97,7 +97,7 @@ spec:
               runAsUser: 1000
               runAsGroup: 1000
               fsGroup: 1000
-              fsGroupChangePolicy: OnRootMismatch
+              # fsGroupChangePolicy: OnRootMismatch
               capabilities: {drop: ["ALL"]}
             probes:
               liveness:
@@ -169,6 +169,8 @@ spec:
             subPath: .config
           - path: /usr/lib/python3.13/site-packages/litellm_proxy_extras/migrations
             subPath: migrations
+          - path: /app/var/litellm/ui
+            subPath: ui
       certs:
         type: emptyDir
         globalMounts:
