@@ -65,12 +65,12 @@ spec:
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
               # Non-Root Settings
-              LITELLM_NON_ROOT: "true"
-              LITELLM_UI_PATH: /app/var/litellm/ui
-              LITELLM_ASSETS_PATH: /app/var/litellm/assets
-              LITELLM_MIGRATION_DIR: /app/migrations
-              PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
-              XDG_CACHE_HOME: /app/cache
+              # LITELLM_NON_ROOT: "true"
+              # LITELLM_UI_PATH: /app/var/litellm/ui
+              # LITELLM_ASSETS_PATH: /app/var/litellm/assets
+              # LITELLM_MIGRATION_DIR: /app/migrations
+              # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
+              # XDG_CACHE_HOME: /app/cache
               # UI Settings
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
@@ -97,17 +97,28 @@ spec:
               runAsGroup: 101
               capabilities: {drop: ["ALL"]}
             probes:
-              liveness: &probes
-                enabled: false
+              liveness:
                 custom: true
+                enabled: true
                 spec:
-                  httpGet:
-                    path: /
-                    port: &port 4000
-                  initialDelaySeconds: 5
-                  periodSeconds: 10
                   failureThreshold: 3
-              readiness: *probes
+                  httpGet:
+                    path: /health/liveliness
+                    port: 4000
+                  initialDelaySeconds: 30
+                  periodSeconds: 60
+                  timeoutSeconds: 10
+              readiness:
+                custom: true
+                enabled: true
+                spec:
+                  failureThreshold: 3
+                  httpGet:
+                    path: /health/readiness
+                    port: 4000
+                  initialDelaySeconds: 15
+                  periodSeconds: 5
+                  timeoutSeconds: 5
             # resources:
             #   requests:
             #     cpu: 574m
