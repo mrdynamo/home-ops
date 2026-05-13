@@ -52,7 +52,6 @@ spec:
               - -ec
               - |
                 cp -r /app/.venv/lib/python3.13/site-packages/litellm/proxy/_experimental/out/* /app/var/litellm/ui/
-                cp -r /var/lib/litellm/assets/* /app/var/litellm/assets/
         containers:
           app:
             image:
