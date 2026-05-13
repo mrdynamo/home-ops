@@ -104,7 +104,7 @@ spec:
                   failureThreshold: 3
                   httpGet:
                     path: /health/liveliness
-                    port: 4000
+                    port: &port 4000
                   initialDelaySeconds: 30
                   periodSeconds: 60
                   timeoutSeconds: 10
@@ -115,7 +115,7 @@ spec:
                   failureThreshold: 3
                   httpGet:
                     path: /health/readiness
-                    port: 4000
+                    port: *port
                   initialDelaySeconds: 15
                   periodSeconds: 5
                   timeoutSeconds: 5
