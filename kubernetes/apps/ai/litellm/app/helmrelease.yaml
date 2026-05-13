@@ -15,7 +15,7 @@ spec:
       litellm:
         annotations:
           reloader.stakater.com/auto: "true"
-        replicas: 1
+        replicas: 2
         strategy: RollingUpdate
         initContainers:
           prisma-cert:
