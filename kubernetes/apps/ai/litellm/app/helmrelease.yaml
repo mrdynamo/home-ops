@@ -35,7 +35,7 @@ spec:
           install-deps:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
+              tag: v1.83.14-stable@sha256:5bb1d45eefe9b8bdc8d1b34617b8112d03bfc78fc247bea62d7ebd89918c875c
             command:
               - /bin/sh
               - -ec
