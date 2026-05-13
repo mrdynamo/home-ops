@@ -32,49 +32,17 @@ spec:
                   -inkey /var/run/secrets/postgresql/tls.key \
                   -out /var/run/secrets/prisma/client-identity.p12 \
                   -passout pass:
-                chown 1000:1000 /var/run/secrets/prisma/client-identity.p12
-                chmod 0400 /var/run/secrets/prisma/client-identity.p12
-          install-deps:
-            image:
-              repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable@sha256:5bb1d45eefe9b8bdc8d1b34617b8112d03bfc78fc247bea62d7ebd89918c875c
-            command:
-              - /bin/sh
-              - -ec
-              - |
-                /app/.venv/bin/python -m ensurepip --upgrade
-                /app/.venv/bin/python -m pip install --no-cache-dir --upgrade pip
-                /app/.venv/bin/python -m pip install --no-cache-dir Pillow
-          # setup-ui:
-          #   image:
-          #     repository: ghcr.io/berriai/litellm
-          #     tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
-          #   command:
-          #     - /bin/sh
-          #     - -ec
-          #     - |
-          #       cp -r /app/.venv/lib/python3.13/site-packages/litellm/proxy/_experimental/out/* /app/var/litellm/ui/
         containers:
           app:
             image:
-              repository: ghcr.io/berriai/litellm-non_root
-              tag: v1.83.14-stable@sha256:5bb1d45eefe9b8bdc8d1b34617b8112d03bfc78fc247bea62d7ebd89918c875c
+              repository: ghcr.io/berriai/litellm
+              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
             args:
               - --config=/app/config.yaml
             env:
               # General App Settings
-              TZ: America/Chicago
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
-              # Non-Root Settings
-              # LITELLM_NON_ROOT: "true"
-              LITELLM_UI_PATH: /writable/litellm/ui
-              # LITELLM_ASSETS_PATH: /app/var/litellm/assets
-              # LITELLM_MIGRATION_DIR: /app/migrations
-              # PRISMA_BINARY_CACHE_DIR: /app/cache/prisma-python/binaries
-              # XDG_CACHE_HOME: /app/cache
-              USE_PRISMA_MIGRATE: true
-              # UI Settings
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
               UI_USERNAME: admin
@@ -92,48 +60,29 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              runAsNonRoot: true
-              runAsUser: 1000
-              runAsGroup: 1000
-              # fsGroup: 1000
-              # fsGroupChangePolicy: OnRootMismatch
-              capabilities: {drop: ["ALL"]}
             probes:
               liveness:
-                custom: true
                 enabled: true
+                custom: true
                 spec:
-                  failureThreshold: 3
                   httpGet:
                     path: /health/liveliness
                     port: &port 4000
                   initialDelaySeconds: 30
-                  periodSeconds: 60
+                  periodSeconds: 10
                   timeoutSeconds: 10
+                  failureThreshold: 30
               readiness:
-                custom: true
                 enabled: true
+                custom: true
                 spec:
-                  failureThreshold: 3
                   httpGet:
                     path: /health/readiness
                     port: *port
-                  initialDelaySeconds: 15
-                  periodSeconds: 5
-                  timeoutSeconds: 5
-            # resources:
-            #   requests:
-            #     cpu: 574m
-            #     memory: 1556Mi
-            #   limits:
-            #     memory: 1556Mi
-    defaultPodOptions:
-      securityContext:
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 10
+                  failureThreshold: 30
     service:
       app:
         ports:
@@ -164,20 +113,15 @@ spec:
             readOnly: true
       cache:
         type: emptyDir
-        globalMounts:
-          - path: /.cache
-            subPath: cache
-          - path: /.npm
-            subPath: npm
-          - path: /tmp
-            subPath: tmp
-          - path: /app/.config
-            subPath: .config
-          - path: /usr/lib/python3.13/site-packages/litellm_proxy_extras/migrations
-            subPath: migrations
-          - path: /writable/litellm/ui
-            subPath: ui
-      certs:
+        advancedMounts:
+          litellm:
+            app:
+              - path: /app/cache
+      prisma-certs:
         type: emptyDir
-        globalMounts:
-          - path: /var/run/secrets/prisma
+        advancedMounts:
+          litellm:
+            prisma-cert:
+              - path: /var/run/secrets/prisma
+            app:
+              - path: /var/run/secrets/prisma
