@@ -51,6 +51,7 @@ jobs:
           github_token: ${{ steps.claude-token.outputs.token }}
           ai_base_url: "http://litellm.ai.svc:4000"
           ai_model: "gpt-oss:20b"
+          ai_api_key: ${{ secrets.LITELLM_API_KEY }}
           standards_file: ""
           publish_review_comment: "true"
           # system_prompt: |
