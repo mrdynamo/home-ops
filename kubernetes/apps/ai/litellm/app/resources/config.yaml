@@ -10,6 +10,17 @@ _ollama_model_info: &ollama_model_info
   max_tokens: 8192
   max_output_tokens: 8192
 
+_contexts:
+  1k: &1k 1024
+  2k: &2k 2048
+  4k: &4k 4096
+  8k: &8k 8192
+  16k: &16k 16384
+  32k: &32k 32768
+  64k: &64k 65536
+  128k: &128k 131072
+  256k: &256k 262144
+
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
   # forwards the upstream model IDs that each llama.cpp server expects.
@@ -21,24 +32,28 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/llama3.2:3b
-      num_ctx: 65536
+      num_ctx: *64k
     model_info:
       <<: *ollama_model_info
-      max_input_tokens: 65536
+      max_input_tokens: *64k
 
   - model_name: llava:7b
     litellm_params:
       <<: *ollama_params
+      num_ctx: *64k
       model: ollama/llava:7b
     model_info:
       <<: *ollama_model_info
+      max_input_tokens: *64k
 
   - model_name: minicpm-v:8b
     litellm_params:
       <<: *ollama_params
       model: ollama/minicpm-v:8b
+      num_ctx: *256k
     model_info:
       <<: *ollama_model_info
+      max_input_tokens: *256k
 
   - model_name: gpt-oss:20b
     litellm_params:
@@ -58,10 +73,10 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/qwen3.5:9b
-      num_ctx: 262144
+      num_ctx: *256k
     model_info:
       <<: *ollama_model_info
-      max_input_tokens: 262144
+      max_input_tokens: *256k
 
   - model_name: llama3.2-vision:11b
     litellm_params:
