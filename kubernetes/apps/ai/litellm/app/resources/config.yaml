@@ -49,6 +49,13 @@ model_list:
     model_info:
       <<: *ollama_model_info
 
+  - model_name: qwen3.5:9b
+    litellm_params:
+      <<: *ollama_params
+      model: ollama/qwen3.5:9b
+    model_info:
+      <<: *ollama_model_info
+
   - model_name: llama3.2-vision:11b
     litellm_params:
       <<: *ollama_params
