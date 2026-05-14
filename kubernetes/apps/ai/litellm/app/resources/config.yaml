@@ -21,8 +21,10 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/llama3.2:3b
+      num_ctx: 131072
     model_info:
       <<: *ollama_model_info
+      max_input_tokens: 131072
 
   - model_name: llava:7b
     litellm_params:
