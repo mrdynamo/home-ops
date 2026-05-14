@@ -1,18 +1,4 @@
-_ollama_params: &ollama_params
-  api_base: os.environ/OLLAMA_BASE_URL
-  api_key: ollama
-  num_ctx: 32768
-
-_ollama_model_info: &ollama_model_info
-  litellm_provider: ollama
-  input_cost_per_token: 0
-  output_cost_per_token: 0
-  max_tokens: 8192
-  max_output_tokens: 8192
-
-_contexts:
-  1k: &1k 1024
-  2k: &2k 2048
+_context_values:
   4k: &4k 4096
   8k: &8k 8192
   16k: &16k 16384
@@ -20,6 +6,18 @@ _contexts:
   64k: &64k 65536
   128k: &128k 131072
   256k: &256k 262144
+
+_ollama_params: &ollama_params
+  api_base: os.environ/OLLAMA_BASE_URL
+  api_key: ollama
+  num_ctx: *32k
+
+_ollama_model_info: &ollama_model_info
+  litellm_provider: ollama
+  input_cost_per_token: 0
+  output_cost_per_token: 0
+  max_tokens: *16k
+  max_output_tokens: *16k
 
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
