@@ -1,11 +1,14 @@
 _ollama_params: &ollama_params
   api_base: os.environ/OLLAMA_BASE_URL
   api_key: ollama
+  num_ctx: 32768
 
 _ollama_model_info: &ollama_model_info
   litellm_provider: ollama
   input_cost_per_token: 0
   output_cost_per_token: 0
+  max_tokens: 8192
+  max_output_tokens: 8192
 
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
@@ -53,12 +56,10 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/qwen3.5:9b
-      num_ctx: 131072 # 262144
+      num_ctx: 262144
     model_info:
       <<: *ollama_model_info
-      max_input_tokens: 131072 # 262144
-      max_output_tokens: 8192
-      max_tokens: 8192
+      max_input_tokens: 262144
 
   - model_name: llama3.2-vision:11b
     litellm_params:
