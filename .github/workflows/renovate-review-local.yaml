@@ -46,6 +46,7 @@ jobs:
           grep -q 'qwen3.5:9b' /tmp/litellm-models.json
 
       - name: Review PR with self-hosted model
+        id: ai-review
         uses: misospace/pr-reviewer-action@v1
         with:
           github_token: ${{ steps.claude-token.outputs.token }}
@@ -68,3 +69,22 @@ jobs:
           # standards_file_candidates: 'AGENTS.md,.agents/*'
           publish_review_comment: 'true'
           comment_marker: <!-- renovate-review-bot -->
+
+      - name: Submit PR review decision
+        if: steps.ai-review.outputs.should_review == 'true'
+        env:
+          GH_TOKEN: ${{ steps.claude-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          VERDICT: ${{ steps.ai-review.outputs.verdict }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$VERDICT" == "approve" ]]; then
+            gh pr review "$PR_NUMBER" --repo "$REPO" --approve
+          elif [[ "$VERDICT" == "request_changes" ]]; then
+            gh pr review "$PR_NUMBER" --repo "$REPO" --request-changes
+          else
+            echo "Unexpected verdict from AI reviewer: $VERDICT" >&2
+            exit 1
+          fi
