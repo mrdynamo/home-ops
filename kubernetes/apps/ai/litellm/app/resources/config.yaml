@@ -71,10 +71,10 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/qwen3.5:9b
-      num_ctx: *64k
+      num_ctx: *256k
     model_info:
       <<: *ollama_model_info
-      max_input_tokens: *64k
+      max_input_tokens: *256k
 
   - model_name: llama3.2-vision:11b
     litellm_params:
