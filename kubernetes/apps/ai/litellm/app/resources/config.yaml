@@ -211,6 +211,7 @@ general_settings:
     - header_name: X-OpenWebUI-User-Email
       litellm_user_role: customer
   store_prompts_in_spend_logs: true
+  use_redis_transaction_buffer: true # HA
 
 router_settings:
   routing_strategy: simple-shuffle
