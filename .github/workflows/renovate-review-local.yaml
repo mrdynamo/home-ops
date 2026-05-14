@@ -77,13 +77,16 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           VERDICT: ${{ steps.ai-review.outputs.verdict }}
+          REVIEW_MARKDOWN: ${{ steps.ai-review.outputs.review_markdown }}
         run: |
           set -euo pipefail
 
+          REVIEW_BODY="${REVIEW_MARKDOWN:-Automated review by local model.}"
+
           if [[ "$VERDICT" == "approve" ]]; then
-            gh pr review "$PR_NUMBER" --repo "$REPO" --approve
+            gh pr review "$PR_NUMBER" --repo "$REPO" --approve --body "$REVIEW_BODY"
           elif [[ "$VERDICT" == "request_changes" ]]; then
-            gh pr review "$PR_NUMBER" --repo "$REPO" --request-changes
+            gh pr review "$PR_NUMBER" --repo "$REPO" --request-changes --body "$REVIEW_BODY"
           else
             echo "Unexpected verdict from AI reviewer: $VERDICT" >&2
             exit 1
