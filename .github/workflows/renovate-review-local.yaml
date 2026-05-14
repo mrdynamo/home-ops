@@ -77,6 +77,31 @@ jobs:
           publish_review_comment: 'true'
           comment_marker: <!-- renovate-review-bot -->
 
+      - name: Resolve latest managed review comment URL
+        if: steps.ai-review.outputs.should_review == 'true'
+        id: review-comment-url
+        env:
+          GH_TOKEN: ${{ steps.claude-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENT_MARKER: '<!-- renovate-review-bot -->'
+        run: |
+          set -euo pipefail
+
+          COMMENT_URL="$(gh api "repos/$REPO/issues/$PR_NUMBER/comments?per_page=100" --paginate | jq -r --arg marker "$COMMENT_MARKER" '[.[] | select((.body // "") | contains($marker))] | last | .html_url // empty')"
+
+          if [[ -n "$COMMENT_URL" ]]; then
+            REVIEW_BODY="Automated review completed. Full findings: $COMMENT_URL"
+          else
+            REVIEW_BODY="Automated review completed. Full findings are in the managed review comment."
+          fi
+
+          {
+            echo 'review_body<<EOF'
+            echo "$REVIEW_BODY"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Submit PR review decision
         if: steps.ai-review.outputs.should_review == 'true'
         env:
@@ -84,11 +109,9 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           VERDICT: ${{ steps.ai-review.outputs.verdict }}
-          REVIEW_MARKDOWN: ${{ steps.ai-review.outputs.review_markdown }}
+          REVIEW_BODY: ${{ steps.review-comment-url.outputs.review_body }}
         run: |
           set -euo pipefail
-
-          REVIEW_BODY="${REVIEW_MARKDOWN:-Automated review by local model.}"
 
           if [[ "$VERDICT" == "approve" ]]; then
             gh pr review "$PR_NUMBER" --repo "$REPO" --approve --body "$REVIEW_BODY"
