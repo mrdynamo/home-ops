@@ -38,8 +38,8 @@ model_list:
   - model_name: llava:7b
     litellm_params:
       <<: *ollama_params
-      num_ctx: *64k
       model: ollama/llava:7b
+      num_ctx: *64k
     model_info:
       <<: *ollama_model_info
       max_input_tokens: *64k
@@ -71,10 +71,10 @@ model_list:
     litellm_params:
       <<: *ollama_params
       model: ollama/qwen3.5:9b
-      num_ctx: *256k
+      num_ctx: *128k
     model_info:
       <<: *ollama_model_info
-      max_input_tokens: *256k
+      max_input_tokens: *128k
 
   - model_name: llama3.2-vision:11b
     litellm_params:
