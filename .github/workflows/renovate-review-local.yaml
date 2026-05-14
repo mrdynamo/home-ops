@@ -42,7 +42,7 @@ jobs:
           set -euo pipefail
           curl -fsS \
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
-            http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
+            http://litellm.ai.svc:4000/model/info > /tmp/litellm-models.json
           grep -q 'gpt-oss:20b' /tmp/litellm-models.json
 
       - name: Review PR with self-hosted model
