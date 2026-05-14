@@ -225,6 +225,7 @@ general_settings:
       litellm_user_role: internal_user
     - header_name: X-OpenWebUI-User-Email
       litellm_user_role: customer
+  store_model_in_db: true
   store_prompts_in_spend_logs: true
   use_redis_transaction_buffer: true # HA
 
