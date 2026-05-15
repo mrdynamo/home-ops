@@ -18,7 +18,7 @@ spec:
     substitute:
       APP: *app
       OWNER: ${DATABASE_OWNER:=${APP}}
-      EXTENSIONS: ${DATABASE_EXTENSIONS}
+      EXTENSIONS: ${q:='}${DATABASE_EXTENSIONS:=[]}${q:='}
 
       emptyArray: "[]"
   healthChecks:
