@@ -77,12 +77,14 @@ spec:
       max_locks_per_transaction: "4096" # For TimescaleDB (Tracearr) DEFAULT: 128
 
     extensions:
+
       - name: postgis
         ld_library_path:
           - system
         image:
           # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/postgis-extension-testing
           reference: ghcr.io/cloudnative-pg/postgis-extension-testing:3.6.0-18-trixie@sha256:ec21540f5799561a9b05ca188fd28ce32852a826f48d80329260940855f5f558
+
       - name: vchord
         image:
           # renovate: datasource=docker depName=ghcr.io/tensorchord/vchord-scratch
@@ -91,10 +93,16 @@ spec:
           - /usr/lib/postgresql/18/lib
         extension_control_path:
           - /usr/share/postgresql/18/
+
       - name: timescaledb
         image:
           # renovate: datasource=docker depName=ghcr.io/mrdynamo/timescaledb-bridge
           reference: ghcr.io/mrdynamo/timescaledb-bridge:2.27.0@sha256:c71e61dbfe78454c764bc2fa735d8e9459ec1dd6a92b7363c05b4083395e921f
+
+      - name: timescaledb_toolkit
+        image:
+          # renovate: datasource=docker depName=ghcr.io/mrdynamo/timescaledb-toolkit
+          reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.22.0@sha256:a31d737187415c8ce52229ab6f96aeebf4c4bd690cbc86400b93a201488a274d
 
   managed:
     roles:

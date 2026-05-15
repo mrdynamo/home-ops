@@ -20,8 +20,7 @@ spec:
   postBuild:
     substitute:
       APP: *app
-      DATABASE_EXTENSIONS: '[{"name":"timescaledb"}]'
-      # DATABASE_EXTENSIONS: '[{"name":"timescaledb"},{"name":"timescaledb_toolkit"}]'
+      DATABASE_EXTENSIONS: '[{"name":"timescaledb"},{"name":"timescaledb_toolkit"}]'
       REDIS_INDEX: "9"
     substituteFrom:
       - name: cluster-secrets
