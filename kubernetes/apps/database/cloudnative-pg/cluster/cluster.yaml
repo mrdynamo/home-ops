@@ -93,8 +93,8 @@ spec:
           - /usr/share/postgresql/18/
       - name: timescaledb
         image:
-          # renovate: datasource=docker depName=ghcr.io/shusaan/timescaledb-testing
-          reference: ghcr.io/shusaan/timescaledb-testing:2.23.1-18-trixie@sha256:4709935bed4cce5977bc4b1858a94e2e80f22f0303217163a9e97b8898e33ee2
+          # renovate: datasource=docker depName=ghcr.io/mrdynamo/timescaledb-bridge
+          reference: ghcr.io/mrdynamo/timescaledb-bridge:2.27.0@sha256:34681beb4fc620a624cc59a4271c5aac50614f67e32f1041a7ab90a91458b27d
 
   managed:
     roles:
