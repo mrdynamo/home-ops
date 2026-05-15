@@ -51,6 +51,7 @@ jobs:
         with:
           github_token: ${{ steps.claude-token.outputs.token }}
           ai_stream: false
+          ai_max_tokens: 65536
           ai_base_url: "http://litellm.ai.svc:4000/v1"
           ai_model: "qwen3.5:9b"
           ai_api_key: ${{ secrets.LITELLM_API_KEY }}
