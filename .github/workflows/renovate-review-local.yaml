@@ -61,16 +61,16 @@ jobs:
           # ai_fallback_base_url: "http://litellm.ai.svc:4000"
           # ai_fallback_model: "minimax/MiniMax-M2.7"
           # ai_fallback_api_key: ${{ secrets.LITELLM_API_KEY }}
-          allowed_source_hosts: 'github.com,api.github.com,gitlab.com,registry.terraform.io,artifacthub.io,minecraft.net,www.minecraft.net,talos.dev,www.talos.dev'
+          allowed_source_hosts: 'github.com,api.github.com,artifacthub.io,talos.dev,www.talos.dev'
           context_limit_mode: normal
           tool_mode: plan_execute_once
           tool_max_requests: '4'
-          tool_planning_timeout_sec: '90'
-          tool_planning_max_context_bytes: '15000'
-          tool_planning_max_tokens: '300'
+          tool_planning_timeout_sec: '30'
+          tool_planning_max_context_bytes: '50000'
+          tool_planning_max_tokens: '400'
           tool_max_response_bytes: '12000'
           tool_allowed_gh_api_repos: '*'
-          tool_request_timeout_sec: '15'
+          tool_request_timeout_sec: '20'
           tool_failure_enforcement: 'true'
           tool_min_successful_requests: '1'
           tool_enable_for_forks: 'false'
