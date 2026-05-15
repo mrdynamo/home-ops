@@ -81,9 +81,11 @@ spec:
         ld_library_path:
           - system
         image:
+          # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/postgis-extension-testing
           reference: ghcr.io/cloudnative-pg/postgis-extension-testing:3.6.0-18-trixie@sha256:ec21540f5799561a9b05ca188fd28ce32852a826f48d80329260940855f5f558
       - name: vchord
         image:
+          # renovate: datasource=docker depName=ghcr.io/tensorchord/vchord-scratch
           reference: ghcr.io/tensorchord/vchord-scratch:pg18-v0.5.3@sha256:c310ede47f7f82bd257c3e53806d60680d5899c318ca946fb313efad9a90a78e
         dynamic_library_path:
           - /usr/lib/postgresql/18/lib
@@ -91,6 +93,7 @@ spec:
           - /usr/share/postgresql/18/
       - name: timescaledb
         image:
+          # renovate: datasource=docker depName=ghcr.io/m00nwtchr/timescaledb
           reference: ghcr.io/m00nwtchr/timescaledb:2.27.0@sha256:fde617cd1b90993118728ef4561e4ebf98d5e6ef6111cb9f80e6ebbf4b5f0ca1
 
   managed:

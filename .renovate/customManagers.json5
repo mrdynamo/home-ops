@@ -33,6 +33,17 @@
     },
     {
       customType: "regex",
+      description: "Process CloudNativePG extension image references",
+      managerFilePatterns: [
+        "/kubernetes/apps/database/cloudnative-pg/cluster/cluster\\.yaml$/",
+      ],
+      matchStrings: [
+        "reference:\\s*(?<depName>[^:@\\s]+):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
+      ],
+      datasourceTemplate: "docker",
+    },
+    {
+      customType: "regex",
       description: "Process OCI dependencies",
       managerFilePatterns: [
         "/\\.yaml(?:\\.j2)?$/",
