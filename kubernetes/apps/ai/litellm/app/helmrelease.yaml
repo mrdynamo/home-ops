@@ -32,7 +32,7 @@ spec:
                   -inkey /var/run/secrets/postgresql/tls.key \
                   -out /var/run/secrets/prisma/client-identity.p12 \
                   -passout pass:
-          install-pillow-dep:
+          install-pillow-deps:
             image:
               repository: ghcr.io/berriai/litellm
               tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
@@ -193,10 +193,12 @@ spec:
       config:
         type: configMap
         name: *app
-        globalMounts:
-          - path: /app/config.yaml
-            subPath: config.yaml
-            readOnly: true
+        advancedMounts:
+          litellm:
+            app:
+              - path: /app/config.yaml
+                subPath: config.yaml
+                readOnly: true
       cache:
         type: emptyDir
         advancedMounts:
@@ -207,7 +209,7 @@ spec:
         type: emptyDir
         advancedMounts:
           litellm:
-            pillow-vendor:
+            install-pillow-deps:
               - path: /opt/pillow
             app:
               - path: /opt/pillow
@@ -215,7 +217,7 @@ spec:
         type: emptyDir
         advancedMounts:
           litellm:
-            prisma-cert:
+            gen-prisma-cert:
               - path: /var/run/secrets/prisma
             app:
               - path: /var/run/secrets/prisma
