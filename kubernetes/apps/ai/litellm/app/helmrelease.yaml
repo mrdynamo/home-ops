@@ -18,7 +18,7 @@ spec:
         replicas: 2
         strategy: RollingUpdate
         initContainers:
-          prisma-cert:
+          gen-prisma-cert:
             image:
               repository: docker.io/library/alpine
               tag: 3.23.4
@@ -32,6 +32,85 @@ spec:
                   -inkey /var/run/secrets/postgresql/tls.key \
                   -out /var/run/secrets/prisma/client-identity.p12 \
                   -passout pass:
+          install-pillow-dep:
+            image:
+              repository: ghcr.io/berriai/litellm
+              tag: v1.83.14-stable@sha256:d6401c001f90f3bab4bb23c5fd6d9302a7df58999ec6fa9e3f175e1f5f26544b
+            command:
+              - /app/.venv/bin/python
+              - -c
+              - |
+                import hashlib
+                import json
+                import platform
+                import urllib.request
+                import zipfile
+                from pathlib import Path
+
+                VERSION = "12.2.0"
+                WHEELS = {
+                    ("x86_64", "glibc"): (
+                        "pillow-12.2.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+                        "03f6fab9219220f041c74aeaa2939ff0062bd5c364ba9ce037197f4c6d498cd9",
+                    ),
+                    ("aarch64", "glibc"): (
+                        "pillow-12.2.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+                        "f1c943e96e85df3d3478f7b691f229887e143f81fedab9b20205349ab04d73ed",
+                    ),
+                    ("x86_64", "musl"): (
+                        "pillow-12.2.0-cp313-cp313-musllinux_1_2_x86_64.whl",
+                        "1e1757442ed87f4912397c6d35a0db6a7b52592156014706f17658ff58bbf795",
+                    ),
+                    ("aarch64", "musl"): (
+                        "pillow-12.2.0-cp313-cp313-musllinux_1_2_aarch64.whl",
+                        "00a2865911330191c0b818c59103b58a5e697cae67042366970a6b6f1b20b7f9",
+                    ),
+                }
+
+                arch = platform.machine().lower()
+                if arch in {"arm64", "armv8"}:
+                    arch = "aarch64"
+                libc = platform.libc_ver()[0].lower() or "glibc"
+                if "musl" in libc:
+                    libc = "musl"
+                else:
+                    libc = "glibc"
+
+                key = (arch, libc)
+                if key not in WHEELS:
+                    raise SystemExit(f"Unsupported platform for pinned Pillow wheel: arch={arch}, libc={libc}")
+
+                filename, expected_sha = WHEELS[key]
+                with urllib.request.urlopen(f"https://pypi.org/pypi/Pillow/{VERSION}/json", timeout=30) as response:
+                    release = json.load(response)
+
+                candidates = [f for f in release["urls"] if f.get("filename") == filename and f.get("packagetype") == "bdist_wheel"]
+                if len(candidates) != 1:
+                    raise SystemExit(f"Pinned wheel not found in release metadata: {filename}")
+
+                wheel = candidates[0]
+                metadata_sha = wheel["digests"]["sha256"].lower()
+                if metadata_sha != expected_sha:
+                    raise SystemExit(f"Digest mismatch in metadata for {filename}: {metadata_sha} != {expected_sha}")
+
+                url = wheel["url"]
+                if not url.startswith("https://files.pythonhosted.org/"):
+                    raise SystemExit(f"Unexpected artifact host: {url}")
+
+                wheel_path = Path("/tmp") / filename
+                with urllib.request.urlopen(url, timeout=60) as response:
+                    data = response.read()
+                actual_sha = hashlib.sha256(data).hexdigest()
+                if actual_sha != expected_sha:
+                    raise SystemExit(f"Digest mismatch for downloaded wheel {filename}: {actual_sha} != {expected_sha}")
+
+                wheel_path.write_bytes(data)
+                target = Path("/opt/pillow")
+                target.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(wheel_path, "r") as zf:
+                    zf.extractall(target)
+
+                print(f"Installed {filename} into {target}")
         containers:
           app:
             image:
@@ -43,6 +122,7 @@ spec:
               # General App Settings
               LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
+              PYTHONPATH: /opt/pillow
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
               UI_USERNAME: admin
@@ -123,6 +203,14 @@ spec:
           litellm:
             app:
               - path: /app/cache
+      pillow:
+        type: emptyDir
+        advancedMounts:
+          litellm:
+            pillow-vendor:
+              - path: /opt/pillow
+            app:
+              - path: /opt/pillow
       prisma-certs:
         type: emptyDir
         advancedMounts:
