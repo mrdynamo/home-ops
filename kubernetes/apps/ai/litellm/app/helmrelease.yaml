@@ -120,7 +120,7 @@ spec:
               - --config=/app/config.yaml
             env:
               # General App Settings
-              LITELLM_LOG: DEBUG
+              # LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
               PYTHONPATH: /opt/pillow
               DOCS_URL: "/docs"
