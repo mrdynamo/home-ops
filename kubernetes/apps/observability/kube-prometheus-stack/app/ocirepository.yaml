@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 85.1.1
+    tag: 85.1.2
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:550ec77729a65e747a5fb5f37b1a168e8d7bf5a8ebe8c13188bfd308897e9b15
   url: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
