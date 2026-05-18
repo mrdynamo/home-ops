@@ -65,10 +65,10 @@ spec:
               readiness: *probes
             resources:
               requests:
-                cpu: 29m
-                memory: 914Mi
+                cpu: 221m
+                memory: 1006Mi
               limits:
-                memory: 914Mi
+                memory: 1006Mi
             securityContext: &sc
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
@@ -97,9 +97,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 342Mi
+                memory: 337Mi
               limits:
-                memory: 342Mi
+                memory: 337Mi
 
       meilisearch:
         pod:
@@ -135,9 +135,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 262Mi
+                memory: 289Mi
               limits:
-                memory: 262Mi
+                memory: 289Mi
             securityContext: *sc
 
     defaultPodOptions:
