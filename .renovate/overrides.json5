@@ -12,16 +12,6 @@
       overrideDepName: "{{packageName}}",
     },
     {
-      description: "Override Talos Installer Package Name",
-      matchDatasources: [
-        "docker"
-      ],
-      matchPackageNames: [
-        "/factory\\.talos\\.dev/"
-      ],
-      overridePackageName: "ghcr.io/siderolabs/installer",
-    },
-    {
       "description": "Separate Major/Minor/Patch for Talos upgrades",
       "matchDatasources": [
         "docker"
