@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/crocodilestick/calibre-web-automated
-              tag: v4.0.6@sha256:c31a738b6d5ec6982c050063dd3f063b6943eb1051fc81144789f840d9093a8d
+              repository: ghcr.io/new-usemame/calibre-web-nextgen
+              tag: v4.0.86@sha256:a28da3bde263fdb21e6f3489f984c57af13b7c48a114d6eb7b927b0e8c79d67f
             env:
               TZ: America/Chicago
               PUID: 1000
