@@ -21,7 +21,7 @@ spec:
             and on (cluster, node)
 
             kube_node_spec_unschedulable{job="kube-state-metrics"} == 0
-          for: 3m
+          for: 1m
           labels:
             severity: warning
         - alert: KubeNodeUnreachableHomeAssistantTrigger
@@ -37,7 +37,7 @@ spec:
             unless ignoring(key,value)
             kube_node_spec_taint{job="kube-state-metrics",key=~"ToBeDeletedByClusterAutoscaler|cloud.google.com/impending-node-termination|aws-node-termination-handler/spot-itn"})
             == 1
-          for: 3m
+          for: 1m
           labels:
             severity: warning
     - name: homeassistant-triggers
