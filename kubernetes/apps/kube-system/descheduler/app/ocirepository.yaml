@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.35.1
+    tag: 0.36.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:c0773e2b0fa3695bfb513d7ddbe2a2dd74e30bce4c45108933134ac7a63a50a2
   url: oci://ghcr.io/home-operations/charts-mirror/descheduler
