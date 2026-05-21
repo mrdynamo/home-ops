@@ -49,6 +49,7 @@ spec:
               - --auto-httproute
               - --enable-httproute
               - --enable-service
+              - --probes-paths=false
             resources:
               requests:
                 cpu: 10m
