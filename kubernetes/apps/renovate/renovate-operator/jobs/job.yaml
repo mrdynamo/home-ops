@@ -10,7 +10,7 @@ spec:
     - "mrdynamo/home-ops"
     - "mrdynamo/dotfiles"
   extraEnv:
-    - name: LOG_LEVEL
+    - name: RENOVATE_LOG_LEVEL
       value: debug
     - name: RENOVATE_ALLOWED_COMMANDS
       value: '["pnpm run bundle"]'
