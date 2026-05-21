@@ -49,7 +49,7 @@ spec:
               - --auto-httproute
               - --enable-httproute
               - --enable-service
-              - --probes-paths=false
+              - --probe-paths=false
             resources:
               requests:
                 cpu: 10m
