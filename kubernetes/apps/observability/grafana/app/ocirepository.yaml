@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 5.22.2
+    tag: 5.23.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:8cb589d52db1d1de3fec53078bc7f0547c4132d2bb309c6fc7645e8010fd4bfa
   url: oci://ghcr.io/grafana/helm-charts/grafana-operator
