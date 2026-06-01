@@ -18,3 +18,4 @@ spec:
     name: intel-gpu-plugin
     sharedDevNum: 10
     nodeFeatureRule: true
+    enableMonitoring: true
