@@ -22,7 +22,7 @@ spec:
                 cpu: 10m
                 memory: 1570Mi
               limits:
-                memory: 1570Mi
+                memory: 2500Mi
             env:
               DEBUG: false
               CACHE_DURATION: 7200
