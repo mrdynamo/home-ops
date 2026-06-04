@@ -135,6 +135,7 @@ twitch_miner.mine(
         Streamer("g3trail3d"),
         Streamer("quirkitized"),
         Streamer("mattmalone"),
+        Streamer("slr0xx"),
         Streamer("scump"),
         Streamer("datmodz"),
         Streamer("jesseenterkin25"),
