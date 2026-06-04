@@ -67,6 +67,7 @@ spec:
                         values: ["plex"]
                   topologyKey: kubernetes.io/hostname
     defaultPodOptions:
+      priorityClassName: home-prod
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
