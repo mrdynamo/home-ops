@@ -100,6 +100,15 @@ spec:
         globalMounts:
           - path: /media
             readOnly: false
+      scripts:
+        type: configMap
+        name: *app
+        defaultMode: 0755
+        advancedMounts:
+          emby:
+            app:
+              - path: /config/scripts/recording-post-processor.sh
+                subPath: recording-post-processor.sh
       cache:
         type: emptyDir
         globalMounts:

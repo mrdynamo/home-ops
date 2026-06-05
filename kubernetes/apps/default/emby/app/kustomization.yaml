@@ -5,6 +5,10 @@ kind: Kustomization
 resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: emby
+    files:
+      - recording-post-processor.sh=./resources/recording-post-processor.sh
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
