@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-readonly LOG_FILE="/tmp/emby-post-process.log"
+LOG_FILE="/tmp/emby-post-process.log"
 readonly VIDEO_EXTENSIONS="ts mkv mp4 avi m2ts"
 readonly SIDE_EXTENSIONS="nfo"
 readonly THUMB_EXTENSIONS="png jpg jpeg webp"
@@ -87,6 +87,19 @@ extract_recording_date() {
 
 main() {
     local recording_path="${1:?Usage: $0 <recording_path>}"
+    if [[ "$recording_path" == /media/recordings/tv/* ]]; then
+        LOG_FILE="/media/recordings/tv/emby-post-process.log"
+    elif [[ "$recording_path" == /media/recordings/movies/* ]]; then
+        LOG_FILE="/media/recordings/movies/emby-post-process.log"
+    fi
+
+    # Fall back to /tmp if the target log location cannot be created/written.
+    local log_dir
+    log_dir="$(dirname "$LOG_FILE")"
+    if ! mkdir -p "$log_dir" 2>/dev/null || ! touch "$LOG_FILE" 2>/dev/null; then
+        LOG_FILE="/tmp/emby-post-process.log"
+    fi
+
     log "════════ Post-processing started ════════"
     log "Input: $recording_path"
     [[ -f "$recording_path" ]] || die "File not found: $recording_path"
