@@ -75,6 +75,7 @@ spec:
       timescaledb.telemetry_level: "off" # For TimescaleDB (Tracearr)
       timescaledb.max_tuples_decompressed_per_dml_transaction: "0" # For TimescaleDB (Tracearr)
       max_locks_per_transaction: "4096" # For TimescaleDB (Tracearr) DEFAULT: 128
+      max_connections: "150" # Increase maximum connections DEFAULT: 100
 
     extensions:
 
