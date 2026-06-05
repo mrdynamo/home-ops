@@ -144,23 +144,84 @@ main() {
     if [[ $count -eq 1 ]]; then
         if [[ "$target_dir" != "$dir" ]]; then
             local single_dst="${target_dir}/$(basename "$recording_path")"
-            log "Single file — moving into season folder: $(basename "$recording_path")"
-            mv "$recording_path" "$single_dst"
+            if [[ -f "$single_dst" ]]; then
+                log "Single file collision in season folder — converting to multipart set"
 
-            local single_stem="${recording_path%.*}"
-            local single_nfo="${single_stem}.nfo"
-            if [[ -f "$single_nfo" ]] && is_sidecar "$single_nfo"; then
-                log "Single file — moving sidecar: $(basename "$single_nfo")"
-                mv "$single_nfo" "${target_dir}/$(basename "$single_nfo")"
+                declare -a merge_sources=("$single_dst" "$recording_path")
+                declare -A merge_mtime=()
+                local src
+                for src in "${merge_sources[@]}"; do
+                    merge_mtime["$src"]="$(file_mtime "$src")"
+                done
+
+                mapfile -t merge_sorted < <(
+                    for src in "${merge_sources[@]}"; do
+                        printf '%s\t%s\n' "${merge_mtime[$src]}" "$src"
+                    done | sort -n | cut -f2
+                )
+
+                declare -a merge_phase2=()
+                local i
+                for i in "${!merge_sorted[@]}"; do
+                    src="${merge_sorted[$i]}"
+                    local src_ext="${src##*.}"
+                    local part=$(( i + 1 ))
+                    local tmp_path="/tmp/.emby_pp_merge_${$}_${i}.${src_ext}"
+                    local final_path="${target_dir}/${final_base}-part${part}.${src_ext}"
+
+                    log "  Merge Phase1: $(basename "$src") -> $(basename "$tmp_path")"
+                    mv "$src" "$tmp_path"
+                    merge_phase2+=("${tmp_path}|${final_path}")
+
+                    local src_stem="${src%.*}"
+                    local src_nfo="${src_stem}.nfo"
+                    if [[ -f "$src_nfo" ]] && is_sidecar "$src_nfo"; then
+                        local tmp_nfo="/tmp/.emby_pp_merge_${$}_${i}.nfo"
+                        local final_nfo="${target_dir}/${final_base}-part${part}.nfo"
+                        log "  Merge Phase1: $(basename "$src_nfo") -> $(basename "$tmp_nfo")"
+                        mv "$src_nfo" "$tmp_nfo"
+                        merge_phase2+=("${tmp_nfo}|${final_nfo}")
+                    fi
+
+                    local thumb
+                    for thumb in "${src_stem}"-thumb.*; do
+                        [[ -f "$thumb" ]] || continue
+                        is_thumb "$thumb" || continue
+                        local thumb_ext="${thumb##*.}"
+                        local tmp_thumb="/tmp/.emby_pp_merge_${$}_${i}_thumb.${thumb_ext}"
+                        local final_thumb="${target_dir}/${final_base}-part${part}-thumb.${thumb_ext}"
+                        log "  Merge Phase1: $(basename "$thumb") -> $(basename "$tmp_thumb")"
+                        mv "$thumb" "$tmp_thumb"
+                        merge_phase2+=("${tmp_thumb}|${final_thumb}")
+                    done
+                done
+
+                local pair
+                for pair in "${merge_phase2[@]}"; do
+                    local tmp_path="${pair%%|*}"
+                    local final_path="${pair##*|}"
+                    log "  Merge Phase2: $(basename "$tmp_path") -> $(basename "$final_path")"
+                    mv "$tmp_path" "$final_path"
+                done
+            else
+                log "Single file — moving into season folder: $(basename "$recording_path")"
+                mv "$recording_path" "$single_dst"
+
+                local single_stem="${recording_path%.*}"
+                local single_nfo="${single_stem}.nfo"
+                if [[ -f "$single_nfo" ]] && is_sidecar "$single_nfo"; then
+                    log "Single file — moving sidecar: $(basename "$single_nfo")"
+                    mv "$single_nfo" "${target_dir}/$(basename "$single_nfo")"
+                fi
+
+                local thumb
+                for thumb in "${single_stem}"-thumb.*; do
+                    [[ -f "$thumb" ]] || continue
+                    is_thumb "$thumb" || continue
+                    log "Single file — moving thumb: $(basename "$thumb")"
+                    mv "$thumb" "${target_dir}/$(basename "$thumb")"
+                done
             fi
-
-            local thumb
-            for thumb in "${single_stem}"-thumb.*; do
-                [[ -f "$thumb" ]] || continue
-                is_thumb "$thumb" || continue
-                log "Single file — moving thumb: $(basename "$thumb")"
-                mv "$thumb" "${target_dir}/$(basename "$thumb")"
-            done
         else
             log "Single file — no renaming required."
         fi
