@@ -179,7 +179,40 @@ main() {
     if [[ $count -eq 1 ]]; then
         if [[ "$target_dir" != "$dir" ]]; then
             local single_dst="${target_dir}/${final_base}.${ext}"
-            if [[ -f "$single_dst" ]]; then
+            local max_existing_part=0
+            local existing_part
+            for existing_part in "${target_dir}/${final_base}-part"*."${ext}"; do
+                [[ -f "$existing_part" ]] || continue
+                if [[ "$existing_part" =~ -[Pp][Aa][Rr][Tt]([0-9]+)\.${ext}$ ]]; then
+                    local pnum="${BASH_REMATCH[1]}"
+                    (( pnum > max_existing_part )) && max_existing_part=$pnum
+                fi
+            done
+
+            # If there is already a multipart set in the target season folder,
+            # append this recording as the next part instead of moving unsuffixed.
+            if (( max_existing_part > 0 )); then
+                local next_part=$(( max_existing_part + 1 ))
+                local next_video="${target_dir}/${final_base}-part${next_part}.${ext}"
+                log "Single file — appending to existing multipart set as part${next_part}"
+                mv "$recording_path" "$next_video"
+
+                local single_stem="${recording_path%.*}"
+                local single_nfo="${single_stem}.nfo"
+                if [[ -f "$single_nfo" ]] && is_sidecar "$single_nfo"; then
+                    log "Single file — appending sidecar as part${next_part}"
+                    mv "$single_nfo" "${target_dir}/${final_base}-part${next_part}.nfo"
+                fi
+
+                local thumb
+                for thumb in "${single_stem}"-thumb.*; do
+                    [[ -f "$thumb" ]] || continue
+                    is_thumb "$thumb" || continue
+                    local thumb_ext="${thumb##*.}"
+                    log "Single file — appending thumb as part${next_part}"
+                    mv "$thumb" "${target_dir}/${final_base}-part${next_part}-thumb.${thumb_ext}"
+                done
+            elif [[ -f "$single_dst" ]]; then
                 log "Single file collision in season folder — converting to multipart set"
 
                 declare -a merge_sources=("$single_dst" "$recording_path")
