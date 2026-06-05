@@ -118,10 +118,10 @@ main() {
     dir_base="$(basename "$dir")"
 
     # For non-guide style recordings in show-root (not an existing Season folder),
-    # move files into a date-based season folder: "Season YYYY-MM-DD".
+    # move files into a year-based season folder: "Season YYYY".
     if ! [[ "$dir_base" =~ ^Season[[:space:]]+ ]]; then
         if ! is_episodic_name "$session_key" && recording_date="$(extract_recording_date "$session_key" 2>/dev/null)"; then
-            target_dir="${dir}/Season ${recording_date}"
+            target_dir="${dir}/Season ${recording_date%%-*}"
         fi
     fi
 
