@@ -13,6 +13,7 @@ set -euo pipefail
 readonly LOG_FILE="/tmp/emby-post-process.log"
 readonly VIDEO_EXTENSIONS="ts mkv mp4 avi m2ts"
 readonly SIDE_EXTENSIONS="nfo"
+readonly THUMB_EXTENSIONS="png jpg jpeg webp"
 # Max mtime gap (seconds) for files to be considered the same recording session.
 readonly MAX_AGE_DIFF=21600
 
@@ -33,26 +34,9 @@ stable_key() {
 
 canonical_base_name() {
     local session_key="$1"
+    # Preserve the full Emby base name (episode title/timestamp included) and
+    # only normalize whitespace/trailing separators before adding -partN.
     local base="$session_key"
-    local y="" m="" d="" title=""
-
-    # Extract title + timestamp if Emby included YYYY_MM_DD_HH_MM_SS.
-    if [[ "$session_key" =~ ^(.*)[[:space:]_]([0-9]{4})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})(.*)$ ]]; then
-        title="${BASH_REMATCH[1]}"
-        y="${BASH_REMATCH[2]}"
-        m="${BASH_REMATCH[3]}"
-        d="${BASH_REMATCH[4]}"
-        title=$(echo "$title" | sed -E 's/[[:space:]_-]+$//')
-
-        # For episodic content (SxxEyy / 1x02), keep title only.
-        # For daily/news/live style, append air date so each day stays unique.
-        if [[ "$title" =~ [Ss][0-9]{1,2}[Ee][0-9]{1,2} ]] || [[ "$title" =~ [0-9]{1,2}x[0-9]{1,2} ]]; then
-            base="$title"
-        else
-            base="${title} - ${y}-${m}-${d}"
-        fi
-    fi
-
     base=$(echo "$base" | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]_-]+$//')
     echo "$base"
 }
@@ -75,6 +59,32 @@ is_sidecar() {
     return 1
 }
 
+is_thumb() {
+    local ext="${1##*.}"
+    ext="${ext,,}"
+    local e
+    for e in $THUMB_EXTENSIONS; do [[ "$e" == "$ext" ]] && return 0; done
+    return 1
+}
+
+is_episodic_name() {
+    local name="$1"
+    [[ "$name" =~ [Ss][0-9]{1,2}[Ee][0-9]{1,3} ]] || [[ "$name" =~ [0-9]{1,2}x[0-9]{1,3} ]]
+}
+
+extract_recording_date() {
+    local name="$1"
+    if [[ "$name" =~ ([0-9]{4})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2}) ]]; then
+        echo "${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
+        return 0
+    fi
+    if [[ "$name" =~ ([0-9]{4})[_-]([0-9]{2})[_-]([0-9]{2}) ]]; then
+        echo "${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
+        return 0
+    fi
+    return 1
+}
+
 main() {
     local recording_path="${1:?Usage: $0 <recording_path>}"
     log "════════ Post-processing started ════════"
@@ -82,16 +92,34 @@ main() {
     [[ -f "$recording_path" ]] || die "File not found: $recording_path"
     is_video "$recording_path" || die "Not a recognised video file: $recording_path"
 
-    local dir file ext stem session_key final_base
+    local dir file ext stem session_key final_base target_dir
+    local recording_date=""
+    local dir_base
     dir="$(dirname "$recording_path")"
     file="$(basename "$recording_path")"
     ext="${file##*.}"
     stem="${file%.$ext}"
     session_key="$(stable_key "$stem")"
     final_base="$(canonical_base_name "$session_key")"
+    target_dir="$dir"
+    dir_base="$(basename "$dir")"
+
+    # For non-guide style recordings in show-root (not an existing Season folder),
+    # move files into a date-based season folder: "Season YYYY-MM-DD".
+    if ! [[ "$dir_base" =~ ^Season[[:space:]]+ ]]; then
+        if ! is_episodic_name "$session_key" && recording_date="$(extract_recording_date "$session_key" 2>/dev/null)"; then
+            target_dir="${dir}/Season ${recording_date}"
+        fi
+    fi
+
     log "Session key: \"$session_key\""
     log "Final base:  \"$final_base\""
     log "Directory:   $dir"
+    log "Target dir:  $target_dir"
+
+    if [[ "$target_dir" != "$dir" ]]; then
+        mkdir -p "$target_dir"
+    fi
 
     declare -a candidates=()
     declare -A mtime_map=()
@@ -114,7 +142,28 @@ main() {
     [[ $count -eq 0 ]] && die "No candidates found"
 
     if [[ $count -eq 1 ]]; then
-        log "Single file — no renaming required."
+        if [[ "$target_dir" != "$dir" ]]; then
+            local single_dst="${target_dir}/$(basename "$recording_path")"
+            log "Single file — moving into season folder: $(basename "$recording_path")"
+            mv "$recording_path" "$single_dst"
+
+            local single_stem="${recording_path%.*}"
+            local single_nfo="${single_stem}.nfo"
+            if [[ -f "$single_nfo" ]] && is_sidecar "$single_nfo"; then
+                log "Single file — moving sidecar: $(basename "$single_nfo")"
+                mv "$single_nfo" "${target_dir}/$(basename "$single_nfo")"
+            fi
+
+            local thumb
+            for thumb in "${single_stem}"-thumb.*; do
+                [[ -f "$thumb" ]] || continue
+                is_thumb "$thumb" || continue
+                log "Single file — moving thumb: $(basename "$thumb")"
+                mv "$thumb" "${target_dir}/$(basename "$thumb")"
+            done
+        else
+            log "Single file — no renaming required."
+        fi
         log "════════ Post-processing complete ════════"
         exit 0
     fi
@@ -158,7 +207,7 @@ main() {
         local src_ext="${src##*.}"
         local part=$(( i + 1 ))
         local final_name="${final_base}-part${part}.${src_ext}"
-        local final_path="${dir}/${final_name}"
+        local final_path="${target_dir}/${final_name}"
         local tmp_path="/tmp/.emby_pp_${$}_${i}.${src_ext}"
         log "  Phase1: $(basename "$src") -> $(basename "$tmp_path")"
         mv "$src" "$tmp_path"
@@ -168,12 +217,24 @@ main() {
         local src_stem="${src%.*}"
         local src_nfo="${src_stem}.nfo"
         if [[ -f "$src_nfo" ]] && is_sidecar "$src_nfo"; then
-            local final_nfo="${dir}/${final_base}-part${part}.nfo"
+            local final_nfo="${target_dir}/${final_base}-part${part}.nfo"
             local tmp_nfo="/tmp/.emby_pp_${$}_${i}.nfo"
             log "  Phase1: $(basename "$src_nfo") -> $(basename "$tmp_nfo")"
             mv "$src_nfo" "$tmp_nfo"
             phase2+=("${tmp_nfo}|${final_nfo}")
         fi
+
+        local thumb
+        for thumb in "${src_stem}"-thumb.*; do
+            [[ -f "$thumb" ]] || continue
+            is_thumb "$thumb" || continue
+            local thumb_ext="${thumb##*.}"
+            local tmp_thumb="/tmp/.emby_pp_${$}_${i}_thumb.${thumb_ext}"
+            local final_thumb="${target_dir}/${final_base}-part${part}-thumb.${thumb_ext}"
+            log "  Phase1: $(basename "$thumb") -> $(basename "$tmp_thumb")"
+            mv "$thumb" "$tmp_thumb"
+            phase2+=("${tmp_thumb}|${final_thumb}")
+        done
     done
 
     local pair
@@ -186,7 +247,7 @@ main() {
 
     log "════════ Post-processing complete ════════"
     log "Final files:"
-    for f in "${dir}/${final_base}-part"*.*; do
+    for f in "${target_dir}/${final_base}-part"*.*; do
         [[ -f "$f" ]] && log "  $(basename "$f")"
     done
 }
