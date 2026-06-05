@@ -34,9 +34,31 @@ stable_key() {
 
 canonical_base_name() {
     local session_key="$1"
-    # Preserve the full Emby base name (episode title/timestamp included) and
-    # only normalize whitespace/trailing separators before adding -partN.
     local base="$session_key"
+
+    # Normalize Emby timestamp patterns to Plex-friendly date episode style.
+    # Examples:
+    #   "Show 2026_06_05_15_00_00" -> "Show - 2026-06-05"
+    #   "MLB Baseball 2026_06_05_13_20_00 - Team A at Team B"
+    #      -> "MLB Baseball - 2026-06-05 - Team A at Team B"
+    if [[ "$session_key" =~ ^(.*)[[:space:]]([0-9]{4})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[[:space:]]*-[[:space:]]*(.+)$ ]]; then
+        local show_name="${BASH_REMATCH[1]}"
+        local y="${BASH_REMATCH[2]}"
+        local m="${BASH_REMATCH[3]}"
+        local d="${BASH_REMATCH[4]}"
+        local episode_name="${BASH_REMATCH[8]}"
+        show_name=$(echo "$show_name" | sed -E 's/[[:space:]_-]+$//')
+        episode_name=$(echo "$episode_name" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+        base="${show_name} - ${y}-${m}-${d} - ${episode_name}"
+    elif [[ "$session_key" =~ ^(.*)[[:space:]]([0-9]{4})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})[_-]([0-9]{2})$ ]]; then
+        local show_name="${BASH_REMATCH[1]}"
+        local y="${BASH_REMATCH[2]}"
+        local m="${BASH_REMATCH[3]}"
+        local d="${BASH_REMATCH[4]}"
+        show_name=$(echo "$show_name" | sed -E 's/[[:space:]_-]+$//')
+        base="${show_name} - ${y}-${m}-${d}"
+    fi
+
     base=$(echo "$base" | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]_-]+$//')
     echo "$base"
 }
@@ -156,7 +178,7 @@ main() {
 
     if [[ $count -eq 1 ]]; then
         if [[ "$target_dir" != "$dir" ]]; then
-            local single_dst="${target_dir}/$(basename "$recording_path")"
+            local single_dst="${target_dir}/${final_base}.${ext}"
             if [[ -f "$single_dst" ]]; then
                 log "Single file collision in season folder — converting to multipart set"
 
@@ -224,15 +246,16 @@ main() {
                 local single_nfo="${single_stem}.nfo"
                 if [[ -f "$single_nfo" ]] && is_sidecar "$single_nfo"; then
                     log "Single file — moving sidecar: $(basename "$single_nfo")"
-                    mv "$single_nfo" "${target_dir}/$(basename "$single_nfo")"
+                    mv "$single_nfo" "${target_dir}/${final_base}.nfo"
                 fi
 
                 local thumb
                 for thumb in "${single_stem}"-thumb.*; do
                     [[ -f "$thumb" ]] || continue
                     is_thumb "$thumb" || continue
+                    local thumb_ext="${thumb##*.}"
                     log "Single file — moving thumb: $(basename "$thumb")"
-                    mv "$thumb" "${target_dir}/$(basename "$thumb")"
+                    mv "$thumb" "${target_dir}/${final_base}-thumb.${thumb_ext}"
                 done
             fi
         else
