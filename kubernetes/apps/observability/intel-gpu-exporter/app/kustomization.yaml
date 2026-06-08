@@ -10,3 +10,7 @@ configMapGenerator:
   - name: intel-gpu-exporter
     files:
       - dashboard.json=./resources/dashboard.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
