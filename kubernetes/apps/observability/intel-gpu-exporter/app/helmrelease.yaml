@@ -31,11 +31,11 @@ spec:
                 enabled: true
             resources:
               requests:
-                gpu.intel.com/i915_monitoring: 1
+                gpu.intel.com/monitoring: 1
                 cpu: 10m
                 memory: 100Mi
               limits:
-                gpu.intel.com/i915_monitoring: 1
+                gpu.intel.com/monitoring: 1
                 memory: 100Mi
     service:
       app:
