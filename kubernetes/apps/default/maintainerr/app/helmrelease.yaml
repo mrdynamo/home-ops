@@ -45,17 +45,23 @@ spec:
               #API_PORT: 3002
             probes:
               liveness: &probes
-                enabled: false
+                enabled: true
                 custom: true
-                spec:
-                  httpGet:
-                    path: /ping
+                spec: &probeSpec
+                  httpGet: &probeHttpGet
+                    path: /api/health/live
                     port: *port
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                <<: *probes
+                spec:
+                  <<: *probeSpec
+                  httpGet:
+                    <<: *probeHttpGet
+                    path: /api/health/ready
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
