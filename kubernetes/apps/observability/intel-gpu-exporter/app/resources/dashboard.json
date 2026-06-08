@@ -21,12 +21,6 @@
       "version": "11.6.0"
     },
     {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
       "type": "panel",
       "id": "timeseries",
       "name": "Time series",
