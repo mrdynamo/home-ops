@@ -48,6 +48,7 @@ spec:
         serviceName: *app
         endpoints:
           - port: http
+            interval: 15s
             relabelings:
               - sourceLabels: [__meta_kubernetes_pod_node_name]
                 targetLabel: node
