@@ -6,3 +6,7 @@ resources:
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: intel-gpu-exporter
+    files:
+      - dashboard.json=./resources/dashboard.json
