@@ -19,20 +19,10 @@ spec:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager
               tag: 0.17.4@sha256:f69911b6921ca247ad19e84a04ddf2a8a14e48c602035707f2cf70683d5ad85d
-            command:
-              - uvicorn
-            args:
-              - main:app
-              - --host
-              - "0.0.0.0"
-              - --port
-              - "6100"
-              - --limit-concurrency
-              - "50"
-              - --timeout-keep-alive
-              - "30"
             env:
               TZ: America/Chicago
+              ECM_LIMIT_CONCURRENCY: "50"
+              ECM_TIMEOUT_KEEP_ALIVE: "30"
             probes:
               liveness: &probes
                 enabled: false
@@ -81,5 +71,16 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /config
+      scripts:
+        type: configMap
+        name: *app
+        defaultMode: 0755
+        advancedMounts:
+          *app :
+            app:
+              - path: /app/entrypoint.sh
+                subPath: entrypoint.sh
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
