@@ -307,6 +307,7 @@
               url: http://dispatcharr.default.svc.cluster.local:9191
               username: {{HOMEPAGE_VAR_DISPATCHARR_ADMIN_USER}}
               password: {{HOMEPAGE_VAR_DISPATCHARR_ADMIN_PASS}}
+              enableActiveStreams: true
         - Teamarr:
             href: https://teamarr.${INTERNAL_SECRET_DOMAIN}/
             description: Teamarr for Dispatcharr
