@@ -22,5 +22,12 @@
       ],
       changelogUrl: "https://github.com/spegel-org/spegel/blob/main/CHANGELOG.md",
     },
+    {
+      description: "Changelog URL for Talos",
+      matchPackageNames: [
+        "/talos/"
+      ],
+      changelogUrl: "https://github.com/siderolabs/talos/blob/main/CHANGELOG.md",
+    },
   ],
 }
