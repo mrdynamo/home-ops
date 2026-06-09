@@ -28,7 +28,7 @@ spec:
               - --port
               - "6100"
               - --limit-concurrency
-              - "100"
+              - "50"
               - --timeout-keep-alive
               - "30"
             env:
