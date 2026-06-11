@@ -21,8 +21,8 @@ spec:
               tag: 0.17.4@sha256:f69911b6921ca247ad19e84a04ddf2a8a14e48c602035707f2cf70683d5ad85d
             env:
               TZ: America/Chicago
-              ECM_LIMIT_CONCURRENCY: 50
-              ECM_TIMEOUT_KEEP_ALIVE: 30
+              ECM_LIMIT_CONCURRENCY: 25
+              ECM_TIMEOUT_KEEP_ALIVE: 15
             probes:
               liveness: &probes
                 enabled: false
