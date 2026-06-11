@@ -9,7 +9,7 @@ MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
 krew = "https://github.com/soupglasses/mise-krew"
 
 [tools]
-"python" = "3.14.5"
+"python" = "3.14.6"
 "pipx" = "1.14.0"
 "pipx:makejinja" = "2.8.2"
 "pipx:flux-local" = "8.3.0"
