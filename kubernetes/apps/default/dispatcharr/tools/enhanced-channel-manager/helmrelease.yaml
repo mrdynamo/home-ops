@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager
-              tag: 0.17.4@sha256:f69911b6921ca247ad19e84a04ddf2a8a14e48c602035707f2cf70683d5ad85d
+              tag: 0.18.0-0005-dev@sha256:12f77268576aad5c7a356e25147cb01d193810abab930d2713cad5d2d9cf75e3
             env:
               TZ: America/Chicago
               ECM_LIMIT_CONCURRENCY: 25
