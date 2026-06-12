@@ -33,7 +33,7 @@
         "docker.io/rancher/shell"
       ],
       allowedVersions: "<7.0.0",
-    }
+    },
     // {
     //   // Handle Dispatcharr tags
     //   // https://docs.renovatebot.com/modules/versioning/regex/
