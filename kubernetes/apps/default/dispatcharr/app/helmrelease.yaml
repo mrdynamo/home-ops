@@ -28,6 +28,7 @@ spec:
               # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
               # Negative values require cap_add: SYS_NICE
               UWSGI_NICE_LEVEL: -10 # uWSGI/FFmpeg/Streaming (default: 0, recommended: -5 for high priority)
+              UWSGI_RELOAD_ON_RSS: 1024 # recycle uWSGI workers before per-worker RSS growth can OOM the pod
               CELERY_NICE_LEVEL: 15 # Celery/EPG/Background tasks (default: 5, low priority)
               # Modular deployment properties
               DISPATCHARR_ENV: modular
