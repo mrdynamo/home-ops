@@ -21,7 +21,11 @@ _ollama_model_info: &ollama_model_info
 
 _minimax_litellm_params: &minimax_litellm_params
   api_base: https://api.minimax.io/anthropic
-  api_key: os.environ/MINIMAX_PLAN_API_KEY
+  api_key: &minimax_api_key os.environ/MINIMAX_PLAN_API_KEY
+
+_minimax_openai_litellm_params: &minimax_openai_litellm_params
+  api_base: https://api.minimax.io/v1
+  api_key: *minimax_api_key
 
 _minimax_model_info: &minimax_model_info
   litellm_provider: minimax
@@ -208,11 +212,12 @@ model_list:
   #########################
   # Minimax API Models    #
   #########################
+  # Anthropic-compatible path for clients that use /v1/messages semantics.
   - model_name: minimax/MiniMax-M2.7
     litellm_params:
       <<: *minimax_litellm_params
       model: minimax/MiniMax-M2.7
-    model_info:
+    model_info: &minimax-m27_model_info
       <<: *minimax_model_info
       input_cost_per_token: 0.0000003
       output_cost_per_token: 0.0000012
@@ -226,6 +231,13 @@ model_list:
       supports_vision: false
       supports_prompt_caching: true
       supports_computer_use: false
+
+  # OpenAI-compatible path for clients like Open-WebUI and editor integrations.
+  - model_name: minimax/MiniMax-M2.7-openai
+    litellm_params:
+      <<: *minimax_openai_litellm_params
+      model: minimax/MiniMax-M2.7
+    model_info: *minimax-m27_model_info
 
 
 #########################
