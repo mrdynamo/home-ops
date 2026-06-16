@@ -34,17 +34,17 @@
       ],
       allowedVersions: "<7.0.0",
     },
-    {
-      // Handle Dispatcharr tags
-      // https://docs.renovatebot.com/modules/versioning/regex/
-      matchDatasources: [
-        "docker"
-      ],
-      matchPackageNames: [
-        "ghcr.io/dispatcharr/dispatcharr"
-      ],
-      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
-    },
+    // {
+    //   // Handle Dispatcharr tags
+    //   // https://docs.renovatebot.com/modules/versioning/regex/
+    //   matchDatasources: [
+    //     "docker"
+    //   ],
+    //   matchPackageNames: [
+    //     "ghcr.io/dispatcharr/dispatcharr"
+    //   ],
+    //   versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
+    // },
     // {
     //   // Handle EnhancedChannelManager tags
     //   // https://docs.renovatebot.com/modules/versioning/regex/
