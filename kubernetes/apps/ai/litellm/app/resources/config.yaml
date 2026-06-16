@@ -21,7 +21,7 @@ _ollama_model_info: &ollama_model_info
 
 _minimax_litellm_params: &minimax_litellm_params
   api_base: https://api.minimax.io/anthropic
-  api_key: os.environ/MINIMAX_API_KEY
+  api_key: os.environ/MINIMAX_PLAN_API_KEY
 
 _minimax_model_info: &minimax_model_info
   litellm_provider: minimax
