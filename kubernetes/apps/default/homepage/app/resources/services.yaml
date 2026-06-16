@@ -232,7 +232,7 @@
     - Konflate:
         href: https://konflate.${SECRET_DOMAIN}/
         description: Kubernetes manifest management
-        icon: konflate.svg
+        icon: https://raw.githubusercontent.com/home-operations/konflate/refs/heads/main/internal/web/public/favicon.svg
         namespace: flux-system
         app: konflate
     - Gatus:
