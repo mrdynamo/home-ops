@@ -119,21 +119,21 @@ spec:
             args:
               - --config=/app/config.yaml
             env:
-              # General App Settings
+              ## General App Settings
               # LITELLM_LOG: DEBUG
               LITELLM_MODE: PRODUCTION
               PYTHONPATH: /opt/pillow
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
               UI_USERNAME: admin
-              # SSO Settings
+              ## SSO Settings
               GENERIC_AUTHORIZATION_ENDPOINT: "https://auth.${SECRET_DOMAIN}/application/o/authorize/"
               GENERIC_TOKEN_ENDPOINT: "https://auth.${SECRET_DOMAIN}/application/o/token/"
               GENERIC_USERINFO_ENDPOINT: "https://auth.${SECRET_DOMAIN}/application/o/userinfo/"
               GENERIC_SCOPE: "openid profile email litellm-role"
               GENERIC_USER_ROLE_ATTRIBUTE: "role"
               PROXY_BASE_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
-              # Postgres Settings
+              ## Postgres Settings
               DATABASE_URL: "postgresql://litellm@pooler-rw.database.svc:5432/litellm?sslmode=require&sslidentity=/var/run/secrets/prisma/client-identity.p12&sslcert=/var/run/secrets/root-ca/ca.crt"
               REDIS_HOST: "{{ .Release.Name }}-dragonfly.ai.svc"
               REDIS_PORT: "6379"
