@@ -229,6 +229,12 @@
         icon: renovate.svg
         namespace: renovate
         app: renovate-operator
+    - Konflate:
+        href: https://konflate.${SECRET_DOMAIN}/
+        description: Kubernetes manifest management
+        icon: konflate.svg
+        namespace: flux-system
+        app: konflate
     - Gatus:
         href: https://status.${SECRET_DOMAIN}/
         description: Uptime monitoring dashboard
