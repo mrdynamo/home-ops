@@ -80,9 +80,9 @@ spec:
             resources:
               requests:
                 cpu: 508m
-                memory: 6144Mi
+                memory: 5120Mi
               limits:
-                memory: 6144Mi
+                memory: 5120Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
@@ -98,9 +98,9 @@ spec:
             resources:
               requests:
                 cpu: 129m
-                memory: 1024Mi
+                memory: 2048Mi
               limits:
-                memory: 1024Mi
+                memory: 2048Mi
       backup:
         type: cronjob
         cronjob:
