@@ -20,7 +20,7 @@ spec:
       pluginsDir: /build/plugins
       enableHelm: false
       watchPlugins: false
-      # unsafeUseServiceAccountToken: true
+      unsafeUseServiceAccountToken: true
       oidc:
         externalSecret:
           enabled: true
