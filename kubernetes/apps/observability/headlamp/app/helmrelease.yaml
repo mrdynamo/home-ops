@@ -22,11 +22,11 @@ spec:
       watchPlugins: false
       unsafeUseServiceAccountToken: true
       oidc:
-          externalSecret:
-            enabled: true
-            name: headlamp-secret
-          issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
-          scopes: "openid,profile,email"
+        externalSecret:
+          enabled: true
+          name: headlamp-secret
+        issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
+        scopes: "openid,profile,email"
     fullnameOverride: *app
     httpRoute:
       enabled: true
