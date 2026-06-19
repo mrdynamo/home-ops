@@ -20,12 +20,12 @@ spec:
       pluginsDir: /build/plugins
       enableHelm: false
       watchPlugins: false
-      unsafeUseServiceAccountToken: true
+      # unsafeUseServiceAccountToken: true
       oidc:
         externalSecret:
           enabled: true
           name: headlamp-secret
-        issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration"
+        issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
         scopes: "openid,profile,email"
     fullnameOverride: *app
     httpRoute:
