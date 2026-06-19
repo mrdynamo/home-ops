@@ -17,6 +17,7 @@
 | invoiceninja             | 1 Gi  | Wednesday @ 12:00            | `0 12 * * 3`    | `0 17 * * 3`       | `0 18 * * 3`       |
 | karakeep                 | 1 Gi  | Friday @ 10:00               | `0 10 * * 5`    | `0 15 * * 5`       | `0 16 * * 5`       |
 | kometa                   | 6 Gi  | Thursday @ 05:00             | `0 5 * * 4`     | `0 10 * * 4`       | `0 11 * * 4`       |
+| konflate                 | 1 Gi  | Thursday @ 07:00             | `0 7 * * 4`     | `0 12 * * 4`       | `0 13 * * 4`       |
 | lubelogger               | 1 Gi  | Monday @ 13:00               | `0 13 * * 1`    | `0 18 * * 1`       | `0 19 * * 1`       |
 | maintainerr              | 1 Gi  | Tuesday @ 08:00              | `0 8 * * 2`     | `0 13 * * 2`       | `0 14 * * 2`       |
 | mealie                   | 1 Gi  | Thursday @ 06:00             | `0 6 * * 4`     | `0 11 * * 4`       | `0 12 * * 4`       |

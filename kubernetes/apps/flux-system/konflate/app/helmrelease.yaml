@@ -31,6 +31,9 @@ spec:
     monitoring:
       serviceMonitor:
         enabled: true
+    persistence:
+      enabled: true
+      existingClaim: "{{ .Release.Name }}"
     resources:
       requests:
         cpu: 50m

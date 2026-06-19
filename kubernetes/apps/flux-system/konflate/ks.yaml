@@ -9,9 +9,20 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+  components:
+    - ../../../../components/volsync
+  dependsOn:
+    - name: longhorn
+      namespace: storage
+    - name: volsync
+      namespace: storage
   interval: 1h
   path: ./kubernetes/apps/flux-system/konflate/app
   postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 1Gi
+      VOLSYNC_SCHEDULE: 0 12 * * 4
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
