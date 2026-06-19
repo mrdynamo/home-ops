@@ -21,11 +21,14 @@ spec:
       enableHelm: false
       watchPlugins: false
       unsafeUseServiceAccountToken: true
-      oidc:
-        externalSecret:
-          enabled: true
-          name: headlamp-secret
-        scopes: "openid,profile,email"
+      # Utilize authentik outpost, as native OIDC requires configuring k8s API server with OIDC.
+      # Will configure k8s OIDC in the future.
+      # https://github.com/kubernetes-sigs/headlamp/issues/  4539
+      # oidc:
+      #   externalSecret:
+      #     enabled: true
+      #     name: headlamp-secret
+      #   scopes: "openid,profile,email"
     fullnameOverride: *app
     httpRoute:
       enabled: true
@@ -37,9 +40,9 @@ spec:
           sectionName: https
       rules:
         - backendRefs:
-            - name: *app
-              namespace: observability
-              port: 4466
+            - name: authentik-server
+              namespace: security
+              port: 80
     initContainers:
       - # Install Flux plugin
         image: ghcr.io/headlamp-k8s/headlamp-plugin-flux:v0.6.0@sha256:055377b9011dcc73235e8969c488ecd92af5cb70aa5d5df0f66c1cea667fdccb
