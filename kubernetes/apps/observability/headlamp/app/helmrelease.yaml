@@ -22,18 +22,11 @@ spec:
       watchPlugins: false
       unsafeUseServiceAccountToken: true
       oidc:
-        clientID:
-          valueFrom:
-            secretKeyRef:
-              name: &secretRef headlamp-secret
-              key: OIDC_CLIENT_ID
-        clientSecret:
-          valueFrom:
-            secretKeyRef:
-              name: *secretRef
-              key: OIDC_CLIENT_SECRET
-        issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
-        scopes: "openid,profile,email"
+          externalSecret:
+            enabled: true
+            name: headlamp-secret
+          issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
+          scopes: "openid,profile,email"
     fullnameOverride: *app
     httpRoute:
       enabled: true
@@ -55,10 +48,10 @@ spec:
           - /bin/sh
           - -c
           - mkdir -p /build/plugins && cp -r /plugins/* /build/plugins/
-        name: headlamp-plugins
+        name: &plugins headlamp-plugins
         volumeMounts:
           - mountPath: /build/plugins
-            name: headlamp-plugins
+            name: *plugins
     podAnnotations:
       reloader.stakater.com/auto: "true"
     service:
@@ -66,8 +59,8 @@ spec:
     serviceAccount:
       create: true
     volumes:
-      - name: headlamp-plugins
+      - name: *plugins
         emptyDir: {}
     volumeMounts:
       - mountPath: /build/plugins
-        name: headlamp-plugins
+        name: *plugins
