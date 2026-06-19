@@ -7,7 +7,6 @@ spec:
   from:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      name: headlamp
       namespace: observability
   to:
     - group: ""
