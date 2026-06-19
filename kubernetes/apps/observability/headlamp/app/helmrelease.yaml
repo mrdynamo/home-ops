@@ -25,7 +25,6 @@ spec:
         externalSecret:
           enabled: true
           name: headlamp-secret
-        issuerURL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/"
         scopes: "openid,profile,email"
     fullnameOverride: *app
     httpRoute:
