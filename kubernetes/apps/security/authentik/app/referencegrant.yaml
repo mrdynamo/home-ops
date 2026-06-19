@@ -3,7 +3,6 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: headlamp-to-authentik-server
-  namespace: security
 spec:
   from:
     - group: gateway.networking.k8s.io
