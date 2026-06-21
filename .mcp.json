@@ -2,7 +2,10 @@
   "mcpServers": {
     "litellm": {
       "type": "http",
-      "url": "${ANTHROPIC_BASE_URL}/mcp"
+      "url": "${ANTHROPIC_BASE_URL}/mcp",
+      "headers": {
+        "Authorization": "Bearer ${ANTHROPIC_AUTH_TOKEN}"
+      }
     }
   }
 }
