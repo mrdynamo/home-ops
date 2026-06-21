@@ -307,7 +307,7 @@ litellm_settings:
   drop_params: true
   set_verbose: false
   mcp_aliases:
-    github: github_mcp_server
+    "github": "github_mcp_server"
 
 environment_variables: []
   # - DATABASE_URL
