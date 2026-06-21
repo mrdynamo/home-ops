@@ -23,6 +23,7 @@ spec:
               TZ: America/Chicago
               ECM_LIMIT_CONCURRENCY: 25
               ECM_TIMEOUT_KEEP_ALIVE: 15
+              MCP_HOST: http://enhanced-channel-manager.default.svc:6101
             probes:
               liveness: &probes
                 enabled: false
@@ -46,6 +47,14 @@ spec:
                 memory: 1800Mi
               limits:
                 memory: 6000Mi
+          mcp:
+            image:
+              repository: ghcr.io/motwakorb/enhancedchannelmanager-mcp
+              tag: 0.17.5@sha256:8c9b600eec251496c3063824d5f66ac2f6034b66e3d1812c38f51e60de1edf14
+            env:
+              TZ: America/Chicago
+              ECM_URL: http://enhanced-channel-manager.default.svc:6100
+              MCP_PORT: &mcp_port 6101
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -58,6 +67,8 @@ spec:
         ports:
           http:
             port: *port
+          mcp:
+            port: *mcp_port
     route:
       app:
         hostnames:
@@ -66,6 +77,10 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
