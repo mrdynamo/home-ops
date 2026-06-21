@@ -264,6 +264,18 @@ model_list:
     model_info: *minimax-m3_model_info
 
 #########################
+#      MCP Servers      #
+#########################
+mcp_servers:
+
+  github_mcp_server:
+    transport: http
+    auth_type: bearer_token
+    auth_value: os.environ/GITHUB_MCP_PAT
+    url: https://api.githubcopilot.com/mcp/
+    description: "GitHub MCP Server"
+
+#########################
 # Application Settings  #
 #########################
 general_settings:
@@ -294,6 +306,8 @@ litellm_settings:
     port: os.environ/REDIS_PORT
   drop_params: true
   set_verbose: false
+  mcp_aliases:
+    github: github_mcp_server
 
 environment_variables: []
   # - DATABASE_URL
