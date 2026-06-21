@@ -269,6 +269,7 @@ model_list:
 mcp_servers:
 
   github_mcp_server:
+    alias: github
     transport: http
     auth_type: bearer_token
     auth_value: os.environ/GITHUB_MCP_PAT
@@ -307,8 +308,6 @@ litellm_settings:
     port: os.environ/REDIS_PORT
   drop_params: true
   set_verbose: false
-  mcp_aliases:
-    "github": "github_mcp_server"
 
 environment_variables: []
   # - DATABASE_URL
