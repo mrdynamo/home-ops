@@ -275,6 +275,7 @@ mcp_servers:
     auth_value: os.environ/GITHUB_MCP_PAT
     url: https://api.githubcopilot.com/mcp/
     description: "GitHub MCP Server"
+    access_groups: [mcp-access]
 
 #########################
 # Application Settings  #
@@ -292,6 +293,7 @@ general_settings:
   supported_db_objects: [guardails, vector_stores, pass_through_endpoints, prompts]
   store_prompts_in_spend_logs: true
   use_redis_transaction_buffer: true # HA
+  enable_mcp_registry: true
 
 router_settings:
   routing_strategy: simple-shuffle
