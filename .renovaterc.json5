@@ -1,6 +1,9 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   stabilityDays: 0,
+  statusCheckNames: {
+    minimumReleaseAge: null,
+  },
   extends: [
     "config:recommended",
     "docker:enableMajor",
