@@ -277,6 +277,14 @@ mcp_servers:
     description: "GitHub MCP Server"
     access_groups: [mcp-access]
 
+  enhanced_channel_manager_mcp_server:
+    alias: ecm
+    transport: http
+    auth_type: none
+    url: os.environ/ECM_MCP_URL
+    description: "Enhanced Channel Manager MCP Server"
+    access_groups: [mcp-access]
+
 #########################
 # Application Settings  #
 #########################
