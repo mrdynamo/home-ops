@@ -45,6 +45,12 @@ spec:
             image:
               repository: ghcr.io/home-operations/gatus-sidecar
               tag: 0.3.5@sha256:aad3780968860cc4c9e8c63ed21595b1c8574a34678a6adfebe8dcb4b36f8dd2
+            securityContext:
+              runAsUser: 65532
+              runAsGroup: 65532
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
             args:
               - --auto-httproute
               - --enable-httproute
@@ -109,12 +115,9 @@ spec:
                     values:
                       - k8s-04
       hostUsers: false
-      # securityContext:
-      #   runAsNonRoot: true
-      #   runAsUser: 1000
-      #   runAsGroup: 100
-      #   fsGroup: 100
-      #   fsGroupChangePolicy: OnRootMismatch
+      securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
