@@ -63,7 +63,7 @@ jobs:
           # ai_fallback_api_key: ${{ secrets.LITELLM_API_KEY }}
           allowed_source_hosts: 'github.com,api.github.com,artifacthub.io,talos.dev,www.talos.dev'
           context_limit_mode: normal
-          tool_mode: plan_execute_once
+          tool_mode: native_loop
           tool_max_requests: '4'
           tool_planning_timeout_sec: '30'
           tool_planning_max_context_bytes: '50000'
