@@ -62,7 +62,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/core/version/
+                    path: /api/core/version/?format=json
                     port: &port 9191
                     httpHeaders:
                       - name: Accept
