@@ -29,5 +29,12 @@
       ],
       changelogUrl: "https://github.com/siderolabs/talos/blob/main/CHANGELOG.md",
     },
+    {
+      description: "Changelog URL for Kometa",
+      matchPackageNames: [
+        "/kometa/"
+      ],
+      changelogUrl: "https://github.com/Kometa-Team/Kometa/blob/master/CHANGELOG.md",
+    },
   ],
 }
