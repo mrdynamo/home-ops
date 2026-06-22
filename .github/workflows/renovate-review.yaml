@@ -58,7 +58,8 @@ jobs:
                 "ANTHROPIC_DEFAULT_OPUS_MODEL": "minimax/MiniMax-M3",
                 "ANTHROPIC_DEFAULT_HAIKU_MODEL": "minimax/MiniMax-M3",
                 "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-              }
+              },
+              "enableAllProjectMcpServers": false
             }
           github_token: ${{ steps.claude-token.outputs.token }}
           anthropic_api_key: ${{ secrets.LITELLM_API_KEY }}
