@@ -58,7 +58,7 @@ spec:
               # REDIS_SSL_KEY: /certs/redis/client.key
             probes:
               liveness: &probes
-                enabled: false
+                enabled: true
                 custom: true
                 spec:
                   httpGet:
