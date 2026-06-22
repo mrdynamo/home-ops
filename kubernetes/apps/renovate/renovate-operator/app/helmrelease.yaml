@@ -25,7 +25,7 @@ spec:
         enabled: true
         annotations:
           gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == any(401,404)"]
+            conditions: ["[STATUS] == 404"]
         hostnames:
           - "renovate-webhook.${SECRET_DOMAIN}"
         parentRefs:
