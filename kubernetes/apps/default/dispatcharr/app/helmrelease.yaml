@@ -80,9 +80,9 @@ spec:
             resources:
               requests:
                 cpu: 508m
-                memory: 5120Mi
+                memory: 4096Mi
               limits:
-                memory: 5120Mi
+                memory: 8192Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
@@ -98,7 +98,7 @@ spec:
             resources:
               requests:
                 cpu: 129m
-                memory: 2048Mi
+                memory: 1024Mi
               limits:
                 memory: 2048Mi
       backup:
