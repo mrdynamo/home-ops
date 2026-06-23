@@ -52,9 +52,16 @@ spec:
             relabelings:
               - sourceLabels: [__meta_kubernetes_pod_node_name]
                 targetLabel: node
-              # Drop per-pod labels so each (node, uuid) collapses to a single
-              # series — this exporter runs as a DaemonSet (one pod per node)
-              # and exports the same value per replica, so per-pod labels just
-              # produce duplicate series that fan out when a panel is expanded.
+            metricRelabelings:
+              # Drop per-pod/per-target labels so each (node, uuid) collapses
+              # to a single series. This exporter runs as a DaemonSet (one pod
+              # per node) and exports the same value per replica, so pod/
+              # instance/endpoint labels just produce duplicate series that
+              # fan out when a panel is expanded.
+              #
+              # Must run in metricRelabelings, not relabelings — Prometheus
+              # sets `instance` from __address__ AFTER the scrape is received
+              # and AFTER `relabelings` has run, so labeldrop in `relabelings`
+              # finds nothing to drop for it.
               - action: labeldrop
-                regex: (pod|instance)
+                regex: (pod|instance|endpoint)
