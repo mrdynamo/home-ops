@@ -52,3 +52,9 @@ spec:
             relabelings:
               - sourceLabels: [__meta_kubernetes_pod_node_name]
                 targetLabel: node
+              # Drop per-pod labels so each (node, uuid) collapses to a single
+              # series — this exporter runs as a DaemonSet (one pod per node)
+              # and exports the same value per replica, so per-pod labels just
+              # produce duplicate series that fan out when a panel is expanded.
+              - action: labeldrop
+                regex: (pod|instance)
