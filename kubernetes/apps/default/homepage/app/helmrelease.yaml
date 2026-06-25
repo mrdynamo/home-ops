@@ -46,10 +46,10 @@ spec:
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 300m
-                memory: 248Mi
+                cpu: 37m
+                memory: 220Mi
               limits:
-                memory: 248Mi
+                memory: 220Mi
     defaultPodOptions:
       automountServiceAccountToken: true
       securityContext:
