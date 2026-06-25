@@ -17,6 +17,10 @@ spec:
       kind: Volume
       expr: |-
         status.robustness != "degraded"
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      expr: |-
+        status.phase == "Cluster in healthy state"
   # maintenance:
   #   windows:
   #     - start: "0 2 * * 0"
