@@ -285,6 +285,14 @@ mcp_servers:
     description: "Enhanced Channel Manager MCP Server"
     access_groups: [mcp-access]
 
+  konflate_mcp_server:
+    alias: konflate
+    transport: http
+    auth_type: none
+    url: http://konflate.flux-system.svc:8080/mcp
+    description: "Konflate MCP Server"
+    access_groups: [mcp-access]
+
 #########################
 # Application Settings  #
 #########################
