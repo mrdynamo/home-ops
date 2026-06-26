@@ -22,7 +22,7 @@ Name Source: Stream Name
 
 Stream Index: 1
 
-Title Pattern Regex: `DIRTVISION\s\d+\s*:\s*(?<event>.+?)\s+(?<hour>\d{1,2}):(?<minute>\d{2})\s*(?<ampm>[AaPp][Mm])`
+Title Pattern Regex: `[Dd][Ii][Rr][Tt][Vv][Ii][Ss][Ii][Oo][Nn]\s\d+\s*:\s*(?<event>.+?)\s+(?<hour>\d{1,2}):(?<minute>\d{2})\s*(?<ampm>[AaPp][Mm])`
 
 Time Pattern Regex: `(?<hour>\d{1,2}):(?<minute>\d{2})\s*(?<ampm>[AaPp][Mm])`
 
