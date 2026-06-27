@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: v0.23.0
+    tag: v0.24.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:893e8438a0013dcc027a1e5a8237f4062d37738e700c4ec2795b29eb2288dc49
   url: oci://quay.io/jetstack/charts/trust-manager
