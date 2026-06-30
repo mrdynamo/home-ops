@@ -4,6 +4,8 @@
 *.decrypted~*.yaml
 /age.key
 /age.key.tpl
+/age.pq.key
+/age.pq.key.tpl
 /cloudflare-tunnel.json
 /github-deploy.key
 /github-deploy.key.tpl
