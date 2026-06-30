@@ -8,7 +8,7 @@ spec:
   decryption:
     provider: sops
     secretRef:
-      name: sops-age-pq
+      name: sops-age-pq-secret
   interval: 1h
   path: ./kubernetes/apps
   prune: true
