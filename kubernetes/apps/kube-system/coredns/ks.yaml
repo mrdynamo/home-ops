@@ -12,7 +12,7 @@ spec:
   decryption:
     provider: sops
     secretRef:
-      name: sops-age
+      name: sops-age-pq
   interval: 1h
   path: ./kubernetes/apps/kube-system/coredns/app
   postBuild:
