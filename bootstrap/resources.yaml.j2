@@ -11,10 +11,10 @@ stringData:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: sops-age
+  name: sops-age-pq-secret
   namespace: flux-system
 stringData:
-  age.agekey: op://kubernetes-connect/sops/SOPS_SECRET_KEY
+  age.agekey: op://kubernetes-connect/sops/SOPS_AGE_PQ_SECRET_KEY
 ---
 apiVersion: v1
 kind: Secret
