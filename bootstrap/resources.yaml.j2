@@ -15,11 +15,3 @@ metadata:
   namespace: flux-system
 stringData:
   age.agekey: op://kubernetes-connect/sops/SOPS_AGE_PQ_SECRET_KEY
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflare-tunnel-id-secret
-  namespace: network
-stringData:
-  CLOUDFLARE_TUNNEL_ID: op://kubernetes-connect/cloudflare/CLOUDFLARE_TUNNEL_ID
