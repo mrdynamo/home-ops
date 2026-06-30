@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: docker.io/jbrns/nexroll
-              tag: 2.0.0@sha256:797f5e26024a4bc679dc9d87550067b5a7639e511312996c5e00e7638cba8840
+              tag: 2.0.1@sha256:91906de94008d74551c6bb387c8d4de72f74128ba68f3a205de98c75c9fcc288
             env:
               TZ: America/Chicago
               NEXROLL_PORT: &port 9393
