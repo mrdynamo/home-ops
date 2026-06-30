@@ -19,8 +19,6 @@ spec:
               tag: v2.0.0@sha256:5b79a0722e454798d121b8840d614a3b0907530ac6ad2fe563ba72ab74a75f6e
             env:
               TZ: America/Chicago
-              XC_PROXY: true
-              XC_PROXY_UPSTREAM: "dispatcharr=http://dispatcharr.default.svc:9191"
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
