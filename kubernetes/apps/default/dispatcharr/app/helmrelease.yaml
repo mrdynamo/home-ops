@@ -218,6 +218,28 @@ spec:
           - backendRefs:
               - name: *app
                 port: *port
+      multiview:
+        hostnames:
+          - "multiview.${INTERNAL_SECRET_DOMAIN}"
+        parentRefs:
+          - name: internal
+            namespace: kube-system
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: 9292
+      # stream-cleanup:
+      #   hostnames:
+      #     - "{{ .Release.Name }}-stream-cleanup.${INTERNAL_SECRET_DOMAIN}"
+      #   parentRefs:
+      #     - name: internal
+      #       namespace: kube-system
+      #       sectionName: https
+      #   rules:
+      #     - backendRefs:
+      #         - name: *app
+      #           port: 9193
     serviceMonitor:
       app:
         enabled: true
