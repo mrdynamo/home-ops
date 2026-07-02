@@ -230,7 +230,7 @@ spec:
               - path:
                   type: PathPrefix
                   value: /dash
-          - backendRefs:
+            backendRefs:
               - name: *app
                 port: 9292
       # stream-cleanup:
