@@ -226,24 +226,7 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
-          # / -> 302 to /dash (gateway generates the redirect; no backend needed)
-          - matches:
-              - path:
-                  type: RegularExpression
-                  value: ^/$
-            filters:
-              - type: RequestRedirect
-                requestRedirect:
-                  path:
-                    type: ReplaceFullPath
-                    replaceFullPath: /dash
-                  statusCode: 302
-          # /dash/* passthrough to backend (no rewrite)
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /dash
-            backendRefs:
+          - backendRefs:
               - name: *app
                 port: 9292
       # stream-cleanup:
