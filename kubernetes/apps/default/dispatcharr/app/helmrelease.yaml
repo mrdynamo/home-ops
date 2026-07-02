@@ -229,7 +229,13 @@ spec:
           - matches:
               - path:
                   type: PathPrefix
-                  value: /dash
+                  value: /
+            filters:
+              - type: URLRewrite
+                urlRewrite:
+                  path:
+                    type: ReplacePrefixMatch
+                    replacePrefixMatch: /dash
             backendRefs:
               - name: *app
                 port: 9292
