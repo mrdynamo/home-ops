@@ -226,7 +226,18 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
-          - backendRefs:
+          - matches:
+              - path:
+                  type: RegularExpression
+                  value: ^/$
+            filters:
+              - type: RequestRedirect
+                requestRedirect:
+                  path:
+                    type: ReplaceFullPath
+                    replaceFullPath: /dash
+                  statusCode: 302
+            backendRefs:
               - name: *app
                 port: 9292
       # stream-cleanup:
