@@ -226,30 +226,14 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
-          # Bare root: rewrite to /dash so the dashboard HTML loads.
-          # The frontend (served at /dash) calls its API at /dash/api/*;
-          # the backend's own handler (server.py) translates that to /api/* internally,
-          # so we must pass /dash/* paths through unchanged.
-          - matches:
-              - path:
-                  type: RegularExpression
-                  value: ^/$
-            filters:
+          # Browser hits multiview.internal.dynamiclab.org/ (no /dash prefix).
+          # Everything on the multiview backend lives under /dash, so prepend it.
+          - filters:
               - type: URLRewrite
                 urlRewrite:
                   path:
-                    type: ReplaceFullPath
-                    replaceFullPath: /dash
-            backendRefs:
-              - name: *app
-                port: 9292
-          # Everything else: pass through unchanged.
-          # /dash and /dash/assets/* → served by serve_static()
-          # /dash/api/* → server.py strips /dash and routes to API handlers
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /
+                    type: ReplacePrefixMatch
+                    replacePrefixMatch: /dash
             backendRefs:
               - name: *app
                 port: 9292
