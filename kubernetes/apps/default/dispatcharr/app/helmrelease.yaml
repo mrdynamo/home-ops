@@ -228,14 +228,14 @@ spec:
         rules:
           - matches:
               - path:
-                  type: PathPrefix
-                  value: /
+                  type: RegularExpression
+                  value: ^/$
             filters:
               - type: URLRewrite
                 urlRewrite:
                   path:
-                    type: ReplacePrefixMatch
-                    replacePrefixMatch: /dash
+                    type: ReplaceFullPath
+                    replaceFullPath: /dash
             backendRefs:
               - name: *app
                 port: 9292
