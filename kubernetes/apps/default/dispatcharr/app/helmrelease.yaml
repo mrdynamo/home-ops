@@ -226,6 +226,10 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /dash
           - backendRefs:
               - name: *app
                 port: 9292
