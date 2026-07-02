@@ -226,15 +226,7 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
-          # Browser hits multiview.internal.dynamiclab.org/ (no /dash prefix).
-          # Everything on the multiview backend lives under /dash, so prepend it.
-          - filters:
-              - type: URLRewrite
-                urlRewrite:
-                  path:
-                    type: ReplacePrefixMatch
-                    replacePrefixMatch: /dash
-            backendRefs:
+          - backendRefs:
               - name: *app
                 port: 9292
       # stream-cleanup:
