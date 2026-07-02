@@ -226,16 +226,25 @@ spec:
             namespace: kube-system
             sectionName: https
         rules:
+          # API requests — strip the /dash prefix so the backend's /api/* paths match
           - matches:
               - path:
-                  type: RegularExpression
-                  value: ^/$
+                  type: PathPrefix
+                  value: /dash/api
             filters:
               - type: URLRewrite
                 urlRewrite:
                   path:
-                    type: ReplaceFullPath
-                    replaceFullPath: /dash
+                    type: ReplacePrefixMatch
+                    replacePrefixMatch: /api
+            backendRefs:
+              - name: *app
+                port: 9292
+          # Everything else (dashboard HTML, static assets under /dash/*) — pass through unchanged
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
             backendRefs:
               - name: *app
                 port: 9292
