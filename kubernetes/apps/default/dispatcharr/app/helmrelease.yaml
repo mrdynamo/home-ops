@@ -203,6 +203,9 @@ spec:
           stream-cleanup:
             appProtocol: http
             port: 9193
+          multiview:
+            appProtocol: http
+            port: 9292
     route:
       app:
         hostnames:
