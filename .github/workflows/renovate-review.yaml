@@ -46,7 +46,7 @@ jobs:
           grep -q 'minimax/MiniMax-M3' /tmp/litellm-models.json
 
       - name: Claude Code Action
-        uses: anthropics/claude-code-action@f87768c6d25f92ae6efa7175e223ef77d4cbf97f # v1
+        uses: anthropics/claude-code-action@0fe28cdb64e23015219b0e478100b7105fd7dfa1 # v1
         env:
           ANTHROPIC_BASE_URL: "http://litellm.ai.svc:4000"
         with:
