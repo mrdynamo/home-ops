@@ -50,6 +50,7 @@ spec:
               AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               PDF_OCR_COMPLETE_TAG: _paperless-gpt_ocr-complete_
               PDF_OCR_TAGGING: true
+              FAIL_TAG: _paperless-gpt_fail_
               # OCR Settings
               OCR_LIMIT_PAGES: 50
               OCR_PROCESS_MODE: image
