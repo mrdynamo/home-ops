@@ -37,11 +37,12 @@ spec:
               AUTO_GENERATE_DOCUMENT_TYPE: false
               AUTO_GENERATE_CREATED_DATE: false
               # Tagging Settings
-              AUTO_TAG: _paperless-gpt_auto_
-              AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               MANUAL_TAG: _paperless-gpt_manual_
-              PDF_OCR_TAGGING: true
+              AUTO_TAG: _paperless-gpt_auto_
+              AUTO_TAG_COMPLETE: _paperless-gpt_auto-complete_
+              AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               PDF_OCR_COMPLETE_TAG: _paperless-gpt_ocr-complete_
+              PDF_OCR_TAGGING: true
               # OCR Settings
               OCR_LIMIT_PAGES: 50
               OCR_PROCESS_MODE: image
