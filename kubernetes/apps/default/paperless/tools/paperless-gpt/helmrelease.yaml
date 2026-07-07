@@ -18,7 +18,14 @@ spec:
           app:
             image:
               repository: docker.io/icereed/paperless-gpt
-              tag: v0.25.1@sha256:c0ce6186028911101a2cfe68353f14a9dbb2653596f3f1cff94de4b6db3114ff
+              tag: v0.26.0@sha256:1210dcf072d9b3de0eb8aff3d7716c28c5d658f2c5b04f0461f16fd6d9551069
+            # v0.26.0 ships an entrypoint.sh that runs as root to adduser and
+            # chown /app before dropping to a paperless-gpt user via su-exec.
+            # That conflicts with runAsNonRoot + readOnlyRootFilesystem, so we
+            # bypass the entrypoint and run the binary directly. The Go
+            # binary does not depend on $HOME or any user-home directory.
+            command:
+              - /app/paperless-gpt
             env:
               TZ: America/Chicago
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
@@ -37,11 +44,13 @@ spec:
               AUTO_GENERATE_DOCUMENT_TYPE: false
               AUTO_GENERATE_CREATED_DATE: false
               # Tagging Settings
-              AUTO_TAG: _paperless-gpt_auto_
-              AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               MANUAL_TAG: _paperless-gpt_manual_
-              PDF_OCR_TAGGING: true
+              AUTO_TAG: _paperless-gpt_auto_
+              AUTO_TAG_COMPLETE: _paperless-gpt_auto-complete_
+              AUTO_OCR_TAG: _paperless-gpt_ocr-auto_
               PDF_OCR_COMPLETE_TAG: _paperless-gpt_ocr-complete_
+              PDF_OCR_TAGGING: true
+              FAIL_TAG: _paperless-gpt_fail_
               # OCR Settings
               OCR_LIMIT_PAGES: 50
               OCR_PROCESS_MODE: image
