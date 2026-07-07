@@ -19,6 +19,13 @@ spec:
             image:
               repository: docker.io/icereed/paperless-gpt
               tag: v0.26.0@sha256:1210dcf072d9b3de0eb8aff3d7716c28c5d658f2c5b04f0461f16fd6d9551069
+            # v0.26.0 ships an entrypoint.sh that runs as root to adduser and
+            # chown /app before dropping to a paperless-gpt user via su-exec.
+            # That conflicts with runAsNonRoot + readOnlyRootFilesystem, so we
+            # bypass the entrypoint and run the binary directly. The Go
+            # binary does not depend on $HOME or any user-home directory.
+            command:
+              - /app/paperless-gpt
             env:
               TZ: America/Chicago
               PAPERLESS_BASE_URL: http://paperless.default.svc.cluster.local:8000
