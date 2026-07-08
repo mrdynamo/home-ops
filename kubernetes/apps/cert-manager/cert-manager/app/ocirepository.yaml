@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: v1.20.3
+    tag: v1.21.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:294a761ca972ea11ae79b9219960ca13a5337a1cbb550604c151586d266159eb
   url: oci://quay.io/jetstack/charts/cert-manager
