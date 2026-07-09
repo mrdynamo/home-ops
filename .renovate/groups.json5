@@ -108,5 +108,20 @@
       },
       minimumGroupSize: 2,
     },
+    {
+      description: "Enhanced-Channel-Manager Group",
+      groupName: "enhanced-channel-manager",
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "/ghcr.io/motwakorb/enhancedchannelmanager/",
+        "/ghcr.io/motwakorb/enhancedchannelmanager-mcp/"
+      ],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    }
   ],
 }
