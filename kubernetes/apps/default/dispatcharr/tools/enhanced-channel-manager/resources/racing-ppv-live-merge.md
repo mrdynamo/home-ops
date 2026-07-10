@@ -1,5 +1,6 @@
 # PPV/LIVE ECM Merge for DIRTVision/FloRacing
 
+```yaml
 - name: 'DIRTVISION + FLORACING: PPV/LIVE EVENT stream merge'
   description: 'Generic merge for DIRTVISION PPV EVENT streams. Uses non-capturing
     group (?:) for the event prefix so group 1 captures the venue name. Supports LIVE
@@ -53,3 +54,4 @@
   match_scope_target_group: true
   match_scope_group_id: null
   allow_manual_channel_merge: false
+```
