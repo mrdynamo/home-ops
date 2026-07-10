@@ -56,12 +56,12 @@
         "ghcr.io/motwakorb/enhancedchannelmanager-mcp"
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
-      // Block the entire 0.18.x train (stable AND -dev) without re-introducing
-      // the <0.18.0 filter — that one falls back to npm semver and silently
-      // rejects every -dev build of <0.18.0, including legitimate 0.17.6-0057-dev, etc.
-      ignoreVersions: [
-        "^0\\.18\\..*$",
-      ],
+      // Block the entire 0.18.x train (stable AND -dev) using Renovate's
+      // documented negated-regex syntax. `ignoreVersions` is NOT a recognized
+      // packageRules field — the only documented mechanism to exclude
+      // versions is `allowedVersions` with the `!/.../` shape.
+      // https://docs.renovatebot.com/configuration-options/#allowedversions
+      allowedVersions: "!/^0\\.18\\..*$/",
     },
   ],
 }
