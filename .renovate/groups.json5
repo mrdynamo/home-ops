@@ -109,8 +109,8 @@
       minimumGroupSize: 2,
     },
     {
-      description: "Enhanced-Channel-Manager Group",
-      groupName: "enhanced-channel-manager",
+      description: "ECM Group",
+      groupName: "ecm",
       matchDatasources: [
         "docker"
       ],
