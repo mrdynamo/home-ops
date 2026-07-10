@@ -115,8 +115,8 @@
         "docker"
       ],
       matchPackageNames: [
-        "/ghcr.io/motwakorb/enhancedchannelmanager/",
-        "/ghcr.io/motwakorb/enhancedchannelmanager-mcp/"
+        "/enhancedchannelmanager/",
+        "/enhancedchannelmanager-mcp/"
       ],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
