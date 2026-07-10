@@ -203,3 +203,4 @@ jobs:
             - When stuck (private repo, ambiguous package, no changelog anywhere), report what you
               found and what you could not find rather than fabricating information
             - Submit exactly one `gh pr review` at the end of your analysis
+            - Any time you reference a PR #, you must link to the corresponding GitHub PR using the full URL so it doesn't auto-link incorrectly.
