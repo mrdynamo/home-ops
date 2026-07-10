@@ -52,8 +52,8 @@
         "docker"
       ],
       matchPackageNames: [
-        "ghcr.io/motwakorb/enhancedchannelmanager",
-        "ghcr.io/motwakorb/enhancedchannelmanager-mcp"
+        "motwakorb/enhancedchannelmanager",
+        "motwakorb/enhancedchannelmanager-mcp"
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
       allowedVersions: "<0.18.0",
