@@ -3,11 +3,11 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: teamarr
+  name: &app teamarr
 spec:
   chartRef:
     kind: OCIRepository
-    name: teamarr
+    name: *app
   interval: 1h
   values:
     controllers:
@@ -70,5 +70,12 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /app/data
+      backups:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/media/plex
+        globalMounts:
+          - path: /app/data/backups
+            subPath: dispatcharr/teamarr
       tmp:
         type: emptyDir
