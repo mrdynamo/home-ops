@@ -158,4 +158,4 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
-  url: "https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-view
+  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
