@@ -33,14 +33,23 @@ spec:
               - |
                 set -eu
                 mkdir -p /tmp/nginx-conf.d /tmp/nginx-html /tmp/nginx-cache /tmp/nginx-run
-                # Seed swaparr's static UI assets from the read-only image
-                # into the same dir nginx serves from.
-                cp -a /usr/share/nginx/html/. /tmp/nginx-html/
+                # Seed swaparr's static UI assets from the read-only image.
+                # Plain `cp` (no -a): the init container runs as non-root and
+                # `cp -a` would try to chown to root, which fails with
+                # "Operation not permitted". We don't need to preserve
+                # ownership — the emptyDir will be chowned to fsGroup (1000)
+                # on first mount anyway.
+                cp -r /usr/share/nginx/html/. /tmp/nginx-html/
                 # Pre-create config.json so its parent is owned by the pod
                 # fsGroup (1000) and writable by the app uid; otherwise
                 # the bash redirect in 40-generate-config.sh fails with
                 # permission denied even when the emptyDir is mode 0777.
                 : > /tmp/nginx-html/config.json
+                # Copy the swaparr nginx template into the conf.d overlay.
+                # The emptyDir at /etc/nginx/conf.d replaces the read-only
+                # image dir, so without this 40-generate-config.sh can't find
+                # its template.
+                cp /etc/nginx/conf.d/default.conf.template /tmp/nginx-conf.d/
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
