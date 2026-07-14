@@ -326,6 +326,12 @@
             icon: https://raw.githubusercontent.com/MotWakorb/enhancedchannelmanager/refs/heads/main/frontend/src/assets/ECMLogo.png
             namespace: default
             app: enhanced-channel-manager
+        - Swaparr:
+            href: https://swaparr.${INTERNAL_SECRET_DOMAIN}/
+            description: Stream switching for Dispatcharr
+            icon: https://raw.githubusercontent.com/mckenna654/swaparr/refs/heads/main/Swaparr.png
+            namespace: default
+            app: swaparr
         - Channel Identifiarr:
             href: https://channel-identifiarr.${INTERNAL_SECRET_DOMAIN}/
             description: Channel Identifiarr for Dispatcharr
