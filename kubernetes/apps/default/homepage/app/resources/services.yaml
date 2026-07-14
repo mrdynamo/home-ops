@@ -332,6 +332,12 @@
             icon: https://raw.githubusercontent.com/mckenna654/swaparr/refs/heads/main/Swaparr.png
             namespace: default
             app: swaparr
+        - EPG Matcharr:
+            href: https://epg-matcharr.${INTERNAL_SECRET_DOMAIN}/
+            description: EPG matching for Dispatcharr
+            # icon: https://raw.githubusercontent.com/bjw-s-labs/epg-matcharr/refs/heads/main/frontend/public/logo.svg
+            namespace: default
+            app: epg-matcharr
         - Channel Identifiarr:
             href: https://channel-identifiarr.${INTERNAL_SECRET_DOMAIN}/
             description: Channel Identifiarr for Dispatcharr
