@@ -12,11 +12,43 @@ spec:
   values:
     controllers:
       *app :
-        containers:
-          app:
-            image:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          # Stage every writable overlay path the swaparr / nginx-alpine
+          # entrypoint chain needs under a single shared /tmp emptyDir.
+          # The app container then bind-mounts the relevant subdirectories
+          # of that volume into their real paths via subPath.
+          #
+          # All subdirs must exist before the app container starts because
+          # subPath mounts fail with "path does not exist" otherwise. mkdir
+          # is idempotent so this is safe across restarts.
+          init-tmp:
+            image: &image
               repository: ghcr.io/mckenna654/swaparr
               tag: 1.0.5@sha256:bb8d9258f6686dd61fbb8df811c265d312abb1def52debd358696d41d49f3670
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -eu
+                mkdir -p /tmp/nginx-conf.d /tmp/nginx-html /tmp/nginx-cache /tmp/nginx-run
+                # Seed swaparr's static UI assets from the read-only image
+                # into the same dir nginx serves from.
+                cp -a /usr/share/nginx/html/. /tmp/nginx-html/
+                # Pre-create config.json so its parent is owned by the pod
+                # fsGroup (1000) and writable by the app uid; otherwise
+                # the bash redirect in 40-generate-config.sh fails with
+                # permission denied even when the emptyDir is mode 0777.
+                : > /tmp/nginx-html/config.json
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: false
+              capabilities: { drop: ["ALL"] }
+        containers:
+          app:
+            image: *image
             resources:
               requests:
                 cpu: 10m
@@ -66,3 +98,36 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+    persistence:
+      # One emptyDir backs every writable overlay path the swaparr /
+      # nginx-alpine entrypoint chain mutates at runtime. With
+      # readOnlyRootFilesystem on the app container, all of these paths
+      # have to come from a writable volume; using a single volume with
+      # subPath mounts keeps the pod spec compact and means the init
+      # container only has to stage one place.
+      #
+      #   /tmp/nginx-conf.d    → /etc/nginx/conf.d       (entrypoint scripts
+      #                                                  edit /envsubst
+      #                                                  default.conf here)
+      #   /tmp/nginx-html      → /usr/share/nginx/html   (nginx root +
+      #                                                  swaparr's
+      #                                                  config.json)
+      #   /tmp/nginx-cache     → /var/cache/nginx        (proxy / client_body
+      #                                                  / fastcgi / uwsgi /
+      #                                                  scgi temp_path)
+      #   /tmp/nginx-run       → /var/run                (nginx.pid)
+      #   /tmp                 → /tmp                    (general scratch)
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          swaparr:
+            app:
+              - path: /tmp
+              - path: /etc/nginx/conf.d
+                subPath: nginx-conf.d
+              - path: /usr/share/nginx/html
+                subPath: nginx-html
+              - path: /var/cache/nginx
+                subPath: nginx-cache
+              - path: /var/run
+                subPath: nginx-run
