@@ -121,6 +121,11 @@ spec:
         type: emptyDir
         advancedMounts:
           swaparr:
+            # The init container also needs /tmp writable so its `mkdir -p`
+            # can stage the nginx-* subdirs before the app container
+            # bind-mounts them via subPath.
+            init-tmp:
+              - path: /tmp
             app:
               - path: /tmp
               - path: /etc/nginx/conf.d
