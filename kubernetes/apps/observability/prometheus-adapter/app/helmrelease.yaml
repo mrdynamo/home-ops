@@ -18,5 +18,5 @@ spec:
           resources:
             namespaced: false
           name:
-            as: nfs_available
-          metricsQuery: max_over_time(probe_success{instance=~".+:2049"}[1m])
+            as: nfs_probe
+          metricsQuery: max_over_time(probe_success{job="nfs_probe"}[1m])

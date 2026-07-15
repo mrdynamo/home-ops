@@ -14,7 +14,10 @@ spec:
     - type: External
       external:
         metric:
-          name: ${SCALER_METRIC:=nfs_available}
+          name: ${SCALER_METRIC:=probe_success}
+          selector:
+            matchLabels:
+              job: ${SCALER_METRIC_JOB:=nfs_probe}
         target:
           type: Value
           value: "1"
