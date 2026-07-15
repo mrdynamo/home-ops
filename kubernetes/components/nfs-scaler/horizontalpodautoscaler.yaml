@@ -14,7 +14,7 @@ spec:
     - type: External
       external:
         metric:
-          name: ${SCALER_METRIC:=probe_success}
+          name: ${SCALER_METRIC_NAME:=probe_success}
           selector:
             matchLabels:
               job: ${SCALER_METRIC_JOB:=nfs_probe}
