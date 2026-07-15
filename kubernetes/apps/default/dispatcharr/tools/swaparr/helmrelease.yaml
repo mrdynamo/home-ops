@@ -76,7 +76,7 @@ spec:
               # hostname Dispatcharr's own route is exposed at, so the
               # gateway routes the browser's request to the Dispatcharr
               # service.
-              DISPATCHARR_URL: https://dispatcharr.default.svc:9191
+              DISPATCHARR_URL: http://dispatcharr.default.svc:9191
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
