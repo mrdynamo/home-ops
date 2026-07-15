@@ -66,16 +66,6 @@ spec:
                 memory: 128Mi
             env:
               NGINX_PORT: &port 8080
-              # Must be the externally-resolvable Dispatcharr hostname,
-              # not the in-cluster DNS. swaparr writes this into
-              # /usr/share/nginx/html/config.json at startup and the
-              # BROWSER reads it and calls this URL directly — so the
-              # browser's network has to be able to resolve it.
-              # `dispatcharr.default.svc` only resolves inside the cluster.
-              # `dispatcharr.${INTERNAL_SECRET_DOMAIN}` is the same
-              # hostname Dispatcharr's own route is exposed at, so the
-              # gateway routes the browser's request to the Dispatcharr
-              # service.
               DISPATCHARR_URL: http://dispatcharr.default.svc:9191
             envFrom:
               - secretRef:
