@@ -80,3 +80,11 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+    persistence:
+      backups:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/media/plex
+        globalMounts:
+          - path: /data/backups
+            subPath: tracearr
