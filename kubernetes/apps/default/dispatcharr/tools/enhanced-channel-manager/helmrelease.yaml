@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager
-              tag: 0.17.6-0101-dev@sha256:62f0b635e7995408871b337a0a0839ed14cf368681873c24695513884f7cb72d
+              tag: 0.17.6-0102-dev@sha256:c1f1eb197d9d6152706257c9d437d1bf29b00d6b3af04aded4568a6785f824bf
             env:
               TZ: America/Chicago
               ECM_LIMIT_CONCURRENCY: 25
@@ -50,7 +50,7 @@ spec:
           mcp:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager-mcp
-              tag: 0.17.6-0101-dev@sha256:97432b4deabdfa62fc11b827b07200c5b6635c524271fc880c6e7b35d95902e7
+              tag: 0.17.6-0102-dev@sha256:04dddd305c9266d1aad3061e01ff8eb35e485a0ec5a0f4a6c47b34d12fe00657
             resources:
               requests:
                 cpu: 10m
