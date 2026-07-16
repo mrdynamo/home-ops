@@ -86,5 +86,5 @@ spec:
         server: 192.168.20.21
         path: /mnt/tank/media/plex
         globalMounts:
-          - path: /data/backups
+          - path: /data/backup
             subPath: tracearr
