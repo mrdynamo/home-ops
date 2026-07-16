@@ -9,6 +9,9 @@ spec:
   instanceSelector:
     matchLabels:
       dashboards: grafana
+  datasources:
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
   json: |
     {
       "title": "CNPG Barman-Cloud",
