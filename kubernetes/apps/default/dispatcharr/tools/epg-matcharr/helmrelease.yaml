@@ -25,6 +25,7 @@ spec:
                 memory: 8192Mi
             env:
               DISPATCHARR_URL: http://dispatcharr.default.svc:9191
+              EMBY_URL: http://emby.default.svc:8096
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
