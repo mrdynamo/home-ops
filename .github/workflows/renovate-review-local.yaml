@@ -47,7 +47,7 @@ jobs:
 
       - name: Review PR with self-hosted model
         id: ai-review
-        uses: misospace/pr-reviewer-action@9e96ced346f7080b21f6e61722b04969c6d4b50a # v2
+        uses: misospace/pr-reviewer-action@071a13976b80df2d5ea0e45285bcafcdae2c8a9e # v2
         with:
           github_token: ${{ steps.claude-token.outputs.token }}
           # ai_stream: false
