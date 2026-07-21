@@ -22,5 +22,5 @@ resources:
   - ./smartctl-exporter/ks.yaml
   # - ./snmp-exporter/ks.yaml
   # - ./trivy-operator/ks.yaml
-  - ./unpoller/ks.yaml
+  # - ./unpoller/ks.yaml
   - ./victoria-logs/ks.yaml
