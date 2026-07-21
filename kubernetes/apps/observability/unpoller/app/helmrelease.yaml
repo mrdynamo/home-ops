@@ -21,7 +21,7 @@ spec:
               TZ: America/Chicago
               #UP_UNIFI_DEFAULT_ROLE: home-ops
               UP_UNIFI_DEFAULT_URL: https://192.168.5.1
-              UP_PROMETHEUS_HTTP_LISTEN: 0.0.0.0:80
+              UP_PROMETHEUS_HTTP_LISTEN: 0.0.0.0:9130
               UP_INFLUXDB_DISABLE: true
             envFrom:
               - secretRef:
@@ -33,7 +33,7 @@ spec:
                 spec:
                   httpGet:
                     path: /health
-                    port: &port 80
+                    port: &port 9130
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
