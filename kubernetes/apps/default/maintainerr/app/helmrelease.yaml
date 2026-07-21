@@ -38,7 +38,10 @@ spec:
             command:
               - /bin/sh
               - -c
-              - exec npm run --prefix /opt/app/apps/server start
+              - |
+                cd /opt/app/apps/server || exit 1
+                export npm_package_version="$(node -p "require('./package.json').version" 2>/dev/null)"
+                exec node dist/main
             env:
               TZ: America/Chicago
               UI_PORT: &port 80
