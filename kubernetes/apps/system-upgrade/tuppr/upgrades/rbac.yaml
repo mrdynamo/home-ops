@@ -1,0 +1,9 @@
+---
+# ServiceAccount for the tupppr pre-hook Job that deletes Longhorn's
+# per-node instance-manager PodDisruptionBudgets. Lives in the
+# system-upgrade namespace (via the tuppr-upgrades Flux Kustomization).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tuppr-pdb-cleaner
+  namespace: system-upgrade

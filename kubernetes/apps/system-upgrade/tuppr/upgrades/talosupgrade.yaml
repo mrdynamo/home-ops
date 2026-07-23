@@ -23,6 +23,34 @@ spec:
       kind: Cluster
       expr: |-
         status.phase == "Cluster in healthy state"
+  hooks:
+    pre:
+      # Longhorn creates a per-node PodDisruptionBudget for each instance-manager
+      # pod with minAvailable: 1. That budget blocks tupppr's drain on whichever
+      # node is targeted first in the batch (k8s-04 in this cluster), because
+      # the PDB's selector matches only that one node's pod, and evicting it
+      # would leave zero ready on the node. Delete the per-node instance-manager
+      # PDBs before the drain; longhorn-manager re-creates them after the node
+      # returns. The hook filters by name prefix so unrelated PDBs
+      # (csi-attacher, csi-provisioner) are untouched.
+      - name: longhorn-remove-instance-manager-pdbs
+        # renovate: datasource=docker depName=docker.io/rancher/kubectl
+        image: docker.io/rancher/kubectl:v1.36.2
+        serviceAccountName: tuppr-pdb-cleaner
+        command: ["sh", "-c"]
+        args:
+          - |
+            set -euo pipefail
+            echo "Listing PDBs in storage namespace:"
+            kubectl get pdb -n storage
+            echo
+            echo "Deleting Longhorn instance-manager PDBs (by name prefix):"
+            kubectl get pdb -n storage -o name | \
+              grep '^poddisruptionbudget.policy/instance-manager-' | \
+              xargs -r -n1 kubectl delete -n storage
+            echo
+            echo "Remaining PDBs:"
+            kubectl get pdb -n storage
   # maintenance:
   #   windows:
   #     - start: "0 2 * * 0"

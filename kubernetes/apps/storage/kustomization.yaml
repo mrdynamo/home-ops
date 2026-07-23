@@ -12,4 +12,5 @@ resources:
   - ./longhorn/ks.yaml
   - ./openebs/ks.yaml
   - ./snapshot-controller/ks.yaml
+  - ./tuppr-rbac/ks.yaml
   - ./volsync/ks.yaml
