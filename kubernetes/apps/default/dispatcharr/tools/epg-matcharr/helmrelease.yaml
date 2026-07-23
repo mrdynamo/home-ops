@@ -75,8 +75,6 @@ spec:
         type: nfs
         server: 192.168.20.21
         path: /mnt/tank/media/plex
-        advancedMounts:
-          channel-identifiarr:
-            app:
-              - path: /app/data/epg_guru_cache
-                subPath: dispatcharr/epg-matcharr
+        globalMounts:
+          - path: /app/data/epg_guru_cache
+            subPath: dispatcharr/epg-matcharr
