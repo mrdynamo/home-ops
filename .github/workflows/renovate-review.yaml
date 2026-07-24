@@ -13,7 +13,7 @@ jobs:
   review:
     if: github.event.pull_request.user.login == 'robot-rosey[bot]'
     name: Breaking Change Analysis
-    runs-on: home-ops-runner
+    runs-on: arc-home-ops-runner
     timeout-minutes: 15
 
     permissions:
