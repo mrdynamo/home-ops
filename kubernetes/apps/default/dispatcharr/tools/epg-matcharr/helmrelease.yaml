@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/jstevenscl/epgmatcharr
-              tag: v0.3.06@sha256:97ae105af615196c4c2daf7b2998aa153ffc436eae99b611410ce2a3fd326c10
+              tag: v0.3.07@sha256:e603a50f06bc0688631e9bb694a70896686698bf170d9a47393fe528481f677f
             resources:
               requests:
                 cpu: 10m
