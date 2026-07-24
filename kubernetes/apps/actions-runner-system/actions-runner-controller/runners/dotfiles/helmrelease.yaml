@@ -3,14 +3,14 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &name arc-home-ops-runner
+  name: &name arc-dotfiles-runner
 spec:
   chartRef:
     kind: OCIRepository
     name: gha-runner-scale-set
   interval: 1h
   values:
-    githubConfigUrl: https://github.com/mrdynamo/home-ops
+    githubConfigUrl: https://github.com/mrdynamo/dotfiles
     githubConfigSecret: arc-home-ops-runner-secret
     minRunners: 1
     maxRunners: 3
