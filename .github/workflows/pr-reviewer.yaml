@@ -1,0 +1,62 @@
+---
+name: "AI PR Reviewer"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}${{ github.event.action == 'labeled' && format('-label-{0}', github.run_id) || '' }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.user.login == 'robot-rosey[bot]'
+    name: AI PR Reviewer
+    runs-on: home-ops-runner
+    timeout-minutes: 15
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read # Required for Claude to read CI results on PRs
+
+    steps:
+      - name: Generate Claude Bot Token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: claude-token
+        with:
+          app-id: ${{ secrets.CLAUDE_BOT_APP_ID }}
+          private-key: ${{ secrets.CLAUDE_BOT_APP_PRIVATE_KEY }}
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify LiteLLM Reachability
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: |
+          set -euo pipefail
+          curl -fsS \
+            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+            http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
+          grep -q 'minimax/MiniMax-M3' /tmp/litellm-models.json
+
+      - name: Review PR
+        id: ai-review
+        uses: misospace/pr-reviewer-action@54dfb1aac20e1e410ad8f71dc3681b888500a1ec # v2
+        with:
+          github_token: ${{ steps.claude-token.outputs.token }}
+          ai_api_format: anthropic
+          # ai_max_tokens: 65536
+          ai_base_url: "http://litellm.ai.svc:4000"
+          ai_model: "minimax/MiniMax-M3"
+          ai_api_key: ${{ secrets.LITELLM_API_KEY }}
+          publish_review_comment: "true"
+          publish_mode: review_verdict
+          allow_approve: "true"
+          # system_prompt_file: .github/pr-review-prompt.md
+          # standards_file: .github/pr-review-rules.md
