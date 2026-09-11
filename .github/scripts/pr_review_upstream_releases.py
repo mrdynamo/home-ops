@@ -751,7 +751,23 @@ def main() -> int:
     targets = infer_targets(pr, files)
     findings = build_findings(targets)
     payload = {"severity": "info", "findings": findings}
-    print(json.dumps(payload, indent=2, ensure_ascii=False))
+
+    # Diagnostic output to stderr so failures are visible in CI logs.
+    sys.stderr.write(
+        f"upstream-release-notes: inferred targets for {pr.get('title','')} "
+        f"-> {len(targets)} target(s); {len(findings)} finding(s); "
+        f"{sum(len(f.get('message', '')) for f in findings)} chars of content\n"
+    )
+
+    out = json.dumps(payload, indent=2, ensure_ascii=False)
+    if not out.strip():
+        # Defensive: always emit a parsable JSON object, even with no findings.
+        out = json.dumps({"severity": "info", "findings": [
+            {"severity": "info",
+             "message": "upstream-release-notes: provider ran but produced no findings",
+             "source": "upstream-release-notes"}
+        ]})
+    print(out)
     return 0
 
 

@@ -149,6 +149,25 @@ In particular:
   evidence is genuinely missing, say "release notes for `<version>` were not
   available in the corpus" — not "blocked".
 
+## Hard rule: do not invent blocked-state hedging
+
+If the Evidence Providers section has release notes for the bumped package, those
+notes are the review's source of truth — quote them in the Breaking changes /
+New features / Security sections and cite the `source` URL the provider reports.
+
+Do NOT write variations of these phrases in any section of the review:
+
+- "fetch blocked from the reviewer environment"
+- "not retrievable from the allowlisted sources in this run"
+- "blocked from the reviewer environment" / "could not be reached"
+- "(release notes for `<X>` at tag `<Y>` were not retrievable..."
+
+These phrases indicate that you are hedging in spite of having content in the
+corpus. If the Evidence Providers section actually lacks content for a given
+package/version, write that explicitly instead ("Release notes for `<X>` at
+version `<Y>` were not available in the corpus"). Never claim a fetch was
+"blocked" when the fetch actually succeeded and produced content.
+
 ## Output Contract (must follow exactly)
 
 The tooling that consumes your response validates a strict JSON schema. Reply with **a
