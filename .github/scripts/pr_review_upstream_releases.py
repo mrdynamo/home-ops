@@ -522,6 +522,103 @@ def best_proxy_release(releases: list[dict], target: str) -> dict | None:
     return max(matches, key=lambda r: numeric_version(r.get("tag_name") or ""))
 
 
+# Vendors that publish thin GitHub release bodies pointing at docs pages
+# (e.g. authentik, bitnami, mongodb). Keyed on the docs host substring so
+# we don't fetch arbitrary URLs from arbitrary GitHub bodies.
+_DOCS_HOSTS = (
+    "docs.goauthentik.io",
+    "goauthentik.io/docs",
+    "bitnami.com/docs",
+    "docs.mongodb.com",
+    "docs.arangodb.com",
+    "docs.datadoghq.com",
+)
+
+
+def _fetch_url_text(url: str, max_bytes: int = 800_000) -> str | None:
+    """Fetch a URL with curl and return up to `max_bytes` of text, or None."""
+    try:
+        result = subprocess.run(
+            ["curl", "-fsSL", "--max-time", "20", url],
+            capture_output=True, text=True, timeout=25, check=False,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout[:max_bytes]
+
+
+def _html_to_markdownish(html: str) -> str:
+    """Coarse HTML→text conversion: strip script/style, drop tags, collapse
+    whitespace, preserve heading boundaries (heading text on its own line).
+    Good enough for changelogs; not a full markdown converter.
+    """
+    html = re.sub(r"<script.*?</script>", "", html, flags=re.DOTALL)
+    html = re.sub(r"<style.*?</style>", "", html, flags=re.DOTALL)
+    # Insert newline before block-level headings/lists so the model's
+    # section boundaries survive whitespace collapse.
+    html = re.sub(r"<(h[1-6]|li|p|ul|ol|div|br|tr)\b[^>]*>",
+                  lambda m: "\n" + m.group(0), html, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", " ", html)
+    text = (text.replace("&amp;", "&").replace("&lt;", "<")
+                 .replace("&gt;", ">").replace("&nbsp;", " ")
+                 .replace("&#39;", "'").replace("&quot;", '"'))
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n[ \t]+", "\n", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+def expand_thin_release(release: dict, version: str) -> dict | None:
+    """For a GitHub release whose body is just a link to a docs/release
+    page, fetch the docs page and return a new release-shaped dict with the
+    page content as the body. Returns None if no expansion was performed.
+
+    Triggered when:
+      - body length <= 400 chars (a real changelog is longer than this)
+      - body contains a URL whose host is in `_DOCS_HOSTS`
+    """
+    body = (release.get("body") or "").strip()
+    if len(body) > 400:
+        return None
+    # Find first URL whose host matches any known docs host.
+    url_match = None
+    for m in re.finditer(r"https?://([A-Za-z0-9._-]+)(/[^\s)]*)?", body):
+        host = m.group(1).lower()
+        if any(h in host for h in _DOCS_HOSTS):
+            url_match = m.group(0)
+            break
+    if not url_match:
+        return None
+
+    html = _fetch_url_text(url_match)
+    if not html:
+        return None
+    text = _html_to_markdownish(html)
+    if not text:
+        return None
+    # Trim to the most useful section: prefer "Breaking changes" / "Fixed in <version>"
+    # / changelog headers if present, otherwise take the first ~8000 chars.
+    useful_match = re.search(
+        r"(?:Breaking changes|What.{0,3}s new|Highlights|Fixed in\s+\S+|"
+        r"Changelog|Release notes|API changes|New features)\b.*",
+        text, flags=re.IGNORECASE | re.DOTALL,
+    )
+    excerpt = (useful_match.group(0) if useful_match else text)[:8000]
+
+    return {
+        "tag_name": release.get("tag_name", ""),
+        "html_url": url_match,
+        "body": (
+            f"Source: {url_match}\n\n"
+            f"The upstream GitHub release body was a thin pointer to the "
+            f"vendor's docs/release page. Auto-extracted excerpt below:\n\n"
+            f"{excerpt}"
+        ),
+    }
+
+
 def build_findings(targets: Iterable[Target]) -> list[dict]:
     findings: list[dict] = []
     target_list = list(targets)
@@ -577,6 +674,16 @@ def build_findings(targets: Iterable[Target]) -> list[dict]:
         body = (release.get("body") or "").strip()
         if not body:
             body = "(Release notes body is empty.)"
+
+        # Some vendored release bodies (authentik, bitnami, mongodb) point at
+        # a docs page that has the real changelog. When the body looks like a
+        # thin pointer, fetch the page and substitute a real excerpt.
+        if len(body) <= 400:
+            expanded = expand_thin_release(release, target.version)
+            if expanded is not None:
+                release = expanded
+                body = expanded["body"]
+
         if len(body) > 6000:
             body = body[:6000] + "\n\n[release notes truncated at 6000 chars]"
 
