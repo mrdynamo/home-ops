@@ -69,4 +69,4 @@ jobs:
           evidence_provider_max_output_bytes: "80000"
           # Allow direct fetches of URLs Renovate embeds in PR bodies for
           # registries beyond github.com.
-          allowed_source_hosts: "github.com,api.github.com,quay.io,docker.io,ghcr.io,gitlab.com,registry.terraform.io,artifacthub.io"
+          allowed_source_hosts: "github.com,api.github.com,quay.io,docker.io,ghcr.io,gitlab.com,registry.terraform.io,artifacthub.io,authentik.io"
