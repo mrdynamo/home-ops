@@ -58,5 +58,5 @@ jobs:
           publish_review_comment: "true"
           publish_mode: review_verdict
           allow_approve: "true"
-          # system_prompt_file: .github/pr-review-prompt.md
+          system_prompt_file: .github/pr-review-prompt.md
           # standards_file: .github/pr-review-rules.md
