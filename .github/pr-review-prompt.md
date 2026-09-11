@@ -125,3 +125,30 @@ This body must be returned as your `review_markdown` JSON key.
   when you have completed your research and are confident in your findings.
 - Ensure your review is properly formatted in markdown based on the structure above. Use
   headings, bullet points, and bold text as specified.
+
+## Output Contract (must follow exactly)
+
+The tooling that consumes your response validates a strict JSON schema. Reply with **a
+single JSON object** and nothing else (no prose before or after, no `\`\`\`json` fences).
+
+Required top-level keys, in this order:
+
+- `verdict` — string, one of `approve` or `request_changes`.
+  - `approve` when there are no blocking breaking changes and no clear violations of
+    repo standards.
+  - `request_changes` when there is at least one blocking breaking change, missing
+    required update, or unresolved risk.
+- `review_markdown` — string. The full markdown body built per the "Submitting the
+  Review" section above, including its `**Verdict**` heading and `**Sources consulted**`
+  list. Rendered into the PR review comment verbatim. Do not wrap it in a code fence
+  here — the value is the raw markdown.
+- `packages` — array of objects describing the dependency under review. Include one
+  entry per package/version pair touched by the PR. Each object has:
+  - `name` — package/chart/image name
+  - `old_version` — version before the upgrade
+  - `new_version` — version after the upgrade
+
+Do not include any other top-level keys (no `summary`, no `findings`, no `sources`,
+etc. — sources belong in the markdown body, not as a JSON sibling). The JSON
+`verdict` field is the source of truth; the in-body `**Verdict**` heading is kept
+only because it renders cleanly in GitHub.
