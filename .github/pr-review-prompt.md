@@ -126,6 +126,29 @@ This body must be returned as your `review_markdown` JSON key.
 - Ensure your review is properly formatted in markdown based on the structure above. Use
   headings, bullet points, and bold text as specified.
 
+## Authoritative Sources (read this first)
+
+When the corpus contains an **Evidence Providers** section with release notes,
+changelogs, or audit output for any of the dependencies under review, treat that
+content as **authoritative** for breaking-change, deprecation, and security
+claims. Cite it directly in the matching section of the review body.
+
+In particular:
+
+- **The upstream-release-notes provider** fetches release notes for the actual
+  package being bumped and may follow `docs.<vendor>.io` or `<vendor>.github.io`
+  pointers in the GitHub release body (e.g. authentik, bitnami, mongodb). When
+  it returns content under `# Evidence Providers`, cite its `source` link, not
+  the upstream homepage, and use its content for breaking-change/deprecation
+  claims.
+- **Linked Sources** content is auxiliary. If it contradicts an Evidence
+  Provider finding (e.g. reports a doc-fetch failure while the evidence
+  provider already has the content), defer to the evidence provider.
+- Do NOT hedge with "fetch blocked from the reviewer environment" when the
+  Evidence Providers section already contains the relevant changelog. If
+  evidence is genuinely missing, say "release notes for `<version>` were not
+  available in the corpus" — not "blocked".
+
 ## Output Contract (must follow exactly)
 
 The tooling that consumes your response validates a strict JSON schema. Reply with **a

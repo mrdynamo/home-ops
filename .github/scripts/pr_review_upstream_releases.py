@@ -527,7 +527,7 @@ def best_proxy_release(releases: list[dict], target: str) -> dict | None:
 # we don't fetch arbitrary URLs from arbitrary GitHub bodies.
 _DOCS_HOSTS = (
     "docs.goauthentik.io",
-    "goauthentik.io/docs",
+    "goauthentik.io/docs",      # marketing redirect that ends up at docs.goauthentik.io
     "bitnami.com/docs",
     "docs.mongodb.com",
     "docs.arangodb.com",
