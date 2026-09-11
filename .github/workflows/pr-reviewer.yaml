@@ -52,17 +52,17 @@ jobs:
           github_token: ${{ steps.claude-token.outputs.token }}
           ai_api_format: anthropic
           # ai_max_tokens: 65536
-          ai_base_url: "http://litellm.ai.svc:4000"
+          ai_base_url: "http://litellm.ai.svc:4000/v1"
           ai_model: "minimax/MiniMax-M3"
           ai_api_key: ${{ secrets.LITELLM_API_KEY }}
-          # action.yml defaults AI_FALLBACK_BASE_URL to ai_base_url when blank,
-          # which triggers config.sh's "AI_FALLBACK_MODEL required when
-          # AI_FALLBACK_BASE_URL is set" check. Mirror the primary inputs so
-          # the fallback is a usable self-duplicate.
-          ai_fallback_base_url: "http://litellm.ai.svc:4000"
-          ai_fallback_api_format: anthropic
-          ai_fallback_model: "minimax/MiniMax-M3"
-          ai_fallback_api_key: ${{ secrets.LITELLM_API_KEY }}
+          # # action.yml defaults AI_FALLBACK_BASE_URL to ai_base_url when blank,
+          # # which triggers config.sh's "AI_FALLBACK_MODEL required when
+          # # AI_FALLBACK_BASE_URL is set" check. Mirror the primary inputs so
+          # # the fallback is a usable self-duplicate.
+          # ai_fallback_base_url: "http://litellm.ai.svc:4000"
+          # ai_fallback_api_format: anthropic
+          # ai_fallback_model: "minimax/MiniMax-M3"
+          # ai_fallback_api_key: ${{ secrets.LITELLM_API_KEY }}
           publish_review_comment: "true"
           publish_mode: review_verdict
           allow_approve: "true"
