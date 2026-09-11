@@ -32,25 +32,29 @@ from pathlib import Path
 from typing import Iterable
 
 
-@dataclass
-class Target:
-    owner_repo_candidates: list[str]  # e.g. ["siderolabs/talos"]
-    version: str                       # e.g. "1.14.0" (no leading 'v')
+def gh_json(args: list) -> object:
+    """Run `gh api <url>` and return parsed JSON, or None on failure.
 
-    @property
-    def key(self) -> str:
-        return f"{self.owner_repo_candidates[0]}@{self.version}"
-
-
-def gh_json(args: list[str]) -> object:
-    """Run `gh api <args>` and return parsed JSON, or None on failure."""
+    `gh api` takes a single URL/path positional; query-string params on that
+    path are how you paginate / filter. We accept a mixed list of str and
+    dict, build a path with `?k=v&k=v` query appended, and use `-q` only if
+    `gh` requires explicit flagging.
+    """
+    path_parts: list[str] = []
+    qs_parts: list[str] = []
+    for arg in args:
+        if isinstance(arg, dict):
+            for k, v in arg.items():
+                qs_parts.append(f"{k}={v}")
+        else:
+            path_parts.append(str(arg))
+    path = "/".join(path_parts)
+    if qs_parts:
+        path = f"{path}?{'&'.join(qs_parts)}"
     try:
         result = subprocess.run(
-            ["gh", "api", *args],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
+            ["gh", "api", path],
+            capture_output=True, text=True, timeout=30, check=False,
         )
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return None
@@ -178,6 +182,7 @@ def infer_targets(pr: dict, files: list[dict]) -> list[Target]:
     time, we try each candidate — first GitHub release hit wins.
     """
     blobs: list[str] = [pr.get("title", ""), pr.get("body") or ""]
+    last_chart_name = ""
     for entry in files:
         patch = entry.get("patch")
         filename = entry.get("filename") or ""
@@ -194,6 +199,23 @@ def infer_targets(pr: dict, files: list[dict]) -> list[Target]:
                                                "digest:")):
                 blobs.append(line)
 
+    # Pick a chart_name hint: the trailing non-version segment after the last
+    # registry host. e.g. `ghcr.io/goauthentik/helm-charts/authentik:2026.8.2`
+    # → chart_name = "authentik".
+    title_blob = pr.get("title", "") or ""
+    for blob in (title_blob, blobs[0] if blobs else ""):
+        m = re.search(
+            r"\b(?:ghcr\.io|quay\.io|docker\.io|registry\.gitlab\.com)/"
+            r"(?P<a>[^/: \n\r\t]+)/"
+            r"(?:[^/: \n\r\t]+/)*?"
+            r"(?P<chart>[A-Za-z0-9._-]+)"
+            r"(?::v?\d|\s|$)",
+            blob,
+        )
+        if m and m.group("chart") != m.group("a"):
+            last_chart_name = m.group("chart")
+            break
+
     by_version: dict[str, list[str]] = {}
     for blob in blobs:
         version = extract_version(blob)
@@ -205,22 +227,131 @@ def infer_targets(pr: dict, files: list[dict]) -> list[Target]:
             if c not in by_version[version]:
                 by_version[version].append(c)
 
-    return [Target(owner_repo_candidates=cands, version=v)
+    return [Target(owner_repo_candidates=cands, version=v,
+                   chart_name=last_chart_name)
             for v, cands in sorted(by_version.items())]
 
 
+_TAG_PREFIXES = (
+    "", "v", "V", "version/", "release/", "chart/", "helm-",
+    "helm-chart-", "release-", "chart-v", "charts-v",
+)
+
+
+@dataclass
+class Target:
+    owner_repo_candidates: list[str]   # primary guesses from PR title/diff
+    version: str                        # e.g. "1.14.0" (no leading 'v')
+    chart_name: str = ""                # last registry path segment, used for org-sibling heuristic
+
+    @property
+    def key(self) -> str:
+        return f"{self.owner_repo_candidates[0]}@{self.version}"
+
+
+def _expand_org_candidates(owner_repo: str, chart_name: str) -> list[str]:
+    """For multi-component projects where the registry path doesn't match the
+    GH repo name (e.g. ghcr.io/goauthentik/helm-charts/authentik → upstreams
+    in `goauthentik/authentik`), list the org's repos and find ones whose
+    description mentions 'helm' or whose name matches the chart name.
+
+    Returns up to 4 chart-relevant sibling repos plus 2 recent fallbacks.
+    """
+    if "/" not in owner_repo:
+        return []
+    owner = owner_repo.split("/")[0]
+    org_data = gh_json(["orgs", owner, "repos",
+                        {"per_page": 100, "sort": "updated"}])
+    if not isinstance(org_data, list):
+        return []
+
+    chart_targets: list[str] = []
+    fallback_targets: list[str] = []
+    hint = chart_name.lower() if chart_name else ""
+    for repo in org_data:
+        name = (repo.get("name") or "").lower()
+        description = (repo.get("description") or "").lower()
+        full_name = repo.get("full_name") or ""
+        if not full_name.startswith(owner + "/"):
+            continue
+        # Skip the org's umbrella chart repo (helm-charts, etc.) — it rarely
+        # publishes release notes; the chart-specific repo or the main app
+        # repo do.
+        if name in {"helm-charts", "charts", "helm", "terraform-providers"}:
+            continue
+        # Chart-relevant: contains helm/chart in name, or matches the chart
+        # name directly.
+        if "helm" in name or "chart" in name:
+            chart_targets.append(full_name)
+            continue
+        if hint and (name == hint or name.endswith("-" + hint)
+                     or name.endswith("_" + hint)):
+            chart_targets.append(full_name)
+            continue
+        # Anything else (the main app repo, etc.) — fall back to it after the
+        # explicit picks.
+        fallback_targets.append(full_name)
+    return chart_targets[:4] + fallback_targets[:2]
+
+
 def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
-    """Try `gh api repos/{owner_repo}/releases/tags/{variant}` for several tag
-    variants and several owner/repo candidates. Returns (matched_owner_repo,
-    release_dict) or (None, None) on full miss."""
-    for owner_repo in target.owner_repo_candidates:
-        for prefix in ("v", "", "V"):
+    """Try `gh api repos/{owner_repo}/releases/tags/{variant}` for many tag
+    variants and several owner/repo candidates (including org siblings for
+    chart-bundle repos).
+
+    Returns (matched_owner_repo, release_dict) or (None, None) on full miss.
+    """
+    # Build the candidate list: explicit guesses first, then inferred org siblings.
+    primary_candidates = list(target.owner_repo_candidates)
+    expanded: list[str] = []
+    for cand in primary_candidates:
+        expanded.extend(_expand_org_candidates(cand, target.chart_name))
+    seen: set[str] = set()
+    candidates: list[str] = []
+    for cand in primary_candidates + expanded:
+        if cand not in seen:
+            seen.add(cand)
+            candidates.append(cand)
+
+    for owner_repo in candidates:
+        for prefix in _TAG_PREFIXES:
             tag = f"{prefix}{target.version}"
             data = gh_json(["repos", owner_repo, "releases", "tags", tag])
             if isinstance(data, dict) and data.get("tag_name"):
                 return owner_repo, data
-        # Also try listing releases for this candidate (handles cases where
-        # the upstream tag is named differently from Renovate's expected slug).
+        # Last-resort: list tags (some repos don't publish releases, just tags).
+        tags_data = gh_json(["repos", owner_repo, "tags", {"per_page": 30}])
+        if isinstance(tags_data, list) and tags_data:
+            target_n = numeric_version(target.version)
+            best = None
+            best_n: tuple[int, ...] = ()
+            for tag_entry in tags_data:
+                tag_name = tag_entry.get("name") or ""
+                n = numeric_version(tag_name)
+                if not n or (target_n and n > target_n):
+                    continue
+                if n >= best_n:
+                    best_n = n
+                    best = tag_entry
+            if best is not None:
+                commit = best.get("commit") or {}
+                return owner_repo, {
+                    "tag_name": best.get("name"),
+                    "html_url": (
+                        f"https://github.com/{owner_repo}/releases/tag/"
+                        f"{best.get('name')}"
+                    ),
+                    "body": (
+                        f"Tagged release `{best.get('name')}` at "
+                        f"https://github.com/{owner_repo}/commit/"
+                        f"{(commit.get('sha') or '')[:7]}.\n\n"
+                        f"No GitHub release notes body published for this tag; "
+                        f"consult the upstream changelog or compare view for "
+                        f"the full list of changes between this tag and the "
+                        f"previous one."
+                    ),
+                }
+        # Releases index — useful when tag style is wildly different.
         data = gh_json(["repos", owner_repo, "releases", {"per_page": 30}])
         if isinstance(data, list) and data:
             return owner_repo, data
