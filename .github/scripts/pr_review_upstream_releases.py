@@ -22,6 +22,7 @@ Environment:
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -237,6 +238,96 @@ _TAG_PREFIXES = (
     "helm-chart-", "release-", "chart-v", "charts-v",
 )
 
+# Charts published as OCI Helm chart artifacts by `home-operations/charts-mirror`
+# (a community project to mirror OCI charts from their original helm registries).
+# This repo uses `apps/<chart>/metadata.yaml` to declare the upstream source.
+_MIRROR_REPO = "home-operations/charts-mirror"
+
+# Some chart-only repos are umbrella repos where upstream releases are tagged
+# against the umbrella (`bitnami/charts`, `kedacore/charts`, `grafana/helm-charts`).
+# Map those to the actual upstream application repo when known. Keys are matched
+# case-insensitively against `lower()`.
+_CHART_UMBRELLAS = {
+    "grafana/helm-charts": "grafana/alloy",     # alloy → grafana/helm-charts, app is grafana/alloy
+    "kedacore/charts": "kedacore/keda",
+    "prometheus-community/helm-charts": "prometheus/prometheus",
+    "ceph/charts": "ceph/ceph-csi",
+    "rook/charts": "rook/rook",
+    "argo-cd/argo-helm-charts": "argoproj/argo-cd",
+    "jetstack/charts": None,                     # varies per chart; see per-chart overrides
+    "quay.io/jetstack/charts": None,
+}
+
+# Per-chart overrides for umbrella chart repos whose app lives in a different org.
+# Key: chart_name (from registry path). Value: upstream GitHub owner/repo.
+_CHART_OVERRIDES = {
+    "cert-manager": "cert-manager/cert-manager",
+    "trust-manager": "cert-manager/trust-manager",
+    "approver-policy": "cert-manager/approver-policy",
+}
+
+
+def _url_to_upstream_repo(registry_url: str) -> str | None:
+    """Map a Helm registry URL to a probable GitHub owner/repo.
+
+    Handles:
+      - https://kubernetes-sigs.github.io/external-dns → kubernetes-sigs/external-dns
+      - https://charts.longhorn.io                     → longhorn/longhorn
+      - https://helm.goharbor.io                       → goharbor/harbor
+      - https://rocm.github.io/k8s-device-plugin       → rocm/k8s-device-plugin
+      - https://kedacore.github.io/charts              → null (umbrella; see _CHART_UMBRELLAS)
+    """
+    if not registry_url:
+        return None
+    # `https://ORG.github.io/REPO` → `ORG/REPO`
+    m = re.match(r"https?://([A-Za-z0-9._-]+)\.github\.io/([A-Za-z0-9._-]+)",
+                 registry_url)
+    if m:
+        return f"{m.group(1)}/{m.group(2)}"
+    # `https://charts.PROJECT.io` (and similar): `ORG/REPO` is probably `ORG/ORG`.
+    m = re.match(r"https?://charts\.([A-Za-z0-9_-]+)\.io/?$", registry_url)
+    if m:
+        return f"{m.group(1)}/{m.group(1)}"
+    # `https://helm.PROJECT.io` → PROJECT/harbor or similar, vary case-by-case.
+    m = re.match(r"https?://helm\.([A-Za-z0-9_-]+)\.io/?$", registry_url)
+    if m:
+        helm_org = m.group(1)
+        return f"{helm_org}/{helm_org}"
+    return None
+
+
+def load_mirror_metadata(chart_name: str) -> dict | None:
+    """Read `apps/<chart_name>/metadata.yaml` from `home-operations/charts-mirror`.
+
+    Returns a dict like `{'registry': 'https://...', 'version': '1.22.0'}` or None.
+    """
+    if not chart_name:
+        return None
+    path = f"apps/{chart_name}/metadata.yaml"
+    encoded = gh_json([
+        "repos", _MIRROR_REPO, "contents", path + "?ref=main",
+    ])
+    # gh_json is intended for the `gh api <url>` interface, but `/contents/`
+    # responses are dicts with a base64 `content` key, not lists. Special-case.
+    if not isinstance(encoded, dict) or not encoded.get("content"):
+        return None
+    try:
+        text = base64.b64decode(encoded["content"]).decode("utf-8", errors="replace")
+    except (ValueError, TypeError):
+        return None
+    out: dict[str, str] = {}
+    for line in text.splitlines():
+        line = line.rstrip()
+        m = re.match(r"\s*registry:\s*(.+?)\s*$", line)
+        if m:
+            out["registry"] = m.group(1).strip().strip('"').strip("'")
+            continue
+        m = re.match(r"\s*version:\s*(.+?)\s*$", line)
+        if m:
+            out["version"] = m.group(1).strip().strip('"').strip("'")
+            continue
+    return out or None
+
 
 @dataclass
 class Target:
@@ -253,9 +344,12 @@ def _expand_org_candidates(owner_repo: str, chart_name: str) -> list[str]:
     """For multi-component projects where the registry path doesn't match the
     GH repo name (e.g. ghcr.io/goauthentik/helm-charts/authentik → upstreams
     in `goauthentik/authentik`), list the org's repos and find ones whose
-    description mentions 'helm' or whose name matches the chart name.
+    name matches the chart name or contains 'helm'/'chart'.
 
-    Returns up to 4 chart-relevant sibling repos plus 2 recent fallbacks.
+    Returns up to 4 chart-relevant sibling repos. Does NOT return
+    unrelated siblings — those would dilute the search with false-positive
+    matches (the `release-list proximity` fallback can pick a random sibling
+    release when the upstream publishes no tag at our target version).
     """
     if "/" not in owner_repo:
         return []
@@ -266,32 +360,26 @@ def _expand_org_candidates(owner_repo: str, chart_name: str) -> list[str]:
         return []
 
     chart_targets: list[str] = []
-    fallback_targets: list[str] = []
     hint = chart_name.lower() if chart_name else ""
     for repo in org_data:
         name = (repo.get("name") or "").lower()
-        description = (repo.get("description") or "").lower()
         full_name = repo.get("full_name") or ""
         if not full_name.startswith(owner + "/"):
             continue
-        # Skip the org's umbrella chart repo (helm-charts, etc.) — it rarely
-        # publishes release notes; the chart-specific repo or the main app
-        # repo do.
+        # Skip the org's umbrella chart repos (helm-charts, charts, helm,
+        # terraform-providers); they usually don't publish per-chart notes.
         if name in {"helm-charts", "charts", "helm", "terraform-providers"}:
             continue
-        # Chart-relevant: contains helm/chart in name, or matches the chart
-        # name directly.
-        if "helm" in name or "chart" in name:
-            chart_targets.append(full_name)
-            continue
+        # Chart-relevant: chart-specific hub repos, or a repo whose name
+        # matches the chart hint exactly.
         if hint and (name == hint or name.endswith("-" + hint)
                      or name.endswith("_" + hint)):
             chart_targets.append(full_name)
             continue
-        # Anything else (the main app repo, etc.) — fall back to it after the
-        # explicit picks.
-        fallback_targets.append(full_name)
-    return chart_targets[:4] + fallback_targets[:2]
+        # If the chart hint suggests a "Helm chart for $X" pattern, prefer
+        # repos whose name combines helm + hint, e.g. authentik → goauthentik/authentik
+        # (handled by the equality check above) or jetstack/charts (skipped).
+    return chart_targets[:4]
 
 
 def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
@@ -306,9 +394,38 @@ def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
     expanded: list[str] = []
     for cand in primary_candidates:
         expanded.extend(_expand_org_candidates(cand, target.chart_name))
+
+    # If the matched candidate is the home-operations mirror, follow the
+    # metadata.yaml link to the true upstream repo (e.g. external-dns →
+    # kubernetes-sigs/external-dns). The mirror typically publishes no
+    # per-chart release notes; the upstream does.
+    upstream_candidates: list[str] = []
+    for cand in primary_candidates + expanded:
+        if cand.lower() == _MIRROR_REPO:
+            meta = load_mirror_metadata(target.chart_name)
+            if meta:
+                upstream_repo = _url_to_upstream_repo(meta.get("registry", ""))
+                if upstream_repo and upstream_repo not in upstream_candidates:
+                    upstream_candidates.append(upstream_repo)
+
+    # Per-chart overrides: when the chart's upstream app lives in a different
+    # org (e.g. `jetstack/charts/cert-manager` → `cert-manager/cert-manager`),
+    # add the explicit upstream to the candidate list.
+    override = _CHART_OVERRIDES.get(target.chart_name.lower())
+    if override and override not in upstream_candidates:
+        upstream_candidates.append(override)
+
     seen: set[str] = set()
     candidates: list[str] = []
-    for cand in primary_candidates + expanded:
+    # Upstream candidates first — they're the source of authoritative release
+    # notes. Then primary, then org-sibling expansions. This way the mirror
+    # (which only publishes thin per-chart CalVer tags) only gets matched if
+    # the upstream is unreachable.
+    for cand in (
+        upstream_candidates
+        + primary_candidates
+        + expanded
+    ):
         if cand not in seen:
             seen.add(cand)
             candidates.append(cand)
@@ -319,10 +436,42 @@ def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
             data = gh_json(["repos", owner_repo, "releases", "tags", tag])
             if isinstance(data, dict) and data.get("tag_name"):
                 return owner_repo, data
+
+        # Release-list proximity fallback: when the tag exact-match fails
+        # (because the upstream app uses a different version scheme than
+        # the chart, e.g. chart 1.22.0 ↔ app v0.22.0), pick the release
+        # whose numeric_version is *closest* to the target. Match on the
+        # last two numeric segments (`major.minor`) so `1.22.0` finds
+        # `v0.22.0` (different major, same minor+patch).
+        target_n = numeric_version(target.version)
+        if target_n:
+            releases_list = gh_json([
+                "repos", owner_repo, "releases", {"per_page": 40}
+            ])
+            if isinstance(releases_list, list) and releases_list:
+                # Drop prereleases; prefer stable releases that share the
+                # last two numeric segments with the target. Fall back to
+                # any release whose numeric_version is numerically closest
+                # to the target.
+                def proximity_score(rel: dict) -> tuple[int, int]:
+                    n = numeric_version(rel.get("tag_name") or "")
+                    if not n:
+                        return (10**9, 10**9)
+                    if rel.get("prerelease"):
+                        return (10**9, 10**9)
+                    # Reward sharing last 2 segments with target.
+                    shared_mm = abs(n[-2] - target_n[-2]) if len(n) >= 2 and len(target_n) >= 2 else 10**9
+                    distance = sum(abs(a - b) for a, b in zip(n, target_n))
+                    return (shared_mm, distance)
+                candidates_rel = [r for r in releases_list
+                                  if proximity_score(r) != (10**9, 10**9)]
+                if candidates_rel:
+                    best = min(candidates_rel, key=proximity_score)
+                    return owner_repo, best
+
         # Last-resort: list tags (some repos don't publish releases, just tags).
         tags_data = gh_json(["repos", owner_repo, "tags", {"per_page": 30}])
         if isinstance(tags_data, list) and tags_data:
-            target_n = numeric_version(target.version)
             best = None
             best_n: tuple[int, ...] = ()
             for tag_entry in tags_data:
@@ -351,10 +500,6 @@ def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
                         f"previous one."
                     ),
                 }
-        # Releases index — useful when tag style is wildly different.
-        data = gh_json(["repos", owner_repo, "releases", {"per_page": 30}])
-        if isinstance(data, list) and data:
-            return owner_repo, data
     return None, None
 
 
