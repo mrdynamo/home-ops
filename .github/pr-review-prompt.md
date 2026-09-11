@@ -101,6 +101,8 @@ Structure the review body as follows (omit empty sections):
 - [URLs]
 ```
 
+This body must be returned as your `review_markdown` JSON key.
+
 ## Constraints
 
 - NEVER modify repository files; you are read-only
