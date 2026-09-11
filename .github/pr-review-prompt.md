@@ -84,7 +84,7 @@ Sort actionable findings into three buckets:
 Structure the review body as follows (omit empty sections):
 
 ```
-### [package]: vOLD → vNEW
+## [package]: vOLD → vNEW
 
 **Verdict**: Safe to merge | Changes required before merge
 
