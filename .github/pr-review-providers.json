@@ -1,0 +1,10 @@
+{
+  "providers": [
+    {
+      "id": "upstream-release-notes",
+      "timeout_sec": 60,
+      "max_output_bytes": 80000,
+      "command": "python3 .github/scripts/pr_review_upstream_releases.py"
+    }
+  ]
+}

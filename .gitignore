@@ -26,6 +26,8 @@ talosconfig
 .DS_Store
 Thumbs.db
 dmesg*
+.github/scripts/__pycache__/
+.github/scripts/__pycache__/*
 
 # Paperless ASN files
 /kubernetes/apps/default/paperless/app/resources/__pycache__
