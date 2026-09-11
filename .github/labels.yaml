@@ -47,3 +47,5 @@
   color: "370fb2"
 - name: hold
   color: "ee0701"
+- name: ai-review
+  color: "ffff00"
