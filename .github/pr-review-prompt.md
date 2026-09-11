@@ -13,20 +13,11 @@ This is a Flux GitOps repository managing a Kubernetes cluster. Dependencies are
     - Helm chart versions in HelmRelease CRDs
     - Custom dependencies managed via regex in YAML files
 
-## Pre-check: skip redundant re-reviews
-
-Before doing any research, check whether clanker-claude[bot] has already reviewed this PR
-(`gh pr reviews` or `gh api`). If a prior review exists, compare the package version(s)
-in the current diff against the versions mentioned in that review. If they are identical
-(i.e. Renovate just rebased without changing versions), stop immediately without posting
-a new review. Only proceed with a full review if the versions changed or new packages
-were added since the last review. Do not rehash changes that were already mentioned in the previous review.
-
 ## Workflow
 
 ### 1. Analyze
 
-Fetch PR details with `gh pr view`. Identify:
+Fetch PR details and Identify:
 
     - What is being upgraded (container image, Helm chart, tool, etc.)
     - The old and new version
@@ -90,14 +81,6 @@ Sort actionable findings into three buckets:
 
 ## Submitting the Review
 
-Submit your findings as a single GitHub PR review.
-
-**If there are breaking changes or deprecations that affect this repo**:
-Use `gh pr review --request-changes` with a structured body.
-
-**If the upgrade is safe** (no actionable findings):
-Use `gh pr review --approve` with a brief summary.
-
 Structure the review body as follows (omit empty sections):
 
 ```
@@ -133,7 +116,6 @@ Structure the review body as follows (omit empty sections):
 - If unclear, research more rather than guess
 - When stuck (private repo, ambiguous package, no changelog anywhere), report what you
   found and what you could not find rather than fabricating information
-- Submit exactly one `gh pr review` at the end of your analysis
 - Any time you reference a PR #, you must reference the corresponding GitHub PR on the
   upstream repository. This is to prevent incorrectly linking to a PR in this repository
   that has the same number but is unrelated. Use the full URL but wrap it in URL markdown.
