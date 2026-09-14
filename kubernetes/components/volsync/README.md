@@ -38,7 +38,7 @@
 | stirling-pdf             | 1 Gi  | Tuesday @ 09:00              | `0 9 * * 2`     | `0 14 * * 2`       | `0 15 * * 2`       |
 | streamflow               | 1 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
 | syncthing                | 1 Gi  | Monday @ 12:00               | `0 12 * * 1`    | `0 17 * * 1`       | `0 18 * * 1`       |
-| teamarr                  | 3 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
+| teamarr                  | 4 Gi  | Tuesday @ 10:00              | `0 10 * * 2`    | `0 15 * * 2`       | `0 16 * * 2`       |
 | tautulli                 | 4 Gi  | Friday @ 04:00               | `0 4 * * 5`     | `0 9 * * 5`        | `0 10 * * 5`       |
 | twitchpoints             | 1 Gi  | Friday @ 12:00               | `0 12 * * 5`    | `0 17 * * 5`       | `0 18 * * 5`       |
 | wizarr                   | 1 Gi  | Friday @ 08:00               | `0 8 * * 5`     | `0 13 * * 5`       | `0 14 * * 5`       |
