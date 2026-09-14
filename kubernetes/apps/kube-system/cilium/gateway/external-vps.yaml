@@ -6,7 +6,9 @@ metadata:
   name: external-vps
   annotations:
     external-dns.alpha.kubernetes.io/target: "external-vps.${SECRET_DOMAIN}"
+    external-dns.kubernetes.io/target: "external-vps.${SECRET_DOMAIN}"
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.kubernetes.io/cloudflare-proxied: "false"
     gatus.home-operations.com/endpoint: |-
       client:
         dns-resolver: tcp://1.1.1.1:53

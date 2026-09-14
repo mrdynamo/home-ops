@@ -6,6 +6,7 @@ metadata:
   name: external-cf
   annotations:
     external-dns.alpha.kubernetes.io/target: "external-cf.${SECRET_DOMAIN}"
+    external-dns.kubernetes.io/target: "external-cf.${SECRET_DOMAIN}"
     gatus.home-operations.com/endpoint: |-
       client:
         dns-resolver: tcp://1.1.1.1:53
