@@ -16,14 +16,12 @@ kind: DNSEndpoint
 metadata:
   name: external-vps-ddns
   annotations:
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.kubernetes.io/cloudflare-proxied: "false"
 spec:
   endpoints:
     - dnsName: "external-vps.${SECRET_DOMAIN}"
       recordType: CNAME
       targets: ["${VPS_DYNAMIC_DNS}"]
       providerSpecific:
-        - name: external-dns.alpha.kubernetes.io/cloudflare-proxied
-          value: "false"
         - name: external-dns.kubernetes.io/cloudflare-proxied
           value: "false"

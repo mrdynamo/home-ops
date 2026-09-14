@@ -5,7 +5,6 @@ kind: Gateway
 metadata:
   name: external-cf
   annotations:
-    external-dns.alpha.kubernetes.io/target: "external-cf.${SECRET_DOMAIN}"
     external-dns.kubernetes.io/target: "external-cf.${SECRET_DOMAIN}"
     gatus.home-operations.com/endpoint: |-
       client:
@@ -20,7 +19,6 @@ spec:
       value: "192.168.30.203"
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: "external-cf.${SECRET_DOMAIN}"
       external-dns.kubernetes.io/hostname: "external-cf.${SECRET_DOMAIN}"
   listeners:
     - name: http

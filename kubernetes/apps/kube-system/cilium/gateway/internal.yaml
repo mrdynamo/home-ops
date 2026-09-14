@@ -5,7 +5,6 @@ kind: Gateway
 metadata:
   name: internal
   annotations:
-    external-dns.alpha.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
     external-dns.kubernetes.io/target: "internal.${SECRET_DOMAIN}"
     gatus.home-operations.com/endpoint: |-
       group: internal
@@ -20,7 +19,6 @@ spec:
       value: "192.168.30.201"
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
       external-dns.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
   listeners:
     - name: http

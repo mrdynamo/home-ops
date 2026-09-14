@@ -5,9 +5,7 @@ kind: Gateway
 metadata:
   name: external-vps
   annotations:
-    external-dns.alpha.kubernetes.io/target: "external-vps.${SECRET_DOMAIN}"
     external-dns.kubernetes.io/target: "external-vps.${SECRET_DOMAIN}"
-    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
     external-dns.kubernetes.io/cloudflare-proxied: "false"
     gatus.home-operations.com/endpoint: |-
       client:
@@ -23,7 +21,6 @@ spec:
       value: "192.168.30.204"
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: "external-vps.${SECRET_DOMAIN}"
       external-dns.kubernetes.io/hostname: "external-vps.${SECRET_DOMAIN}"
   listeners:
     - name: http
