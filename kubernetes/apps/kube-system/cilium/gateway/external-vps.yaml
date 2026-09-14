@@ -22,6 +22,7 @@ spec:
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "external-vps.${SECRET_DOMAIN}"
+      external-dns.kubernetes.io/hostname: "external-vps.${SECRET_DOMAIN}"
   listeners:
     - name: http
       protocol: HTTP

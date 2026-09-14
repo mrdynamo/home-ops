@@ -20,6 +20,7 @@ spec:
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
+      external-dns.kubernetes.io/hostname: "internal.${SECRET_DOMAIN}"
   listeners:
     - name: http
       protocol: HTTP
