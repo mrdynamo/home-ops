@@ -65,3 +65,18 @@ spec:
   matchers:
     - name: alertname
       value: LonghornDiskStorageWarning
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
+apiVersion: observability.giantswarm.io/v1alpha2
+kind: Silence
+metadata:
+  name: flux-helmrepo-agones-unreachable
+spec:
+  matchers:
+    - name: alertname
+      value: FluxHelmRepositoryFailed
+    - name: namespace
+      value: shulker-system
+    - name: name
+      value: agones
+      matchType: "=~"
