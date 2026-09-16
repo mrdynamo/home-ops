@@ -10,7 +10,7 @@ krew = "https://github.com/soupglasses/mise-krew"
 
 [tools]
 "python" = "3.14.7"
-"pipx" = "1.17.2"
+"pipx" = "1.17.3"
 "pipx:makejinja" = "2.9.1"
 "aqua:budimanjojo/talhelper" = "3.1.17"
 "aqua:cilium/cilium-cli" = "0.20.0"
