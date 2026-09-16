@@ -18,7 +18,7 @@ spec:
           app:
             image: &image
               repository: ghcr.io/dispatcharr/dispatcharr
-              tag: 0.31.0-20260915184211@sha256:f9a0a92499ec3187e7f99cf96e35dc8586dd1446f553f5e825280c6297a8e59f
+              tag: 0.31.0-20260915231954@sha256:94ce2aad92c02dcedf764485f13f008e377bea37269b7ec5707daaf8b7096782
             env: &env
               TZ: America/Chicago
               PUID: 1000
