@@ -58,6 +58,7 @@ jobs:
           publish_review_comment: "true"
           publish_mode: review_verdict
           allow_approve: "true"
+          upstream_link_mode: togithub
           system_prompt_file: .github/pr-review-prompt.md
           # standards_file: .github/pr-review-rules.md
           # Pull release notes for any container/chart upgrade the PR touches.
