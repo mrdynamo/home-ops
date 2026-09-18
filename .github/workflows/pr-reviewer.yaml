@@ -47,7 +47,7 @@ jobs:
 
       - name: Review PR
         id: ai-review
-        uses: misospace/pr-reviewer-action@f1605b97871cc821302a8b4827f9058a4d6cd7cb # v2.3.3
+        uses: misospace/pr-reviewer-action@acb9476d7358801d854f9c57366bbfbef401acd5 # v2.4.0
         with:
           github_token: ${{ steps.claude-token.outputs.token }}
           ai_api_format: anthropic
