@@ -55,23 +55,17 @@
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$",
     },
-    // {
-    //   // Handle EnhancedChannelManager tags
-    //   // https://docs.renovatebot.com/modules/versioning/regex/
-    //   matchDatasources: [
-    //     "docker"
-    //   ],
-    //   matchPackageNames: [
-    //     "ghcr.io/motwakorb/enhancedchannelmanager",
-    //     "ghcr.io/motwakorb/enhancedchannelmanager-mcp"
-    //   ],
-    //   versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
-    //   // Block the entire 0.18.x train (stable AND -dev) using Renovate's
-    //   // documented negated-regex syntax. `ignoreVersions` is NOT a recognized
-    //   // packageRules field — the only documented mechanism to exclude
-    //   // versions is `allowedVersions` with the `!/.../` shape.
-    //   // https://docs.renovatebot.com/configuration-options/#allowedversions
-    //   allowedVersions: "!/^0\\.18\\..*$/",
-    // },
+    {
+      // Handle EnhancedChannelManager tags
+      // https://docs.renovatebot.com/modules/versioning/regex/
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/motwakorb/enhancedchannelmanager",
+        "ghcr.io/motwakorb/enhancedchannelmanager-mcp"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
+    },
   ],
 }
