@@ -60,10 +60,10 @@ spec:
                   - DAC_OVERRIDE
             resources:
               requests:
-                cpu: 107m
-                memory: 455Mi
+                cpu: 106m
+                memory: 810Mi
               limits:
-                memory: 855Mi
+                memory: 810Mi
         ## With Calibre HR disabled, bypass affinity so CWA/Shelfmark can schedule.
         # pod:
         #   affinity:
