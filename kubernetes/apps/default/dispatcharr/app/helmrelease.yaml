@@ -116,7 +116,7 @@ spec:
           app:
             image:
               repository: docker.io/library/postgres
-              tag: 18.6-alpine3.23@sha256:697c180dbf244d3ce4a8f4cbc0156cde840af055c1bf8b76aebe422a4822086f
+              tag: 18.6-alpine3.23@sha256:885cf05d376c7cf27afef02073e6bdac3841252537f16e244fd1c1e6a7c99fb1
             command:
               - /bin/sh
               - -ec
