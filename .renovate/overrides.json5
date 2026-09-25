@@ -67,5 +67,16 @@
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>[0-9A-Za-z.-]+)$",
     },
+    {
+      // Handle Tracearr (Dispatcharr fork) tags
+      // https://docs.renovatebot.com/modules/versioning/regex/
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/d4rk-4lchemy/distracearr"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(-r(?<build>\\d+))?$",
+    },
   ],
 }

@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/connorgallopo/tracearr
-              tag: 2.5.0@sha256:8e52d9b65ca22d136b51668750f681d1b22d229e9b6f9a2c1a4dcf14eb758202
+              repository: ghcr.io/d4rk-4lchemy/distracearr
+              tag: 2.5.0-r1@sha256:0a65d105ae9577e952edeb3aa6d93e66601632047c312d67ac4dee1df53de0db
             env:
               TZ: America/Chicago
               PORT: &port 3000
