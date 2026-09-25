@@ -50,7 +50,7 @@ spec:
               ## Storage Configuration
               STORAGE_ENABLED: true
               STORAGE_PROVIDER: local
-              STORAGE_LOCAL_BASEPATH: ./storage
+              STORAGE_LOCAL_BASEPATH: /configs/documents
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -95,13 +95,6 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /configs
-      documents:
-        type: nfs
-        server: 192.168.20.21
-        path: /mnt/tank/services/stirling-pdf
-        globalMounts:
-          - path: /storage
-            subPath: documents
       tmp:
         type: emptyDir
         globalMounts:
