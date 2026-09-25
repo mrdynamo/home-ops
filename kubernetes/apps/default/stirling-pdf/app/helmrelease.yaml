@@ -37,7 +37,7 @@ spec:
               SECURITY_ENABLE_LOGIN: true
               SYSTEM_GOOGLEVISIBILITY: false
               SYSTEM_SHOW_UPDATE: false
-              # SSO Configuration
+              ## SSO Configuration
               # https://github.com/Stirling-Tools/Stirling-PDF/issues/6078
               SECURITY_OAUTH2_ENABLED: true
               SECURITY_OAUTH2_PROVIDER: authentik
@@ -47,6 +47,10 @@ spec:
               SECURITY_OAUTH2_AUTOCREATEUSER: true
               SECURITY_OAUTH2_BLOCKREGISTRATION: false
               LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_OAUTH2: DEBUG
+              ## Storage Configuration
+              STORAGE_ENABLED: true
+              STORAGE_PROVIDER: local
+              STORAGE_LOCAL_BASEPATH: ./storage
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -91,6 +95,12 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /configs
+      documents:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/services/stirling-pdf
+        globalMounts:
+          - path: /storage
       tmp:
         type: emptyDir
         globalMounts:
