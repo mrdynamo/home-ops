@@ -101,6 +101,7 @@ spec:
         path: /mnt/tank/services/stirling-pdf
         globalMounts:
           - path: /storage
+            subPath: documents
       tmp:
         type: emptyDir
         globalMounts:
