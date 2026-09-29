@@ -165,10 +165,10 @@ spec:
                   failureThreshold: 30
             resources:
               requests:
-                cpu: 791m
-                memory: 1588Mi
+                cpu: 24m
+                memory: 1410Mi
               limits:
-                memory: 1588Mi
+                memory: 1410Mi
     service:
       app:
         ports:
