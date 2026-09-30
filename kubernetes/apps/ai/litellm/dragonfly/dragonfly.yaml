@@ -15,8 +15,6 @@ spec:
     - --lock_on_hashtags
     - --default_lua_flags=allow-undeclared-keys
 
-  networkPolicyEnabled: false
-
   resources:
     requests:
       cpu: 100m
