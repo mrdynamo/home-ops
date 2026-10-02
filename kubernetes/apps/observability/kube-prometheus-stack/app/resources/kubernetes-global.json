@@ -188,7 +188,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(sum by (instance, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval])))",
+          "expr": "avg(sum by (instance, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval]))) or vector(NaN)",
           "interval": "",
           "legendFormat": "Real Linux",
           "range": true,
@@ -201,7 +201,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(sum by (core) (rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval])))",
+          "expr": "avg(sum by (core) (rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval]))) or vector(NaN)",
           "hide": false,
           "interval": "",
           "legendFormat": "Real Windows",
@@ -245,9 +245,9 @@
                 "Real Linux",
                 "Real Windows"
               ],
-              "reducer": "mean"
-            },
-            "replaceFields": true
+              "reducer": "mean",
+              "nullValueMode": "connected"
+            }
           }
         },
         {
@@ -338,7 +338,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"} - node_memory_MemAvailable_bytes{cluster=\"$cluster\", job=\"$job\"}) / sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"})",
+          "expr": "sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"} - node_memory_MemAvailable_bytes{cluster=\"$cluster\", job=\"$job\"}) / sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"}) or vector(NaN)",
           "hide": false,
           "interval": "",
           "legendFormat": "Real Linux",
@@ -352,7 +352,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(windows_memory_available_bytes{cluster=\"$cluster\"} + windows_memory_cache_bytes{cluster=\"$cluster\"}) / sum(windows_os_visible_memory_bytes{cluster=\"$cluster\"})",
+          "expr": "sum(windows_memory_available_bytes{cluster=\"$cluster\"} + windows_memory_cache_bytes{cluster=\"$cluster\"}) / sum(windows_os_visible_memory_bytes{cluster=\"$cluster\"}) or vector(NaN)",
           "interval": "",
           "legendFormat": "Real Windows",
           "range": true,
@@ -395,9 +395,9 @@
                 "Real Linux",
                 "Real Windows"
               ],
-              "reducer": "mean"
-            },
-            "replaceFields": true
+              "reducer": "mean",
+              "nullValueMode": "connected"
+            }
           }
         },
         {
@@ -851,7 +851,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval]))",
+          "expr": "sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval])) or vector(NaN)",
           "interval": "",
           "legendFormat": "Real Linux",
           "range": true,
@@ -864,7 +864,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval]))",
+          "expr": "sum(rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval])) or vector(NaN)",
           "hide": false,
           "interval": "",
           "legendFormat": "Real Windows",
@@ -920,9 +920,9 @@
                 "Real Linux",
                 "Real Windows"
               ],
-              "reducer": "sum"
-            },
-            "replaceFields": true
+              "reducer": "sum",
+              "nullValueMode": "connected"
+            }
           }
         },
         {
@@ -1008,7 +1008,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"} - node_memory_MemAvailable_bytes{cluster=\"$cluster\", job=\"$job\"})",
+          "expr": "sum(node_memory_MemTotal_bytes{cluster=\"$cluster\", job=\"$job\"} - node_memory_MemAvailable_bytes{cluster=\"$cluster\", job=\"$job\"}) or vector(NaN)",
           "interval": "",
           "legendFormat": "Real Linux",
           "range": true,
@@ -1021,7 +1021,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(windows_os_visible_memory_bytes{cluster=\"$cluster\"} - windows_memory_available_bytes{cluster=\"$cluster\"} - windows_memory_cache_bytes{cluster=\"$cluster\"})",
+          "expr": "sum(windows_os_visible_memory_bytes{cluster=\"$cluster\"} - windows_memory_available_bytes{cluster=\"$cluster\"} - windows_memory_cache_bytes{cluster=\"$cluster\"}) or vector(NaN)",
           "hide": false,
           "interval": "",
           "legendFormat": "Real Windows",
@@ -1077,9 +1077,9 @@
                 "Real Linux",
                 "Real Windows"
               ],
-              "reducer": "mean"
-            },
-            "replaceFields": true
+              "reducer": "mean",
+              "nullValueMode": "connected"
+            }
           }
         },
         {

@@ -3,8 +3,9 @@
 This file is a **local fork** of [Grafana dashboard 15757 "Kubernetes / Views / Global"](https://grafana.com/api/dashboards/15757/revisions/43/download) (revision 43, 2025-02-11).
 
 The fork exists because the upstream revision has a panel-transformation bug that
-manifests as duplicate "Real" bars with 0 values in four panels. This file
-documents the bug, the fix, and how to rebase on a newer upstream revision.
+manifests as duplicate "Real" bars with 0 values in four panels when no Windows
+nodes exist in the environment. It documents the bug, the fix, and how to rebase
+on a newer upstream revision.
 
 ## Why this is not a regular `url:` GrafanaDashboard CR
 
@@ -28,12 +29,12 @@ dashboards keep their `url:` lines and continue to be fetched directly from
 
 Four panels share the same broken transformation pipeline:
 
-- `Global CPU Usage` (id 77) — bargauge
-- `Global RAM Usage` (id 78) — bargauge
-- `CPU Usage` (id 37) — stat
-- `RAM Usage` (id 39) — stat
+- `Global CPU Usage` (id 77) — bargauge, reducer = mean
+- `Global RAM Usage` (id 78) — bargauge, reducer = mean
+- `CPU Usage` (id 37) — stat, reducer = sum
+- `RAM Usage` (id 39) — stat, reducer = mean
 
-Each runs two transformations:
+Each panel runs two transformations:
 
 1. `calculateField` with `mode: reduceRow`, `alias: Real`,
    `reduce.include: [Real Linux, Real Windows]`, `reducer: mean` (or `sum` for
@@ -43,61 +44,116 @@ Each runs two transformations:
 
 `calculateField` always pre-runs `ensureColumnsTransformer`
 ([`packages/grafana-data/src/transformations/transformers/calculateField.ts`](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/calculateField.ts)).
-That transformer only joins the per-target frames if **every** frame has a `Time`
-field
+That transformer only joins the per-target frames into a single frame if **every**
+frame has a `Time` field
 ([`ensureColumns.ts#findConsistentTimeFieldName`](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/ensureColumns.ts)).
+If any frame is empty, the join is skipped and frames stay separate.
 
-The `Real Windows` target returns an **empty** frame in this cluster (no Windows
-nodes, no `windows_cpu_time_total` series), so the join is skipped and frames
-stay separate. `calculateField` then runs `reduceRow` per frame:
+The `Real Windows` target returns an **empty frame** in this cluster (no Windows
+nodes, no `windows_cpu_time_total` series), so:
 
-| Frame | matcher hit? | new `Real` field value |
-|---|---|---|
-| Real Linux | yes (1 column) | `mean` = **10.2** |
-| Real Windows | (empty frame, skipped) | (no new field) |
-| Requests | no (0 columns) | `mean(empty)` = **0** |
-| Limits | no (0 columns) | `mean(empty)` = **0** |
-| Total *(stat panels only)* | no (0 columns) | `mean(empty)` = **0** |
+1. `ensureColumnsTransformer` skips the join.
+2. `calculateField` runs `reduceRow` on each frame independently. For each
+   non-empty frame it adds a new field named `Real`:
+   - Real Linux frame → matcher hits 1 column → `Real = reducer(Real Linux)`.
+   - Real Windows frame → empty, skipped.
+   - Requests frame → matcher hits 0 columns → `Real = reducer(empty) = 0`.
+   - Limits frame → same → `Real = 0`.
+   - Total frame (stat panels only) → same → `Real = 0`.
+3. `organize` excludes "Real Linux" and "Real Windows" but NOT "Real", so
+   each frame keeps its own `Real` field.
 
-`organize` then cannot hide `Real` (its `excludeByName` list contains "Real
-Linux" and "Real Windows", but not "Real"). Result: one extra "Real: 0" bar
-per non-empty target frame, in addition to the legitimate "Real: 10.2" bar from
-the Real Linux frame. That matches the screenshot the user reported.
+Result: one extra "Real: 0" bar per non-empty target frame (4 in the stat
+panels, 3 in the bargauges), plus the legitimate "Real" bar from the Real Linux
+frame. The Requests, Limits, and Total values are still visible alongside.
 
 ## The fix
 
-Each of the 4 affected panels has its `calculateField` transformation patched
-with one new option:
+Two changes per panel, applied to all four affected panels (37, 39, 77, 78):
+
+### Change 1: append `or vector(NaN)` to Real Linux and Real Windows queries
+
+This makes the query return a frame with `Time + Value` even when there is no
+underlying data. `vector(NaN)` returns a single series with the literal value
+`NaN`, which Grafana surfaces as `null`. This unblocks the
+`ensureColumnsTransformer` join because the frame now has a `Time` field.
+
+The patch is applied to the **Real Linux** query too, defensively. If node
+metrics disappear (cluster with no nodes scraped, network partition, exporter
+down), the Real Linux frame would otherwise become empty and reintroduce the
+bug.
+
+Example diff for panel 77 (other panels differ slightly):
 
 ```diff
- {
-   "id": "calculateField",
-   "options": {
-     "alias": "Real",
-     "mode": "reduceRow",
-+    "replaceFields": true,
-     "reduce": {
-       "include": ["Real Linux", "Real Windows"],
-       "reducer": "mean"
-     }
-   }
- }
+   "expr": "avg(sum by (instance, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval])))",
++  "expr": "avg(sum by (instance, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\", cluster=\"$cluster\", job=\"$job\"}[$__rate_interval]))) or vector(NaN)"
 ```
 
-`replaceFields: true` makes `calculateField` output a single Time + Real frame
-instead of appending "Real" to every input frame. With `replaceFields: true`,
-the `Real` column replaces all source columns in the joined output (per
-[`calculateField.ts`](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/calculateField.ts)
-— see the `if (options.replaceFields)` block). The `organize` step's
-`excludeByName` for "Real Linux" / "Real Windows" remains harmless because the
-joined frame only has Time + Real columns.
+```diff
+   "expr": "avg(sum by (core) (rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval])))",
++  "expr": "avg(sum by (core) (rate(windows_cpu_time_total{mode!=\"idle\", cluster=\"$cluster\"}[$__rate_interval]))) or vector(NaN)"
+```
 
-After the fix, panel output is exactly what the upstream dashboard intended:
+### Change 2: add `nullValueMode: "connected"` to `calculateField.reduce`
+
+`"connected"` (Grafana's `NullValueMode.Ignore`) tells the reducer to skip null
+values rather than counting them as zero. Combined with change 1, when Real
+Windows returns `NaN` (rendered as `null`), the reducer computes its mean/sum
+over **only the non-null values**:
+
+- Real Linux = 11.37, Real Windows = null → `mean = 11.37` (not 5.685).
+- Real Linux = 11.37, Real Windows = 2.5 (Windows nodes present) → `mean = 6.935`
+  (correctly includes both — no behavior change in the happy path).
+
+Diff for panel 77 (mean reducer):
+
+```diff
+   "reduce": {
+     "include": ["Real Linux", "Real Windows"],
+-    "reducer": "mean"
++    "reducer": "mean",
++    "nullValueMode": "connected"
+   }
+```
+
+Diff for panel 37 (sum reducer):
+
+```diff
+   "reduce": {
+     "include": ["Real Linux", "Real Windows"],
+-    "reducer": "sum"
++    "reducer": "sum",
++    "nullValueMode": "connected"
+   }
+```
+
+## What does NOT work and why
+
+A few alternative fixes were attempted and abandoned during diagnosis. They are
+documented here so future maintainers don't re-try them:
+
+- **`replaceFields: true` on `calculateField`**: strips every source column from
+  each frame, leaving only Time + Real. This DROPS the Requests, Limits, and
+  Total columns from the panel. The user ends up with 5 "Real" bars and no
+  Requests/Limits/Total — strictly worse than the original bug.
+- **`or vector(0)` on Real Windows**: same idea as the fix but returns 0
+  instead of null. `nullValueMode: connected` was not applied initially, so the
+  reducer averaged `Real Linux + 0`, halving the displayed Real value. Even with
+  the mode, this approach gives wrong semantics ("Windows nodes exist and use
+  0 cores" vs the intended "no Windows nodes"). Use `vector(NaN)` instead.
+
+## Resulting panel output
+
+After the fix:
 
 - `Global CPU Usage` — `Real`, `Requests`, `Limits` (3 bars, no zeros).
 - `Global RAM Usage` — `Real`, `Requests`, `Limits` (3 bars, no zeros).
 - `CPU Usage` (stat) — `Real`, `Requests`, `Limits`, `Total` (4 rows).
 - `RAM Usage` (stat) — `Real`, `Requests`, `Limits`, `Total` (4 rows).
+
+Behavior when Windows nodes ARE present is unchanged: `Real` = sum/mean of
+`Real Linux` and `Real Windows` as upstream intended.
 
 ## How to rebase on a newer upstream revision
 
@@ -107,30 +163,38 @@ After the fix, panel output is exactly what the upstream dashboard intended:
      https://grafana.com/api/dashboards/15757/revisions/<NEW_REVISION>/download
    ```
 
-2. **Re-apply the patch** to the new file. A small Python one-liner does it:
+2. **Re-apply the patches** to the new file. The patches are two queries per
+   panel and one transformation option per panel across panels 37, 39, 77, 78.
    ```sh
-   python3 -c "
+   python3 - <<'PYEOF'
    import json
    with open('kubernetes-global.upstream.json') as f:
        d = json.load(f)
+   target_ids = {37, 39, 77, 78}
    for p in d.get('panels', []):
-       if p.get('id') in {37, 39, 77, 78}:
-           for t in p.get('transformations', []):
-               if t.get('id') == 'calculateField':
-                   t.setdefault('options', {})['replaceFields'] = True
+       if p.get('id') not in target_ids:
+           continue
+       for target in p.get('targets', []):
+           if target.get('legendFormat') in ('Real Linux', 'Real Windows'):
+               if 'or vector(NaN)' not in target['expr']:
+                   target['expr'] = target['expr'].rstrip() + ' or vector(NaN)'
+       for t in p.get('transformations', []):
+           if t.get('id') == 'calculateField':
+               reduce = t.setdefault('options', {}).setdefault('reduce', {})
+               if not reduce.get('nullValueMode'):
+                   reduce['nullValueMode'] = 'connected'
    with open('kubernetes-global.json', 'w') as f:
        json.dump(d, f, indent=2)
-   "
+   PYEOF
    ```
 
-   If the upstream revision has changed *which* panels or which transformations
-   carry the bug, update the `set` of `target_ids` accordingly. As a sanity
-   check, run a JSON diff against the previous file:
+   As a sanity check, run a JSON diff against the previous file:
    ```sh
    diff -u kubernetes-global.json kubernetes-global.upstream.json | head -100
    ```
-   Anything other than the four `replaceFields: true` insertions is a real
-   upstream change and needs review before merging.
+   Anything other than the `or vector(NaN)` suffixes and the
+   `nullValueMode: connected` insertions is a real upstream change and needs
+   review before merging.
 
 3. **Move the new file into place** over the existing `kubernetes-global.json`.
    The next Flux reconciliation picks it up; no CR changes are required because
@@ -141,14 +205,17 @@ After the fix, panel output is exactly what the upstream dashboard intended:
    rm kubernetes-global.upstream.json
    ```
 
-5. **Visually verify** in `https://grafana.internal.dynamiclab.org/d/k8s_views_global`
+5. **Visually verify** in the dashboard at its `${{ secrets.UID_PREFIX }}grafana/d/k8s_views_global` URL
+   (the URL for the live Grafana instance uses the templated internal domain — do
+   not hardcode it here).
    that the four affected panels still render the expected 3 / 3 / 4 / 4 bars.
 
 ## When to delete this override
 
-If upstream ships a fix that makes `replaceFields: true` redundant (or
-restructures the panel transformations), revert this file to the upstream JSON
-and switch the GrafanaDashboard CR back to:
+If upstream ships a fix that restructures the panel transformations so the
+empty-frame join bug no longer occurs (or removes the Windows/Real columns
+entirely), revert this file to the upstream JSON and switch the
+GrafanaDashboard CR back to:
 
 ```yaml
 spec:
@@ -158,3 +225,11 @@ spec:
 Remove the `configMapGenerator` entry for `kubernetes-global-dashboard` from
 [`../kustomization.yaml`](../kustomization.yaml) and delete this `resources/`
 directory.
+
+## References
+
+- [Grafana source: ensureColumns transformer](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/ensureColumns.ts)
+- [Grafana source: calculateField transformer](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/calculateField.ts)
+- [Grafana source: NullValueMode enum](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/data.ts)
+- [Upstream dashboard 15757 revision 43](https://grafana.com/api/dashboards/15757/revisions/43/download)
+- [Prometheus `vector()` function](https://prometheus.io/docs/prometheus/latest/querying/functions/#vector)
