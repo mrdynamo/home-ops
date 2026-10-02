@@ -63,6 +63,7 @@ spec:
               ECM_URL: http://localhost:6100
               MCP_PORT: &mcp_port 6101
               MCP_SECRETS_DIR: /run/secrets/ecm-mcp
+              MCP_BIND_ADDRESS: 0.0.0.0
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
