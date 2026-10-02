@@ -64,6 +64,8 @@ spec:
               MCP_PORT: &mcp_port 6101
               MCP_SECRETS_DIR: /run/secrets/ecm-mcp
               MCP_BIND_ADDRESS: 0.0.0.0
+              MCP_ALLOWED_HOSTS: enhanced-channel-manager.default.svc,enhanced-channel-manager.default.svc.cluster.local
+              MCP_TRUSTED_PROXY_IPS: 10.42.0.0/16
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
