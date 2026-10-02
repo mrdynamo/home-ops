@@ -236,6 +236,13 @@
       "title": "Global CPU  Usage",
       "transformations": [
         {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
           "id": "calculateField",
           "options": {
             "alias": "Real",
@@ -385,6 +392,13 @@
       ],
       "title": "Global RAM Usage",
       "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
         {
           "id": "calculateField",
           "options": {
@@ -911,6 +925,13 @@
       "title": "CPU Usage",
       "transformations": [
         {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
           "id": "calculateField",
           "options": {
             "alias": "Real",
@@ -1067,6 +1088,13 @@
       ],
       "title": "RAM Usage",
       "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
         {
           "id": "calculateField",
           "options": {
