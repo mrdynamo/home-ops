@@ -42,7 +42,15 @@ spec:
   datasources:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
-  url: https://grafana.com/api/dashboards/15757/revisions/43/download
+  # Local override — upstream revision 43 panels 37/39/77/78 emit duplicate
+  # "Real" bars when any target returns an empty frame. The patched JSON in
+  # resources/kubernetes-global.json adds `replaceFields: true` to the
+  # calculateField transformation on those four panels so the joined Real
+  # column replaces (rather than is appended to) per-frame columns.
+  # See https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/transformations/transformers/ensureColumns.ts
+  configMapRef:
+    name: kubernetes-global-dashboard
+    key: kubernetes-global.json
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/grafana.integreatly.org/grafanadashboard_v1beta1.json
 apiVersion: grafana.integreatly.org/v1beta1

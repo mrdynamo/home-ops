@@ -9,3 +9,11 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./prometheusrule.yaml
+configMapGenerator:
+  - name: kubernetes-global-dashboard
+    files:
+      - kubernetes-global.json=./resources/kubernetes-global.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
