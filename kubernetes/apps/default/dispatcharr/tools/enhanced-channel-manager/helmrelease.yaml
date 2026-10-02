@@ -96,6 +96,8 @@ spec:
           *app :
             app:
               - path: /config
+              - path: /run/secrets/ecm-mcp
+                subPath: mcp
             mcp:
               - path: /run/secrets/ecm-mcp
                 subPath: mcp
