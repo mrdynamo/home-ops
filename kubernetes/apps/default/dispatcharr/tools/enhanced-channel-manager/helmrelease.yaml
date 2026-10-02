@@ -23,7 +23,7 @@ spec:
               TZ: America/Chicago
               ECM_LIMIT_CONCURRENCY: 25
               ECM_TIMEOUT_KEEP_ALIVE: 15
-              MCP_HOST: http://localhost:6101
+              MCP_HOST: localhost
               MCP_SECRETS_DIR: /run/secrets/ecm-mcp
             probes:
               liveness: &probes
