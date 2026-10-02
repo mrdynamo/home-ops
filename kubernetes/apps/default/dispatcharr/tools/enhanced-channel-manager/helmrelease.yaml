@@ -24,6 +24,7 @@ spec:
               ECM_LIMIT_CONCURRENCY: 25
               ECM_TIMEOUT_KEEP_ALIVE: 15
               MCP_HOST: http://enhanced-channel-manager.default.svc:6101
+              MCP_SECRETS_DIR: /run/secrets/ecm-mcp
             probes:
               liveness: &probes
                 enabled: false
@@ -61,6 +62,7 @@ spec:
               TZ: America/Chicago
               ECM_URL: http://enhanced-channel-manager.default.svc:6100
               MCP_PORT: &mcp_port 6101
+              MCP_SECRETS_DIR: /run/secrets/ecm-mcp
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -90,8 +92,13 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-        globalMounts:
-          - path: /config
+        advancedMounts:
+          *app :
+            app:
+              - path: /config
+            mcp:
+              - path: /run/secrets/ecm-mcp
+                subPath: mcp
       backups:
         type: nfs
         server: 192.168.20.21
