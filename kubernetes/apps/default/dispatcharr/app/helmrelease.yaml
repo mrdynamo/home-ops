@@ -220,7 +220,15 @@ spec:
               - name: *app
                 port: *port
             timeouts:
-              request: 0s
+              # Match the pod-side uwsgi http-timeout / socket-timeout and
+              # the nginx proxy_read_timeout / uwsgi_read_timeout overrides
+              # (see resources/uwsgi.modular.ini and resources/nginx.conf).
+              # The previous 600s / 600s values were a defensive backstop
+              # that would re-introduce the same 10-minute disconnect at
+              # the Gateway -> pod boundary now that the pod-side timers
+              # are 12h.
+              request: 43200s
+              backendRequest: 43200s
       multiview:
         hostnames:
           - "multiview.${INTERNAL_SECRET_DOMAIN}"
@@ -273,6 +281,22 @@ spec:
         type: configMap
         name: *app
         defaultMode: 0755
+        globalMounts:
+          # Override the shipped uwsgi.modular.ini (10-minute http-timeout
+          # closes the live MPEG-TS byte stream every ~591s) and the
+          # shipped nginx.conf (5-minute /ws/ proxy_read_timeout closes
+          # the WebSocket control channel; 5-minute /proxy/
+          # uwsgi_read_timeout closes the /proxy/ts/stream/... path used
+          # by AeroioTV/OKILTV). All three timers surface as ~20-25
+          # minute client disconnects in the live_proxy log. See
+          # resources/uwsgi.modular.ini and resources/nginx.conf for the
+          # rationale and the full override contents.
+          - path: /app/docker/uwsgi.modular.ini
+            subPath: uwsgi.modular.ini
+            readOnly: true
+          - path: /app/docker/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
         advancedMounts:
           backup:
             app:

@@ -12,6 +12,15 @@ configMapGenerator:
     files:
       - backup-sidecar.sh=./resources/backup-sidecar.sh
       - dashboard.json=./resources/dashboard.json
+      # Override the shipped uwsgi.modular.ini to lift the 10-minute
+      # http-timeout that closes the live MPEG-TS byte stream every
+      # ~591s. See resources/uwsgi.modular.ini for the rationale.
+      - uwsgi.modular.ini=./resources/uwsgi.modular.ini
+      # Override the shipped nginx.conf to lift the 5-minute
+      # proxy_read_timeout on the /ws/ WebSocket location and the
+      # 5-minute uwsgi_read_timeout/uwsgi_send_timeout on the /proxy/
+      # location. See resources/nginx.conf for the rationale.
+      - nginx.conf=./resources/nginx.conf
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
