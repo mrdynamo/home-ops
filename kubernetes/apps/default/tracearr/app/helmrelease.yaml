@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/d4rk-4lchemy/distracearr
-              tag: 2.6.1-r1@sha256:1067b5e250e1f5ab8a46ff64ff64904a60e888f3355d71f1db387c6bf9c73a55
+              tag: 2.6.2-r1@sha256:d782d04faccc0853eba6962009f0c5300ea4638115377b9886cb4bfa08dc24d2
             env:
               TZ: America/Chicago
               PORT: &port 3000
