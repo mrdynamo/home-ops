@@ -49,34 +49,31 @@ jobs:
         id: ai-review
         uses: misospace/pr-reviewer-action@829f395f7154b4d87c229500fd09b30a8ad2224d # v3.3.0
         with:
-          github_token: ${{ steps.claude-token.outputs.token }}
-          # ai_stream: false
-          ai_max_tokens: 65536
-          ai_base_url: "http://litellm.ai.svc:4000/v1"
-          ai_model: "qwen3.5:9b"
-          ai_api_key: ${{ secrets.LITELLM_API_KEY }}
-          # ai_primary_retries: '30'
-          # ai_primary_retry_delay_sec: '30'
-          # ai_fallback_api_format: 'anthropic'
-          # ai_fallback_base_url: "http://litellm.ai.svc:4000"
-          # ai_fallback_model: "minimax/MiniMax-M2.7"
-          # ai_fallback_api_key: ${{ secrets.LITELLM_API_KEY }}
-          allowed_source_hosts: 'github.com,api.github.com,artifacthub.io,talos.dev,www.talos.dev'
-          context_limit_mode: normal
-          tool_mode: native_loop
-          tool_max_requests: '4'
-          tool_planning_timeout_sec: '30'
-          tool_planning_max_context_bytes: '50000'
-          tool_planning_max_tokens: '400'
-          tool_max_response_bytes: '12000'
-          tool_allowed_gh_api_repos: '*'
-          tool_request_timeout_sec: '20'
-          tool_failure_enforcement: 'true'
-          tool_min_successful_requests: '1'
-          tool_enable_for_forks: 'false'
-          # standards_file_candidates: 'AGENTS.md,.agents/*'
-          publish_review_comment: 'true'
-          comment_marker: <!-- renovate-review-bot -->
+          github-token: ${{ steps.claude-token.outputs.token }}
+          # ai-stream: false
+          ai-max-tokens: 65536
+          ai-base-url: "http://litellm.ai.svc:4000/v1"
+          ai-model: "qwen3.5:9b"
+          ai-api-key: ${{ secrets.LITELLM_API_KEY }}
+          # ai-primary-retries: '30'
+          # ai-primary-retry-delay-sec: '30'
+          # ai-fallback-api-format: 'anthropic'
+          # ai-fallback-base-url: "http://litellm.ai.svc:4000"
+          # ai-fallback-model: "minimax/MiniMax-M2.7"
+          # ai-fallback-api-key: ${{ secrets.LITELLM_API_KEY }}
+          allowed-source-hosts: 'github.com,api.github.com,artifacthub.io,talos.dev,www.talos.dev'
+          context-limit-mode: normal
+          tool-mode: native_loop
+          tool-max-requests: '4'
+          tool-max-response-bytes: '12000'
+          tool-allowed-gh-api-repos: '*'
+          tool-request-timeout-sec: '20'
+          tool-failure-enforcement: 'true'
+          tool-min-successful-requests: '1'
+          tool-enable-for-forks: 'false'
+          # standards-file-candidates: 'AGENTS.md,.agents/*'
+          publish-review-comment: 'true'
+          comment-marker: <!-- renovate-review-bot -->
 
       - name: Resolve latest managed review comment URL
         if: steps.ai-review.outputs.should_review == 'true'
