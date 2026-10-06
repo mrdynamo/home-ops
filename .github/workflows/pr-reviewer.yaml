@@ -51,7 +51,6 @@ jobs:
         with:
           github-token: ${{ steps.claude-token.outputs.token }}
           ai-api-format: anthropic
-          # ai-max-tokens: 65536
           ai-base-url: "http://litellm.ai.svc:4000/v1"
           ai-model: "minimax/MiniMax-M3"
           ai-api-key: ${{ secrets.LITELLM_API_KEY }}
@@ -77,3 +76,22 @@ jobs:
           # Turn on the native tool loop so the reviewer can call gh_api and
           # the linked-source providers wired up above.
           tool-mode: native_loop
+          # Allow gh_api calls to this repo so the model can verify the
+          # k8s_manifest required checks (manifest-vs-cluster version,
+          # resource quota / limit changes) against the actual HelmRelease
+          # diff instead of returning them unresolved.
+          tool-allowed-gh-api-repos: '*'
+          # Surface tool-loop failures and provider shortfalls as required-
+          # check `unresolved` so verdict-policy's strict completeness check
+          # has a real signal to grade — matches renovate-review-local.yaml.
+          tool-failure-enforcement: 'true'
+          tool-min-successful-requests: '1'
+          # Same: an evidence-providers-file failure must drop required
+          # checks to `unresolved` rather than silently partial.
+          evidence-blocker-enforcement: 'true'
+          # Reasoning-model output headroom — the v3 inputs page warns
+          # under-sized caps on reasoning models produce finish_reason=length
+          # and fail verdict JSON parsing. minimax/MiniMax-M3's max_output
+          # is 131072, so leave headroom for both the verdict JSON and the
+          # review_markdown body without hitting the provider clamp.
+          ai-max-tokens: '131072'
