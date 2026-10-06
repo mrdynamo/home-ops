@@ -189,6 +189,39 @@ Required top-level keys, in this order:
   - `name` — package/chart/image name
   - `old_version` — version before the upgrade
   - `new_version` — version after the upgrade
+- `required_check_dispositions` — array of objects. The v3 reviewer action
+  injects a deterministic list of required review questions in its user
+  message (under "Required checks"). For EACH item, emit one entry echoing the
+  check text verbatim, with a status and a short rationale. Status values:
+  - `satisfied` — the diff and corpus prove the check passes. Rationale: one
+    sentence citing the file and what changed.
+  - `not_applicable` — the check does not apply to this PR's diff. Rationale
+    REQUIRED: one sentence grounded in the actual change explaining why the
+    check is N/A here (e.g. "image tag bump; no `kubeVersion` or `resources:`
+    field touched in the diff").
+  - `unresolved` — could not determine. Use sparingly; this drops the review
+    from `approve` to advisory.
+
+  Schema: `[{"check": "<verbatim check text>", "status": "satisfied" |
+  "not_applicable" | "unresolved", "rationale": "<one sentence>"}]`.
+
+  Common cases for this repository's Renovate image/chart bumps:
+  - `validate manifest against target cluster version` → almost always
+    `not_applicable` (the diff touches `image.tag`, not `chart.version`,
+    `kubeVersion`, or any cluster-version pinning). Cite which fields the diff
+    actually touches.
+  - `check for resource quota / limit changes` → almost always `not_applicable`
+    for image-tag-only and chart-version-only bumps; `satisfied` if the diff
+    does change `resources.requests` or `resources.limits` (cite the line).
+  - Auth / DB-migration / path-handling checks → `not_applicable` for plain
+    dependency bumps; `satisfied` only when the diff actually changes those
+    surfaces.
+  - `verify no functional changes beyond lockfile hashes` (digest-only PRs) →
+    `satisfied` with rationale pointing at the digest diff.
+
+  A `required_check_dispositions` array covering every check is what flips the
+  review from "advisory comment" to a real `approve` verdict. Emit it on every
+  review, even when the diff is trivial.
 
 Do not include any other top-level keys (no `summary`, no `findings`, no `sources`,
 etc. — sources belong in the markdown body, not as a JSON sibling). The JSON
