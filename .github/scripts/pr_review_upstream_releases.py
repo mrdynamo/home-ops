@@ -93,6 +93,214 @@ def extract_version(blob: str) -> str | None:
     return match[-1].lstrip("v")
 
 
+# --- Non-semver / dev / nightly tag handling ---------------------------------
+# Tags like `dev`, `nightly`, `main`, `edge`, `unstable` have no GitHub release
+# notes body. The closest analog is the `compare` view between the previous
+# semver tag and the moving tag's HEAD commit, which exposes commit subjects
+# and merged-PR titles. Date-suffixed tags (`nightly-20251006`,
+# `2026-10-05-abcdef0`) are treated as a date for ordering only.
+_VERSION_CLASS_RE = re.compile(
+    r"^v?\d+(?:\.\d+){1,3}"
+    r"(?:[-.+][0-9A-Za-z-]+)*"
+    r"$"
+)
+# A prerelease must be glued to the version with a `-` (semver convention) and
+# must contain at least one letter or hyphen; pure digits would be a build
+# counter and don't change classification from semver → prerelease.
+# `1.2.3-rc.1` matches because `rc` contains letters, and the inner `.1`
+# is a semver prerelease sub-identifier.
+_PRERELEASE_RE = re.compile(
+    r"^v?\d+(?:\.\d+){1,3}-"
+    r"(?=[0-9A-Za-z.-]*[A-Za-z-])"
+    r"[0-9A-Za-z.-]+"
+    r"(?:\+[0-9A-Za-z.-]+)?$"
+)
+_DATE_TAG_RE = re.compile(
+    r"^(?:[A-Za-z][A-Za-z0-9._-]*-)?(?P<date>\d{4}[-._]?\d{2}[-._]?\d{2})"
+    r"(?:[-.+](?P<sha>[0-9a-f]{7,40}))?$",
+    re.IGNORECASE,
+)
+# 4-segment numerics like `2026.10.05` are almost always dates, not versions.
+_4_SEGMENT_NUMERIC_RE = re.compile(r"^\d{4}\.\d{1,2}\.\d{1,2}$")
+_NAMED_TAG_RE = re.compile(
+    r"^(?P<name>(?:dev|nightly|edge|main|master|unstable|stable|latest|"
+    r"rc|alpha|beta|preview|canary|hack|next|rolling|testing))"
+    r"(?:[-.](?P<suffix>[0-9A-Za-z.-]+))?$",
+    re.IGNORECASE,
+)
+
+
+def classify_version(version: str) -> str:
+    """Return one of: "semver", "semver_with_prerelease", "date_tag",
+    "named_tag", or "unknown". Used to pick the right fetch strategy in
+    `fetch_release_notes` — the existing release-tag path stays the default
+    for "semver" / "semver_with_prerelease"; the new compare-view path
+    covers "date_tag" and "named_tag" so dev/nightly/main builds get a
+    concrete commit list instead of the boilerplate "no release notes
+    published" message."""
+    v = (version or "").strip()
+    if not v:
+        return "unknown"
+    # Date-shaped tags first because a 4-segment numeric (`2026.10.05`) also
+    # matches the semver shape. Date wins so the compare-view path is used
+    # instead of treating a date as a real release version.
+    if _DATE_TAG_RE.match(v):
+        return "date_tag"
+    if _4_SEGMENT_NUMERIC_RE.match(v):
+        return "date_tag"
+    if _PRERELEASE_RE.match(v):
+        return "semver_with_prerelease"
+    if _VERSION_CLASS_RE.match(v):
+        return "semver"
+    if _NAMED_TAG_RE.match(v):
+        return "named_tag"
+    # Anything else (custom non-semver tag) falls back to the compare view —
+    # the user gets commit messages rather than the boilerplate.
+    return "named_tag"
+
+
+def resolve_tag_to_sha(owner_repo: str, tag: str) -> str | None:
+    """Resolve a git tag to its commit SHA via the git/refs API.
+
+    Returns the SHA, or None if the tag does not exist on the default branch's
+    history. Used for non-semver tags so we can anchor a compare view to a
+    concrete commit."""
+    data = gh_json(["repos", owner_repo, "git", "ref", f"tags/{tag}"])
+    if isinstance(data, dict):
+        obj = data.get("object") or {}
+        if obj.get("sha") and obj.get("type") in (None, "commit"):
+            return obj["sha"]
+        # Annotated tags point at a tag object — dereference one hop.
+        if obj.get("type") == "tag" and obj.get("sha"):
+            inner = gh_json(["repos", owner_repo, "git", "commit", obj["sha"]])
+            if isinstance(inner, dict):
+                return inner.get("sha")
+    return None
+
+
+def find_previous_stable_tag(
+    owner_repo: str,
+    target_version: str,
+    target_sha: str,
+) -> str | None:
+    """Return the most recent semver tag (no prerelease) that resolves to a
+    commit strictly before `target_sha`, or None.
+
+    Used as the base of a compare view for `:dev` / `:nightly` style targets
+    when the user wants to know what changed since the last real release.
+    Limited to a small page of tags to keep the API call cheap."""
+    tags_data = gh_json(["repos", owner_repo, "tags", {"per_page": 100}])
+    if not isinstance(tags_data, list) or not tags_data:
+        return None
+
+    target_n = numeric_version(target_version) or ()
+    seen: set[str] = set()
+    candidates: list[tuple[tuple[int, ...], str]] = []
+    for entry in tags_data:
+        name = entry.get("name") or ""
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        n = numeric_version(name)
+        if not n:
+            continue
+        # Skip prerelease-shaped tags (`8.7.2-rc.1`, `0.18.2-0043-dev`).
+        if _PRERELEASE_RE.match(name):
+            continue
+        # Skip the target itself and any future tag.
+        if target_n and n > target_n:
+            continue
+        candidates.append((n, name))
+
+    if not candidates:
+        return None
+
+    # Highest numeric version that is < target_version wins.
+    candidates.sort()
+    best = candidates[-1][1] if candidates else None
+    if best is None:
+        return None
+    # Confirm the candidate tag resolves to a commit; if not, skip.
+    best_sha = resolve_tag_to_sha(owner_repo, best)
+    if best_sha is None or best_sha == target_sha:
+        return None
+    return best
+
+
+def fetch_compare_commits(
+    owner_repo: str,
+    base_ref: str,
+    head_ref: str,
+    head_display: str | None = None,
+    base_display: str | None = None,
+    max_commits: int = 50,
+) -> dict | None:
+    """Call the GitHub `compare` API between two refs and render the result as
+    a fake "release" dict so the existing findings pipeline can ingest it
+    unchanged. Returns None if the compare is empty or fails.
+
+    `head_ref` / `base_ref` are the values the compare endpoint actually
+    accepts (a tag name, branch name, or 7-40 char SHA). `head_display` /
+    `base_display` are the user-friendly labels rendered in the body and
+    `tag_name` (defaults to `head_ref` when not provided) — typically the
+    literal target tag like `0.18.2-0043-dev` rather than the resolved SHA.
+
+    The compare endpoint returns up to 250 commits; we cap at `max_commits`
+    (50 by default — past that the per-finding body exceeds the action's
+    `evidence-provider-max-output-bytes` budget for a single finding) and
+    truncate the rendered body if the byte count is still excessive."""
+    data = gh_json([
+        "repos", owner_repo, "compare", f"{base_ref}...{head_ref}",
+    ])
+    if not isinstance(data, dict):
+        return None
+    commits = data.get("commits") or []
+    if not commits:
+        return None
+
+    lines: list[str] = []
+    for entry in commits[:max_commits]:
+        sha = (entry.get("sha") or "")[:7]
+        msg_full = (entry.get("commit", {}).get("message") or "").splitlines()
+        subject = msg_full[0].strip() if msg_full else ""
+        if len(subject) > 200:
+            subject = subject[:197] + "…"
+        author = (
+            entry.get("commit", {}).get("author", {}).get("name")
+            or entry.get("author", {}).get("login")
+            or "unknown"
+        )
+        date = (
+            entry.get("commit", {}).get("author", {}).get("date", "")[:10]
+        )
+        lines.append(f"- `{sha}` {subject} ({author}, {date})")
+
+    if len(commits) > max_commits:
+        lines.append(f"\n…{len(commits) - max_commits} additional commits omitted")
+
+    head_label = head_display or head_ref
+    base_label = base_display or base_ref
+    body = (
+        f"Non-semver target `{head_label}` — no GitHub release notes body was "
+        f"published for this tag. The following commit list covers the "
+        f"compare view between the previous semver release and the target "
+        f"commit, which is the closest analog to a changelog for a moving "
+        f"`:dev` / `:nightly` build.\n\n"
+        f"## Commits between `{base_label}` and `{head_label}`\n\n"
+        + "\n".join(lines)
+    )
+
+    return {
+        "tag_name": head_label,
+        "html_url": (
+            data.get("html_url")
+            or f"https://github.com/{owner_repo}/compare/{base_ref}...{head_ref}"
+        ),
+        "body": body,
+        "_is_compare_view": True,
+    }
+
+
 _REGISTRY_OWNER_RE = re.compile(
     r"\b(?:ghcr\.io|quay\.io|docker\.io|registry\.gitlab\.com)/"
     r"(?P<namespace>[A-Za-z0-9._-]+)/(?P<repo>[A-Za-z0-9._-]+)"
@@ -219,7 +427,26 @@ def infer_targets(pr: dict, files: list[dict]) -> list[Target]:
 
     by_version: dict[str, list[str]] = {}
     for blob in blobs:
+        # First try the semver-shaped extractor (matches `1.2.3`,
+        # `2024.10.5`, `8.7.2-dev+build.123`, etc.). For pure non-numeric
+        # tags like `dev`, `nightly`, `edge`, fall through to the line-level
+        # tag literal — Renovate PRs for these bumps put the tag on a
+        # `tag: <name>` diff line that we still want to capture.
         version = extract_version(blob)
+        if not version:
+            for line in blob.splitlines():
+                line_stripped = line.strip()
+                m = re.search(
+                    r"\b(?:image|tag|version|chart|appVersion|release)\s*[:=]\s*"
+                    r"(?P<tag>[A-Za-z0-9._+-]+)",
+                    line_stripped,
+                )
+                if m:
+                    candidate_tag = m.group("tag")
+                    cls = classify_version(candidate_tag)
+                    if cls in ("named_tag", "date_tag", "semver_with_prerelease"):
+                        version = candidate_tag
+                        break
         if not version:
             continue
         candidates = extract_owner_repo_candidates(blob)
@@ -437,13 +664,14 @@ def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
             if isinstance(data, dict) and data.get("tag_name"):
                 return owner_repo, data
 
-        # Release-list proximity fallback: when the tag exact-match fails
-        # (because the upstream app uses a different version scheme than
-        # the chart, e.g. chart 1.22.0 ↔ app v0.22.0), pick the release
-        # whose numeric_version is *closest* to the target. Match on the
-        # last two numeric segments (`major.minor`) so `1.22.0` finds
-        # `v0.22.0` (different major, same minor+patch).
-        target_n = numeric_version(target.version)
+        # Non-semver targets (dev/nightly/edge, prerelease like
+        # `0.18.2-0043-dev`, date-suffixed tags) must NOT use the proximity
+        # fallback — that branch would approximate `0.18.2-0043-dev` to
+        # the published `0.18.2` release and return the boilerplate "no
+        # release notes published" body. Skip the proximity branch so the
+        # compare-view path below gets a chance.
+        target_classification = classify_version(target.version)
+        target_n = numeric_version(target.version) if target_classification in ("semver", "unknown") else None
         if target_n:
             releases_list = gh_json([
                 "repos", owner_repo, "releases", {"per_page": 40}
@@ -470,36 +698,99 @@ def fetch_release_notes(target: Target) -> tuple[str | None, dict | None]:
                     return owner_repo, best
 
         # Last-resort: list tags (some repos don't publish releases, just tags).
-        tags_data = gh_json(["repos", owner_repo, "tags", {"per_page": 30}])
-        if isinstance(tags_data, list) and tags_data:
-            best = None
-            best_n: tuple[int, ...] = ()
-            for tag_entry in tags_data:
-                tag_name = tag_entry.get("name") or ""
-                n = numeric_version(tag_name)
-                if not n or (target_n and n > target_n):
-                    continue
-                if n >= best_n:
-                    best_n = n
-                    best = tag_entry
-            if best is not None:
-                commit = best.get("commit") or {}
-                return owner_repo, {
-                    "tag_name": best.get("name"),
-                    "html_url": (
-                        f"https://github.com/{owner_repo}/releases/tag/"
-                        f"{best.get('name')}"
-                    ),
-                    "body": (
-                        f"Tagged release `{best.get('name')}` at "
-                        f"https://github.com/{owner_repo}/commit/"
-                        f"{(commit.get('sha') or '')[:7]}.\n\n"
-                        f"No GitHub release notes body published for this tag; "
-                        f"consult the upstream changelog or compare view for "
-                        f"the full list of changes between this tag and the "
-                        f"previous one."
-                    ),
+        # For non-semver targets (dev/nightly/edge, prerelease like
+        # `0.18.2-0043-dev`, date-suffixed tags) skip this branch entirely —
+        # the tag list would match a *different* semver tag (`0.18.2`) and
+        # return the boilerplate "no release notes published" message, which
+        # is exactly what we're trying to fix. Fall through to the
+        # compare-view branch below.
+        if target_classification in ("semver_with_prerelease", "named_tag", "date_tag"):
+            pass  # intentionally fall through to the compare-view path
+        else:
+            tags_data = gh_json(["repos", owner_repo, "tags", {"per_page": 30}])
+            if isinstance(tags_data, list) and tags_data:
+                best = None
+                best_n: tuple[int, ...] = ()
+                for tag_entry in tags_data:
+                    tag_name = tag_entry.get("name") or ""
+                    n = numeric_version(tag_name)
+                    if not n or (target_n and n > target_n):
+                        continue
+                    if n >= best_n:
+                        best_n = n
+                        best = tag_entry
+                if best is not None:
+                    commit = best.get("commit") or {}
+                    return owner_repo, {
+                        "tag_name": best.get("name"),
+                        "html_url": (
+                            f"https://github.com/{owner_repo}/releases/tag/"
+                            f"{best.get('name')}"
+                        ),
+                        "body": (
+                            f"Tagged release `{best.get('name')}` at "
+                            f"https://github.com/{owner_repo}/commit/"
+                            f"{(commit.get('sha') or '')[:7]}.\n\n"
+                            f"No GitHub release notes body published for this tag; "
+                            f"consult the upstream changelog or compare view for "
+                            f"the full list of changes between this tag and the "
+                            f"previous one."
+                        ),
                 }
+
+    # Non-semver targets (`dev`, `nightly`, `edge`, `main`, date-suffixed tags,
+    # `1.2.3-rc.1`, etc.) have no GitHub release body. The closest analog is
+    # the compare view between the previous semver release and the moving
+    # tag's HEAD — the commit subjects and merged-PR titles are the de-facto
+    # changelog for `:dev` / `:nightly` style builds.
+    classification = classify_version(target.version)
+    if classification in ("named_tag", "date_tag", "semver_with_prerelease"):
+        for owner_repo in candidates:
+            target_sha = resolve_tag_to_sha(owner_repo, target.version)
+            if not target_sha:
+                continue
+            previous_tag = find_previous_stable_tag(
+                owner_repo, target.version, target_sha
+            )
+            if not previous_tag:
+                # No prior semver tag — fall back to the default branch HEAD
+                # so we still get a commit list. Most repos have a meaningful
+                # `main` / `master` ref to anchor against.
+                default_branch = gh_json(["repos", owner_repo]) or {}
+                default_branch_name = default_branch.get("default_branch")
+                if not default_branch_name:
+                    continue
+                # Resolve the default branch ref to a SHA so `compare` works.
+                default_ref_data = gh_json([
+                    "repos", owner_repo, "git", "ref",
+                    f"heads/{default_branch_name}",
+                ])
+                if not isinstance(default_ref_data, dict):
+                    continue
+                base_ref = default_ref_data.get("object", {}).get("sha")
+                base_display = f"{default_branch_name} HEAD"
+                compare_note = (
+                    f"No prior semver release tag found in {owner_repo}; "
+                    f"compared the target commit against the default branch "
+                    f"(`{default_branch_name}`) HEAD instead."
+                )
+            else:
+                base_ref = previous_tag
+                base_display = previous_tag
+                compare_note = None
+            if not base_ref or base_ref == target_sha:
+                continue
+            compared = fetch_compare_commits(
+                owner_repo, base_ref, target_sha,
+                head_display=target.version,
+                base_display=base_display,
+            )
+            if compared is None:
+                continue
+            if compare_note:
+                compared["body"] = compared["body"] + "\n\n" + compare_note
+            return owner_repo, compared
+
     return None, None
 
 
@@ -666,10 +957,20 @@ def build_findings(targets: Iterable[Target]) -> list[dict]:
             )
         else:
             release = fetched
-            prefix = (
-                f"GitHub release notes for {matched_owner} @ "
-                f"{release.get('tag_name', '')}."
-            )
+            if release.get("_is_compare_view"):
+                # Compare-view findings are anchored to the compare URL, not
+                # a release page. The body itself leads with a "non-semver
+                # target" explainer, so the prefix only needs to name the
+                # scope.
+                prefix = (
+                    f"Upstream compare view for {matched_owner} covering "
+                    f"the moving tag `{release.get('tag_name', target.version)}`."
+                )
+            else:
+                prefix = (
+                    f"GitHub release notes for {matched_owner} @ "
+                    f"{release.get('tag_name', '')}."
+                )
 
         body = (release.get("body") or "").strip()
         if not body:
