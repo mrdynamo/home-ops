@@ -22,8 +22,9 @@ spec:
             env:
               TZ: America/Chicago
               NEXROLL_PORT: &port 9393
+              NEXROLL_DB_PATH: /data
+              NEXROLL_SECRETS_DIR: /data
               NEXROLL_PREROLL_PATH: /media/assets/extras/prerolls
-              PLEX_URL: http://plex.default.svc.cluster.local:32400
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
