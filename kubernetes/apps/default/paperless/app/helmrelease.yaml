@@ -60,6 +60,7 @@ spec:
               PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX: ASN
               PAPERLESS_CONSUMER_ENABLE_TAG_BARCODE: true
               PAPERLESS_CONSUMER_TAG_BARCODE_MAPPING: '{"ASN01.*": "ASN-01", "ASN02.*": "ASN-02"}'
+              PAPERLESS_CONSUMER_STORE_BARCODE_VALUES: true
               # Direct User Settings
               # PAPERLESS_DISABLE_REGULAR_LOGIN: true
               PAPERLESS_ACCOUNT_ALLOW_SIGNUPS: false
