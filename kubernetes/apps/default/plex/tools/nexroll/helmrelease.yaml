@@ -17,7 +17,7 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/jbrns/nexroll
+              repository: ghcr.io/jflxcloud/nexroll
               tag: 2.2.3@sha256:55046993aa2ccba02a251098e8fc530430d158433e855163101e4141623b88ec
             env:
               TZ: America/Chicago
