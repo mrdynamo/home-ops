@@ -24,7 +24,7 @@ spec:
               PUID: 1000
               PGID: 1000
               NEXROLL_PORT: &port 9393
-              NEXROLL_DB_PATH: /data
+              NEXROLL_DB_DIR: /data
               NEXROLL_SECRETS_DIR: /data
               NEXROLL_PREROLL_PATH: /media/assets/extras/prerolls
             envFrom:
