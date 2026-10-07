@@ -98,10 +98,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 271m
-                memory: 1683Mi
+                cpu: 692m
+                memory: 1790Mi
               limits:
-                memory: 1683Mi
+                memory: 1790Mi
       backup:
         type: cronjob
         cronjob:
