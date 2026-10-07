@@ -229,6 +229,34 @@ spec:
               # are 12h.
               request: 43200s
               backendRequest: 43200s
+      # External route via the external-vps Gateway.
+      # Public DNS A/CNAME for `dispatcharr.${SECRET_DOMAIN}` is created by
+      # external-dns and pointed at the VPS public IP. The VPS terminates
+      # TLS, proxies to 192.168.30.204:443 (the external-vps Gateway) over
+      # the S2S VPN, and the Gateway forwards to this service.
+      # Local LAN users keep using `dispatcharr.${INTERNAL_SECRET_DOMAIN}`
+      # via the internal Gateway so traffic never hairpins out-and-in.
+      app-external:
+        annotations:
+          external-dns.kubernetes.io/cloudflare-proxied: "false"
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == any(200, 401, 530)"]
+        hostnames:
+          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: external-vps
+            namespace: kube-system
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
+            timeouts:
+              # Match the pod-side uwsgi/nginxx overrides (12h) so long
+              # live_proxy MPEG-TS streams / WebSocket control channels
+              # don't get reaped at the Gateway boundary.
+              request: 43200s
+              backendRequest: 43200s
       multiview:
         hostnames:
           - "multiview.${INTERNAL_SECRET_DOMAIN}"
