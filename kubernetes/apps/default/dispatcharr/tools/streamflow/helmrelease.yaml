@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/krinkuto11/streamflow
-              tag: 2.6.0@sha256:541f1f4beb77296c660ed48c669057cc55a29b39b6735ebdf9ac9795dcc3ee5c
+              tag: 2.7.0@sha256:9452e945bf8055bc8024d4027b09e81171570ae77046df2ed9b757b13b96cfb6
             env:
               TZ: America/Chicago
               API_PORT: &port 5000
