@@ -17,6 +17,21 @@ spec:
           reloader.stakater.com/auto: "true"
         replicas: 2
         strategy: RollingUpdate
+        initContainers:
+          gen-prisma-cert:
+            image:
+              repository: docker.io/library/alpine
+              tag: 3.24.2
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                apk add --no-cache openssl
+                openssl pkcs12 -export \
+                  -in /var/run/secrets/postgresql/tls.crt \
+                  -inkey /var/run/secrets/postgresql/tls.key \
+                  -out /var/run/secrets/prisma/client-identity.p12 \
+                  -passout pass:
         containers:
           app:
             image:
