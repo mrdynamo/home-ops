@@ -17,7 +17,7 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/icereed/paperless-gpt
+              repository: ghcr.io/icereed/paperless-gpt
               tag: v0.29.0@sha256:4127ea223e0f496c1075a3a05661df4847140974c3c3ce89a4ba991be50320cb
             # v0.26.0 ships an entrypoint.sh that runs as root to adduser and
             # chown /app before dropping to a paperless-gpt user via su-exec.
