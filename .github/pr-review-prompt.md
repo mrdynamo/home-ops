@@ -168,6 +168,36 @@ package/version, write that explicitly instead ("Release notes for `<X>` at
 version `<Y>` were not available in the corpus"). Never claim a fetch was
 "blocked" when the fetch actually succeeded and produced content.
 
+## Structured findings (mandatory for the strict verdict policy)
+
+The reviewer action runs under the v3 default `verdict_policy=strict`, which
+DERIVES the published verdict from the `findings[]` array and ignores the JSON
+`verdict` field on its own. The published mapping is:
+
+| Highest open severity in `findings[]` | Coverage | Published verdict |
+| --- | --- | --- |
+| `blocker` or `major` present | any | `request_changes` |
+| none (only `minor`/`info`, or none) | complete | `approve` |
+| none (only `minor`/`info`, or none) | incomplete | `approve` (advisory, not an approval) |
+
+The model's `verdict` field is recorded as a hint but is NOT the final answer.
+When the mapping downgrades a model-authored `request_changes` because the
+findings array is empty, the review footer discloses the override:
+
+> `_Verdict set from open findings (verdict_policy=strict): no open findings; model verdict was 'request_changes'._`
+
+This is exactly what happened on Renovate PR #3403 (Tracearr v2.8.0 → 2.8.0-r1):
+the model correctly identified three real breaking changes (admin → member
+role migration, `TRUST_PROXY` tightening, `CORS_ORIGIN=*` no longer allows
+credentialed requests) and set `verdict: "request_changes"`, but emitted an
+empty `findings[]`, so the strict mapping downgraded the published verdict to
+`approve`. The body and the PR review state contradicted each other.
+
+**Every breaking change or deprecation you call out in the body MUST also
+appear as a structured finding.** Without the structured entries, your
+`request_changes` will not block the merge. This is the single most important
+contract in this prompt.
+
 ## Output Contract (must follow exactly)
 
 The tooling that consumes your response validates a strict JSON schema. Reply with **a
@@ -180,6 +210,8 @@ Required top-level keys, in this order:
     repo standards.
   - `request_changes` when there is at least one blocking breaking change, missing
     required update, or unresolved risk.
+  - This is the model's intent. Under `verdict_policy=strict` it is a hint, not the
+    published verdict — only `findings[]` actually gates the merge.
 - `review_markdown` — string. The full markdown body built per the "Submitting the
   Review" section above, including its `**Verdict**` heading and `**Sources consulted**`
   list. Rendered into the PR review comment verbatim. Do not wrap it in a code fence
@@ -222,8 +254,41 @@ Required top-level keys, in this order:
   A `required_check_dispositions` array covering every check is what flips the
   review from "advisory comment" to a real `approve` verdict. Emit it on every
   review, even when the diff is trivial.
+- `findings` — array of structured findings, one entry per breaking change
+  or deprecation you call out in the body. Without this array, your
+  `request_changes` is downgraded to `approve` (see "Structured findings"
+  above). Schema for each entry:
+  - `severity` — string, one of `blocker`, `major`, `minor`, `info`. ONLY
+    `blocker` and `major` publish `request_changes` under the strict verdict
+    policy. Use:
+    - `blocker` — the change prevents this PR from merging as-is (data
+      migration the operator must perform as part of the rollout, config
+      that must be set or the service won't start, hard incompatibility
+      with the current deployment).
+    - `major` — the change materially alters behavior but the rollout
+      can absorb it with follow-up work; flag it but treat as trackable.
+    - `minor` — deprecations that should be addressed now but do not
+      block. Never blocks on its own.
+    - `info` — feature adoptions worth surfacing. Never blocks.
+  - `category` — string, one of `security`, `compatibility`,
+    `performance`, `docs`, `tests`, `style`, `question`, `bug`, `other`.
+    Use `compatibility` for breaking changes and `docs` for deprecations.
+  - `file` — string path of the repo file the finding touches, or `null`
+    when there is no single file (e.g. an operator must run a one-shot
+    data migration that lives entirely upstream).
+  - `line` — 1-based line number in that file, or `null` when it spans
+    the whole file or no file applies.
+  - `message` — single sentence summarizing the finding (the same prose
+    you'd put in the body's Breaking changes / Deprecations bullet,
+    without the file/line prefix).
 
-Do not include any other top-level keys (no `summary`, no `findings`, no `sources`,
-etc. — sources belong in the markdown body, not as a JSON sibling). The JSON
-`verdict` field is the source of truth; the in-body `**Verdict**` heading is kept
-only because it renders cleanly in GitHub.
+  Cross-check contract: every `blocker`/`major`/`minor` finding MUST appear
+  in the body's Breaking changes or Deprecations sections, and every
+  Breaking changes or Deprecations bullet in the body MUST have a matching
+  finding. The body and the findings array must agree.
+
+Do not include any other top-level keys (no `summary`, no `sources`, etc. —
+sources belong in the markdown body, not as a JSON sibling). The in-body
+`**Verdict**` heading is kept only because it renders cleanly in GitHub;
+under `verdict_policy=strict` the JSON `verdict` field is a hint to the
+model of what it intended, not the published verdict.
