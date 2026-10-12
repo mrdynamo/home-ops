@@ -75,3 +75,4 @@ spec:
           - path: /tmp
           - path: /opt/default_wizard_steps
           - path: /.cache
+          - path: /.gunicorn
