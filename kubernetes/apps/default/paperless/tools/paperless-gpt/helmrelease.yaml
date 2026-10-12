@@ -103,12 +103,12 @@ spec:
                 subPath: db
               - path: /app/prompts
                 subPath: prompts
+              - path: /app/config
+                subPath: config
       tmpfs:
         type: emptyDir
         advancedMounts:
           paperless-gpt:
             app:
-              - path: /app/config
-                subPath: config
               - path: /tmp
                 subPath: tmp
