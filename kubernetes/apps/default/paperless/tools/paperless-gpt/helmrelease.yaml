@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: docker.io/icereed/paperless-gpt
-              tag: v0.29.0@sha256:4127ea223e0f496c1075a3a05661df4847140974c3c3ce89a4ba991be50320cb
+              tag: v0.30.0@sha256:7cb0d9ebcc9d7711a1352ddc02e7fe0a93ef216ecc48d76a5ea83743b45f6974
             # v0.26.0 ships an entrypoint.sh that runs as root to adduser and
             # chown /app before dropping to a paperless-gpt user via su-exec.
             # That conflicts with runAsNonRoot + readOnlyRootFilesystem, so we
