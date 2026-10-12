@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/jflxcloud/nexroll
-              tag: 2.2.4@sha256:93ead5879c8763b7767e45739da9dccd1c6756cd7bd1589d63c11d04aa398f3e
+              tag: 2.2.5@sha256:e64114bedefb93413a633e587bf8baadb662b22efd49a4cf13f837120deeb26f
             env:
               TZ: America/Chicago
               PUID: 1000
