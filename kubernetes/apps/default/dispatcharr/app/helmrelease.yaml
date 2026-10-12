@@ -209,6 +209,27 @@ spec:
             port: 9292
     route:
       app:
+        annotations:
+          external-dns.kubernetes.io/cloudflare-proxied: "false"
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == any(200, 401, 530)"]
+        hostnames:
+          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: external-vps
+            namespace: kube-system
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
+            timeouts:
+              # Match the pod-side uwsgi/nginxx overrides (12h) so long
+              # live_proxy MPEG-TS streams / WebSocket control channels
+              # don't get reaped at the Gateway boundary.
+              request: 43200s
+              backendRequest: 43200s
+      app-internal:
         hostnames:
           - "{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
         parentRefs:
@@ -236,27 +257,6 @@ spec:
       # the S2S VPN, and the Gateway forwards to this service.
       # Local LAN users keep using `dispatcharr.${INTERNAL_SECRET_DOMAIN}`
       # via the internal Gateway so traffic never hairpins out-and-in.
-      app-external:
-        annotations:
-          external-dns.kubernetes.io/cloudflare-proxied: "false"
-          gatus.home-operations.com/endpoint: |-
-            conditions: ["[STATUS] == any(200, 401, 530)"]
-        hostnames:
-          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
-        parentRefs:
-          - name: external-vps
-            namespace: kube-system
-            sectionName: https
-        rules:
-          - backendRefs:
-              - name: *app
-                port: *port
-            timeouts:
-              # Match the pod-side uwsgi/nginxx overrides (12h) so long
-              # live_proxy MPEG-TS streams / WebSocket control channels
-              # don't get reaped at the Gateway boundary.
-              request: 43200s
-              backendRequest: 43200s
       multiview:
         hostnames:
           - "multiview.${INTERNAL_SECRET_DOMAIN}"
