@@ -29,7 +29,7 @@ twitch_miner = TwitchChannelPointsMiner(
     password=TWITCH_PASSWORD,  # If no password will be provided, the script will ask interactively
     claim_drops_startup=True,  # If you want to auto claim all drops from Twitch inventory on the startup
     priority=[  # Custom priority in this case for example:
-        Priority.STREAK,  # - We want first of all to catch all watch streak from all streamers
+        Priority.STREAK, # - We want first of all to catch all watch streak from all streamers
         Priority.DROPS,  # - When we don't have anymore watch streak to catch, wait until all drops are collected over the streamers
         Priority.ORDER,  # - When we have all of the drops claimed and no watch-streak available, use the order priority (POINTS_ASCENDING, POINTS_DESCEDING)
     ],
@@ -50,12 +50,13 @@ twitch_miner = TwitchChannelPointsMiner(
             GAIN_FOR_CLAIM=Fore.YELLOW,
             GAIN_FOR_WATCH=Fore.YELLOW,
             GAIN_FOR_WATCH_STREAK=Fore.YELLOW,
-            BET_WIN=Fore.GREEN,
-            BET_LOSE=Fore.RED,
-            BET_REFUND=Fore.RESET,
-            BET_FILTERS=Fore.MAGENTA,
-            BET_GENERAL=Fore.BLUE,
-            BET_FAILED=Fore.RED,
+            PREDICTION_WIN=Fore.GREEN,
+            PREDICTION_LOSE=Fore.RED,
+            PREDICTION_REFUND=Fore.RESET,
+            PREDICTION_FILTERS=Fore.MAGENTA,
+            PREDICTIONS=Fore.BLUE,
+            PREDICTION_FAILED=Fore.RED,
+            PREDICTION_EVENT_START=Fore.BLUE,
         ),
         hooks=[
             Discord(
@@ -67,13 +68,13 @@ twitch_miner = TwitchChannelPointsMiner(
                     Events.GAIN_FOR_CLAIM,
                     Events.GAIN_FOR_WATCH,
                     Events.GAIN_FOR_WATCH_STREAK,
-                    Events.BET_WIN,
-                    Events.BET_LOSE,
-                    Events.BET_REFUND,
-                    Events.BET_FILTERS,
-                    Events.BET_GENERAL,
-                    Events.BET_FAILED,
-                    Events.BET_START,
+                    Events.PREDICTION_WIN,
+                    Events.PREDICTION_LOSE,
+                    Events.PREDICTION_REFUND,
+                    Events.PREDICTION_FILTERS,
+                    Events.PREDICTIONS,
+                    Events.PREDICTION_FAILED,
+                    Events.PREDICTION_EVENT_START,
                     Events.BONUS_CLAIM,
                     Events.MOMENT_CLAIM,
                     Events.JOIN_RAID,
