@@ -21,10 +21,10 @@ spec:
               tag: 3.1.0@sha256:b5b9e400c086e5334a4947a0d7cd589808f743f29267d7f41c18200cf4bc48b4
             resources:
               requests:
-                cpu: 681m
-                memory: 1134Mi
+                cpu: 80m
+                memory: 1058Mi
               limits:
-                memory: 1134Mi
+                memory: 1058Mi
             env:
               TZ: America/Chicago
               DOCKER_ENABLE_SECURITY: false
