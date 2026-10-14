@@ -165,12 +165,15 @@ spec:
           restartPolicy: Never
     defaultPodOptions:
       priorityClassName: home-prod
-    #   securityContext:
-    #     runAsNonRoot: true
-    #     runAsUser: 1000
-    #     runAsGroup: 1000
-    #     fsGroup: 1000
-    #     fsGroupChangePolicy: OnRootMismatch
+      securityContext:
+        # Required so kubelet chmods the cert-manager CSI volume root
+        # (/var/run/secrets/postgresql) from 0550 root:root to something
+        # the dispatcharr UID-1000 process can traverse. Without this,
+        # Django dies on PermissionError when stat'ing tls.crt.
+        # OnRootMismatch keeps it cheap — kubelet only walks volumes
+        # whose root owner doesn't already match.
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     # resourceClaims:
     #   - name: gpu
     #     resourceClaimTemplateName: dispatcharr
