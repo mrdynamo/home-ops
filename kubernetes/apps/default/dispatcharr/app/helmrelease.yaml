@@ -98,7 +98,7 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 692m
+                cpu: 1730m
                 memory: 2059Mi
               limits:
                 memory: 2059Mi
