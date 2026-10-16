@@ -25,13 +25,17 @@ spec:
               PGID: 1000
               DISPATCHARR_TRUSTED_PROXIES: 10.42.0.0/16,192.168.30.21,192.168.30.22,192.168.30.23,192.168.30.24,192.168.30.25,192.168.30.26
               # DISPATCHARR_LOG_LEVEL: DEBUG
-              # Process Priority Configuration (Optional)
-              # Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
-              # Negative values require cap_add: SYS_NICE
+              ## Process Priority Configuration (Optional)
+              ## Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
+              ## Negative values require cap_add: SYS_NICE
               UWSGI_NICE_LEVEL: -10 # uWSGI/FFmpeg/Streaming (default: 0, recommended: -5 for high priority)
               # UWSGI_RELOAD_ON_RSS: 512 # recycle uWSGI workers before per-worker RSS growth can OOM the pod
               CELERY_NICE_LEVEL: 15 # Celery/EPG/Background tasks (default: 5, low priority)
-              # Modular deployment properties
+              ## Worker Configuration (Optional)
+              UWSGI_WORKERS: 4 # uWSGI gevent workers (default: 4)
+              CELERY_MAX_WORKERS: 6 # Celery prefork autoscale max (default: 6)
+              CELERY_MIN_WORKERS: 1 # Celery prefork autoscale min (default: 1; must be <= max)
+              ## Modular deployment properties
               DISPATCHARR_ENV: modular
               ## PostgreSQL configuration for modular deployment
               POSTGRES_HOST: pooler-rw.database.svc
