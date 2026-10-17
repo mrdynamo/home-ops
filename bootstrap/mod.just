@@ -43,6 +43,42 @@ kubeconfig lb="cilium":
         fi; \
     fi
 
+[doc('Generate OIDC kubeconfig at kubeconfig-oidc.yaml in the repo root')]
+[script('bash')]
+kubeconfig-oidc issuer_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_ISSUER_URL" client_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_CLIENT_ID":
+    set -euo pipefail
+    for bin in op kubectl kubectl-oidc_login; do
+        command -v "$bin" >/dev/null || { echo "missing required binary: $bin" >&2; exit 1; }
+    done
+    src="{{ justfile_dir() }}/kubeconfig"
+    out="{{ justfile_dir() }}/kubeconfig-oidc.yaml"
+    issuer="$(op read "{{ issuer_ref }}")"
+    client_id="$(op read "{{ client_ref }}")"
+    server="$(kubectl --kubeconfig "$src" config view --raw --minify -o jsonpath='{.clusters[0].cluster.server}')"
+    [[ -n "$issuer" && -n "$client_id" && -n "$server" ]] || { echo "issuer, client ID or server is empty" >&2; exit 1; }
+    tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+    kubectl --kubeconfig "$src" config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d > "$tmp/ca.crt"
+    [[ -s "$tmp/ca.crt" ]] || { echo "no cluster CA found in $src" >&2; exit 1; }
+    export KUBECONFIG="$tmp/kubeconfig"
+    kubectl config set-cluster main --server "$server" --certificate-authority "$tmp/ca.crt" --embed-certs=true >/dev/null
+    kubectl config set-credentials oidc \
+        --exec-api-version=client.authentication.k8s.io/v1 \
+        --exec-interactive-mode=IfAvailable \
+        --exec-command=kubectl \
+        --exec-arg=oidc-login \
+        --exec-arg=get-token \
+        --exec-arg="--oidc-issuer-url=$issuer" \
+        --exec-arg="--oidc-client-id=$client_id" \
+        --exec-arg=--oidc-extra-scope=profile \
+        --exec-arg=--oidc-extra-scope=email \
+        --exec-arg=--oidc-extra-scope=groups \
+        --exec-arg=--oidc-extra-scope=offline_access \
+        --exec-arg=--token-cache-storage=keyring >/dev/null
+    kubectl config set-context oidc --cluster main --user oidc >/dev/null
+    kubectl config use-context oidc >/dev/null
+    install -m 600 "$tmp/kubeconfig" "$out"
+    echo "Wrote $out (try: KUBECONFIG=$out kubectl auth whoami)"
+
 [doc('Wait for nodes to be not-ready')]
 wait:
     just log info "Running stage..." "stage" "$0"

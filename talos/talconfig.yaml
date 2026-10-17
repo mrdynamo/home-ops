@@ -156,6 +156,8 @@ controlPlane:
   patches:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
+    - "@./patches/controller/etcd-encryption.yaml"
+    - "@./patches/controller/oidc.yaml"
     - "@./patches/global/machine-features.yaml"
     - "@./patches/controller/watchdog.yaml"
 
