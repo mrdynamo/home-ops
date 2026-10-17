@@ -214,7 +214,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - Create a cluster entry for `https://192.168.30.10:6443` and embed the Kubernetes CA from the existing bootstrap kubeconfig or an equivalent trusted source. `--embed-certs=true` only embeds a CA when a CA file is supplied. Never copy the bootstrap user certificate or key into the OIDC kubeconfig.
    - Create an OIDC `exec` user using `kubectl oidc-login get-token`, the actual client ID, and `client.authentication.k8s.io/v1`; select the `oidc` context.
    - Use an Authentik public client with PKCE so no client secret is stored in the kubeconfig. Request `openid`, `profile`, `email`, `groups`, and `offline_access` if the Authentik provider is configured to issue refresh tokens.
-   - Write only to `kubeconfig-oidc.yaml` in the repo root (gitignored), and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
+   - Write only to `kubeconfig-oidc` in the repo root (gitignored), and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
 
    **Implemented:** `just bootstrap kubeconfig-oidc` in `bootstrap/mod.just`. It reads two 1Password fields (override with the `issuer_ref` / `client_ref` arguments):
 
@@ -223,7 +223,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    | `op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_ISSUER_URL` | The exact `issuer` from Authentik's discovery document, usually `https://auth.<domain>/application/o/kubernetes/` (trailing slash included). It must equal the `url` in `talos/patches/controller/oidc.yaml`. Check with `curl -s <issuer>.well-known/openid-configuration \| jq -r .issuer`. |
    | `op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_CLIENT_ID` | The Authentik provider's client ID (same value as the `audiences` entry in `oidc.yaml`). |
 
-   The `kubernetes` item name is a choice; change the defaults in the recipe if you store the fields elsewhere. The server and CA are read from the repo-root bootstrap `kubeconfig`.
+   The `kubernetes` item name is a choice; change the defaults in the recipe if you store the fields elsewhere. The recipe does not need the bootstrap `kubeconfig`: the API server URL comes from `endpoint` in `talos/talconfig.yaml`, and the cluster CA certificate (public part only) is decrypted from `talos/talsecret.sops.yaml` with sops, so the age key must be available.
 
    Do not run the original sample unchanged: its shell variables do not persist between lines, it leaves the VIP as a placeholder, it has no cluster CA, and it persists a client secret in exec arguments.
 
@@ -270,7 +270,7 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 4. **OIDC login works** (browser opens, Authentik challenges, returns token):
 
    ```sh
-   KUBECONFIG=kubeconfig-oidc.yaml kubectl get nodes
+   KUBECONFIG=kubeconfig-oidc kubectl get nodes
    ```
 
    First invocation opens a browser to `auth.${SECRET_DOMAIN}/...`, you log in, kubelogin captures the redirect, kubectl returns the 6 nodes.
@@ -278,7 +278,7 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 5. **Identity and group claims are correct** (check both an admin and, if available, a non-admin Authentik user):
 
    ```sh
-   KUBECONFIG=kubeconfig-oidc.yaml kubectl auth whoami -o yaml
+   KUBECONFIG=kubeconfig-oidc kubectl auth whoami -o yaml
    ```
 
    `kubectl auth whoami` is included in the repository's pinned kubectl v1.37.1. An admin's output should have an `oidc:`-prefixed username and include `oidc:kubernetes-admins` and `system:authenticated` once. A non-admin may authenticate but must not receive the admin group.

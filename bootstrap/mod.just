@@ -43,24 +43,24 @@ kubeconfig lb="cilium":
         fi; \
     fi
 
-[doc('Generate OIDC kubeconfig at kubeconfig-oidc.yaml in the repo root')]
+[doc('Generate OIDC kubeconfig at kubeconfig-oidc in the repo root')]
 [script('bash')]
 kubeconfig-oidc issuer_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_ISSUER_URL" client_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_CLIENT_ID":
     set -euo pipefail
-    for bin in op kubectl kubectl-oidc_login; do
+    for bin in op kubectl kubectl-oidc_login sops yq; do
         command -v "$bin" >/dev/null || { echo "missing required binary: $bin" >&2; exit 1; }
     done
-    src="{{ justfile_dir() }}/kubeconfig"
-    out="{{ justfile_dir() }}/kubeconfig-oidc.yaml"
+    out="{{ justfile_dir() }}/kubeconfig-oidc"
     issuer="$(op read "{{ issuer_ref }}")"
     client_id="$(op read "{{ client_ref }}")"
-    server="$(kubectl --kubeconfig "$src" config view --raw --minify -o jsonpath='{.clusters[0].cluster.server}')"
+    server="$(yq -e '.endpoint' "{{ justfile_dir() }}/talos/talconfig.yaml")"
     [[ -n "$issuer" && -n "$client_id" && -n "$server" ]] || { echo "issuer, client ID or server is empty" >&2; exit 1; }
     tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-    kubectl --kubeconfig "$src" config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d > "$tmp/ca.crt"
-    [[ -s "$tmp/ca.crt" ]] || { echo "no cluster CA found in $src" >&2; exit 1; }
+    # Public Kubernetes CA certificate only; the CA key in the same file is never read.
+    sops -d --extract '["certs"]["k8s"]["crt"]' "{{ justfile_dir() }}/talos/talsecret.sops.yaml" | base64 -d > "$tmp/ca.crt"
+    [[ -s "$tmp/ca.crt" ]] || { echo "could not read the cluster CA from talsecret.sops.yaml" >&2; exit 1; }
     export KUBECONFIG="$tmp/kubeconfig"
-    kubectl config set-cluster main --server "$server" --certificate-authority "$tmp/ca.crt" --embed-certs=true >/dev/null
+    kubectl config set-cluster kubernetes --server "$server" --certificate-authority "$tmp/ca.crt" --embed-certs=true >/dev/null
     kubectl config set-credentials oidc \
         --exec-api-version=client.authentication.k8s.io/v1 \
         --exec-interactive-mode=IfAvailable \
@@ -74,8 +74,8 @@ kubeconfig-oidc issuer_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_I
         --exec-arg=--oidc-extra-scope=groups \
         --exec-arg=--oidc-extra-scope=offline_access \
         --exec-arg=--token-cache-storage=keyring >/dev/null
-    kubectl config set-context oidc --cluster main --user oidc >/dev/null
-    kubectl config use-context oidc >/dev/null
+    kubectl config set-context oidc@kubernetes --cluster kubernetes --user oidc --namespace default >/dev/null
+    kubectl config use-context oidc@kubernetes >/dev/null
     install -m 600 "$tmp/kubeconfig" "$out"
     echo "Wrote $out (try: KUBECONFIG=$out kubectl auth whoami)"
 
