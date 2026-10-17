@@ -18,6 +18,7 @@
 /nodes.yaml
 # Kubernetes
 kubeconfig
+kubeconfig-oidc.yaml
 talosconfig
 # Misc.
 .private/
