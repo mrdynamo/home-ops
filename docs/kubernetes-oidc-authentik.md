@@ -71,37 +71,45 @@ After Phase 1, the OIDC issuer is live and reachable at `https://auth.${SECRET_D
 
 > **Authentik issuer-mode assumption.** Per-provider issuer mode is the default and uses `https://auth.${SECRET_DOMAIN}/application/o/kubernetes/`. In global issuer mode the discovery document is still served at `https://auth.${SECRET_DOMAIN}/application/o/kubernetes/.well-known/openid-configuration`, but its returned `issuer` is `https://auth.${SECRET_DOMAIN}/`. The API server's configured issuer must exactly match that returned `issuer`; do not infer it from the discovery document's URL alone.
 
-### Phase 2 — Talos: wire `--oidc-*` flags into the API server
+### Phase 2 — Talos: configure the API server JWT authenticator
 
-Goal: enable the API server to validate OIDC tokens. Valid OIDC settings add a bearer-token authentication path and do not invalidate client-certificate authentication. However, malformed settings can prevent kube-apiserver from starting, so the bootstrap certificate is not a recovery path for an API-server crashloop.
+Goal: enable the API server to validate OIDC tokens. Valid settings add a bearer-token authentication path and do not invalidate client-certificate authentication. However, malformed settings can prevent kube-apiserver from starting, so the bootstrap certificate is not a recovery path for an API-server crashloop.
 
-1. **Extend `talos/patches/controller/cluster.yaml`** in the existing `cluster.apiServer.extraArgs` block. Add:
+> **Talos 1.14 / Talhelper 3.1.17.** Talos 1.14 splits control-plane settings into dedicated documents (`KubeAPIServerConfig`, `KubeAuthenticationConfig`, `KubeProxyConfig`, `ResolverConfig`, ...). Talhelper 3.1.17 (final release) already emits them, so legacy `cluster.apiServer`, `cluster.controllerManager`, `cluster.scheduler`, `cluster.proxy`, `cluster.discovery` and `machine.network.nameservers` patches fail generation. The patches under `talos/patches/` were migrated to the document form, and the `oidc-*` flags became a `KubeAuthenticationConfig` JWT authenticator (`--oidc-*` flags are no longer used).
+
+1. **`talos/patches/controller/cluster.yaml`** carries the `KubeAuthenticationConfig` document:
 
    ```yaml
-   cluster:
-     apiServer:
-       extraArgs:
-         # ...existing flags...
-         oidc-issuer-url: https://auth.<secret-domain>/application/o/kubernetes/
-         oidc-client-id: <kubernetes>          # public identifier, not secret
-         oidc-username-claim: preferred_username
-         oidc-username-prefix: "oidc:"
-         oidc-groups-claim: groups
-         oidc-groups-prefix: "oidc:"
-         oidc-signing-algs: RS256
+   apiVersion: v1alpha1
+   kind: KubeAuthenticationConfig
+   configuration:
+     anonymous:            # keep the Talos defaults; the patch replaces this list
+       enabled: true
+       conditions:
+         - path: /livez
+         - path: /readyz
+         - path: /healthz
+     jwt:
+       - issuer:
+           url: https://auth.${SECRET_DOMAIN}/application/o/kubernetes/
+           audiences:
+             - <client-id>       # public identifier, not secret
+         claimMappings:
+           username: {claim: preferred_username, prefix: "oidc:"}
+           groups: {claim: groups, prefix: "oidc:"}
    ```
 
-   The issuer URL must exactly match the discovery document's `issuer` value and be reachable from every control-plane node. The current Authentik HelmRelease uses the `external` gateway route; the checked-out Talos patch instead contains `${INTERNAL_SECRET_DOMAIN}`. Do not apply it until the issuer's DNS, TLS certificate, discovery document, and JWKS URL have been tested from the nodes.
+   The issuer URL must exactly match the discovery document's `issuer` value and be reachable from every control-plane node. Authentik is routed on the `external` gateway, so use the public domain. Test DNS, TLS certificate, discovery document and JWKS from the nodes before applying.
 
    The API server and kubelogin must still validate the HTTPS certificate for the issuer URL. The Authentik JWT signing key can be self-signed because token signatures are checked against JWKS; this does not make an untrusted HTTPS endpoint acceptable.
 
-   **Do not assume Flux substitution applies to Talos patches.** The `cluster-secrets` substitution described elsewhere is a Flux post-build feature and does not apply to Talos configuration. Confirm what `talhelper genconfig` emits for every placeholder in this patch. In particular, the existing patch currently contains both `${INTERNAL_SECRET_DOMAIN}` and `<kubernetes>`; neither is a verified, usable runtime value.
+   **Keeping the domain out of git.** `talos/talenv.yaml` stays plaintext so Renovate can bump Talos/Kubernetes versions. The domain lives in `talos/talenv.sops.yaml` (SOPS-encrypted, covered by the existing `talos/.*\.sops\.ya?ml` rule). Talhelper loads both env files and substitutes `${SECRET_DOMAIN}` in `@file` patches. Flux's `cluster-secrets` substitution does not apply to Talos. Note that `$` in patches must be escaped as `$$` (for example `$$patch: delete`), and `talos/clusterconfig/` contains the resolved domain and must remain gitignored.
 
-   The group name must match between Authentik and the ClusterRoleBinding subject (`oidc:kubernetes-admins` after applying `oidc-groups-prefix`). Do not use `oidc-required-claim: groups=kubernetes-admins` as a membership test: the groups claim is an array, whereas this flag is a scalar key/value comparison. The ClusterRoleBinding is the authorization guard for non-admin groups.
+   The group name must match between Authentik and the ClusterRoleBinding subject (`oidc:kubernetes-admins` after applying the groups prefix). No `required-claim` equivalent is used; the ClusterRoleBinding is the authorization guard for non-admin groups. To restrict authentication itself, add a CEL `claimValidationRules` entry to the JWT authenticator and test it against a real ID token.
 
-   Subject-mode interaction: with Authentik "Subject mode: Based on the User's username" and `oidc-username-claim: preferred_username`, the OIDC username is `<auth-user-username>`. The binding in Phase 3 uses `Group`, not `User`, so this is fine — but if anyone later adds a `User`-subject binding, kube-apiserver will see users as `oidc:<username>` because of `oidc-username-prefix: "oidc:"`.
+   Subject-mode interaction: with Authentik "Subject mode: Based on the User's username" and `claim: preferred_username`, the OIDC username is `<auth-user-username>`. The binding in Phase 3 uses `Group`, not `User`, so this is fine, but a `User`-subject binding would need the `oidc:` prefix.
 
-   `oidc-signing-algs: RS256` matches the Kubernetes default and Authentik's usual signing key. Revisit this if Authentik is configured to sign with a different algorithm.
+   Signing algorithm: the structured authenticator accepts the algorithms Authentik publishes in JWKS (RS256 by default); no separate flag is needed.
 
 2. The two `additionalApiServerCertSans` entries in `talconfig.yaml` remain unchanged. **No change.** LAN-only access means no new SANs.
 
@@ -119,10 +127,10 @@ Goal: enable the API server to validate OIDC tokens. Valid OIDC settings add a b
 4. **Verify after each roll** (per node). The static-pod manifest on disk is not the same as a healthy running apiserver — if any flag value is malformed (e.g. a literal `${SECRET_DOMAIN}` that wasn't substituted, or an unescaped `<secret-domain>` placeholder left from a partially-edited patch), the manifest still exists on disk but kube-apiserver is crashlooping. Run **all three**:
 
    ```sh
-   # 1. Configured OIDC flags landed in the static-pod manifest:
+   # 1. The authentication config is wired into the static-pod manifest:
    talosctl -n <control-plane-node-ip> read /etc/kubernetes/manifests/kube-apiserver.yaml \
-     | grep -E 'oidc-(issuer|client|username|groups|signing)'
-   # Expect the seven configured OIDC arguments, with resolved issuer/client values.
+     | grep -E 'authentication-config'
+   # Expect --authentication-config and no legacy --oidc-* flags.
 
    # 2. kube-apiserver service is Running, not crashlooping:
    talosctl -n <control-plane-node-ip> service kube-apiserver
@@ -237,10 +245,10 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 
    ```sh
    talosctl -n <control-plane-node-ip> read /etc/kubernetes/manifests/kube-apiserver.yaml \
-     | grep -E 'oidc-(issuer|client|username|groups|signing)'
+     | grep -E 'authentication-config'
    ```
 
-   Expect all seven configured arguments, with the issuer and client ID fully resolved (no `${...}` or `<...>` placeholders).
+   Also confirm `grep -c '\${' talos/clusterconfig/*.yaml` is 0 so the issuer and client ID are fully resolved.
 
 3. **OIDC kubeconfig generation succeeds**:
 
@@ -274,7 +282,7 @@ Each phase is independently reversible:
 
 - **Phase 4** (justfile recipe): delete the recipe. Nothing checked in.
 - **Phase 3** (RBAC): `kubectl delete clusterrolebinding kubernetes-admins` or remove the file from Flux.
-- **Phase 2** (Talos apiserver flags): remove the OIDC entries from `talos/patches/controller/cluster.yaml` and regenerate/apply the node configs. The API server restarts without OIDC support. The bootstrap cert path is unaffected throughout.
+- **Phase 2** (Talos apiserver flags): remove the `KubeAuthenticationConfig` JWT entry from `talos/patches/controller/cluster.yaml` and regenerate/apply the node configs. The API server restarts without OIDC support. The bootstrap cert path is unaffected throughout.
 - **Phase 1** (Authentik provider/application/group): UI deletion only. No cluster state to undo.
 - **Phase 0**: no-op.
 
@@ -294,7 +302,7 @@ The bootstrap kubeconfig (`KUBECONFIG=./kubeconfig kubectl ...`) remains valid w
 
 ### Modified
 
-- `talos/patches/controller/cluster.yaml` — correct and validate the existing partial OIDC arguments under `cluster.apiServer.extraArgs`; no new file.
+- `talos/patches/controller/cluster.yaml` — `KubeAuthenticationConfig` JWT authenticator plus the other Talos 1.14 document migrations; domain comes from encrypted `talos/talenv.sops.yaml`.
 - `bootstrap/mod.just` — add `kubeconfig-oidc` recipe alongside the existing `kubeconfig` recipe.
 - `kubernetes/apps/security/kustomization.yaml` — register the new `./auth/ks.yaml` under `resources:`.
 
@@ -309,7 +317,7 @@ The bootstrap kubeconfig (`KUBECONFIG=./kubeconfig kubectl ...`) remains valid w
 - Group-subject ClusterRoleBinding precedent: `kubernetes/apps/flux-system/flux-operator/app/clusterrolebinding.yaml`
 - `cluster-secrets` substitute pattern: `kubernetes/apps/security/authentik/ks.yaml`
 - Authentik HelmRelease envFrom ExternalSecret pattern: `kubernetes/apps/security/authentik/app/externalsecret.yaml`
-- Existing Talos apiserver extraArgs patch slot: `talos/patches/controller/cluster.yaml`
+- Talos controller patch (documents): `talos/patches/controller/cluster.yaml`
 - 1Password as the canonical secret store: every `*App`/`Catalog` value already routed through `ClusterSecretStore: onepassword`.
 
 ### Untouched (rescue posture)
