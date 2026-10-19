@@ -118,6 +118,12 @@
         icon: litellm.svg
         namespace: ai
         app: litellm
+    - SearXNG:
+        href: https://searxng.${INTERNAL_SECRET_DOMAIN}/
+        description: Self-hosted search engine
+        icon: searxng.svg
+        namespace: ai
+        app: searxng
     - Stirling PDF:
         href: https://stirling-pdf.${INTERNAL_SECRET_DOMAIN}/
         description: PDF management and generation service
