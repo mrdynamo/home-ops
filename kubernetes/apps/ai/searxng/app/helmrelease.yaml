@@ -29,7 +29,6 @@ spec:
               SEARXNG_BASE_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
               SEARXNG_PORT: &port 8080
               SEARXNG_VALKEY_URL: "redis://litellm-dragonfly:6379/12"
-
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
