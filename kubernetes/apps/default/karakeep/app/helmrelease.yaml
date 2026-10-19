@@ -24,11 +24,15 @@ spec:
                   podAffinityTerm:
                     labelSelector:
                       matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - karakeep
                         - key: app.kubernetes.io/instance
                           operator: In
                           values:
                             - karakeep
-                        - key: app.kubernetes.io/component
+                        - key: app.kubernetes.io/controller
                           operator: In
                           values:
                             - meilisearch
@@ -130,15 +134,19 @@ spec:
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - karakeep
                       - key: app.kubernetes.io/instance
                         operator: In
                         values:
                           - karakeep
-                      - key: app.kubernetes.io/component
+                      - key: app.kubernetes.io/controller
                         operator: In
                         values:
                           - karakeep
-                  topologyKey: kubernetes.io/hostname
+                    topologyKey: kubernetes.io/hostname
         containers:
           app:
             image:
