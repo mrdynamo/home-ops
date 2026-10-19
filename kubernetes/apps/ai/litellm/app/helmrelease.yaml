@@ -86,10 +86,10 @@ spec:
                   failureThreshold: 30
             resources:
               requests:
-                cpu: 424m
-                memory: 1546Mi
+                cpu: 31m
+                memory: 1277Mi
               limits:
-                memory: 1546Mi
+                memory: 1277Mi
     service:
       app:
         ports:
