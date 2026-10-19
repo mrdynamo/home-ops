@@ -16,20 +16,23 @@ spec:
         pod:
           annotations:
             reloader.stakater.com/auto: "true"
+          priorityClassName: home-prod
           affinity:
             podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchExpressions:
-                      - key: app.kubernetes.io/instance
-                        operator: In
-                        values:
-                          - karakeep
-                      - key: app.kubernetes.io/component
-                        operator: In
-                        values:
-                          - meilisearch
-                  topologyKey: kubernetes.io/hostname
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/instance
+                          operator: In
+                          values:
+                            - karakeep
+                        - key: app.kubernetes.io/component
+                          operator: In
+                          values:
+                            - meilisearch
+                    topologyKey: kubernetes.io/hostname
         containers:
           app:
             image:
