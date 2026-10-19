@@ -9,3 +9,4 @@ components:
 resources:
   - ./namespace.yaml
   - ./litellm/ks.yaml
+  - ./searxng/ks.yaml

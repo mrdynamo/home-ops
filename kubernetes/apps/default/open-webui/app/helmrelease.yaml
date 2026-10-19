@@ -21,16 +21,22 @@ spec:
               tag: v0.12.3@sha256:a537bbe1e6b428820f52ed4a029d7fff97062e24d5cf32c365fba36fd0542def
             env:
               TZ: America/Chicago
-              # Image Generation Settings
-              # Open-WebUI Settings
+              ## Image Generation Settings
+              ## Open-WebUI Settings
               WEBUI_URL: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}"
               ENABLE_FORWARD_USER_INFO_HEADERS: true
-              # SSO Settings
+              ## SSO Settings
               OAUTH_PROVIDER_NAME: Authentik
               OPENID_PROVIDER_URL: "https://auth.${SECRET_DOMAIN}/application/o/{{ .Release.Name }}/.well-known/openid-configuration"
               OPENID_REDIRECT_URI: "https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}/oauth/oidc/callback"
               ENABLE_OAUTH_SIGNUP: true
               OAUTH_MERGE_ACCOUNTS_BY_EMAIL: true
+              ## Web Search Settings
+              ENABLE_WEB_SEARCH: true
+              WEB_SEARCH_RESULT_COUNT: 10
+              WEB_SEARCH_CONCURRENT_REQUESTS: 15
+              WEB_SEARCH_ENGINE: searxng
+              SEARXNG_QUERY_URL: "http://searxng.ai.svc.cluster.local:8080/search?q=<query>"
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
