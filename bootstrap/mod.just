@@ -46,21 +46,37 @@ kubeconfig lb="cilium":
 [doc('Generate OIDC kubeconfig at kubeconfig-oidc in the repo root')]
 [script('bash')]
 kubeconfig-oidc issuer_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_ISSUER_URL" client_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_CLIENT_ID":
+    # `[script('bash')]` runs the recipe as `bash <file>` — a fresh non-interactive
+    # bash that does NOT source .bashrc. On WSL that breaks `op` because the
+    # mrdynamo/dotfiles alias `op='op.exe'` (and the desktop-bridge auth context
+    # it implies) only appears in interactive/login shells. `exec` replaces this
+    # outer non-interactive bash with a login-interactive bash that sources the
+    # same rc files the user's terminal does, leaving the dotfiles repo as the
+    # single source of truth for what `op` resolves to.
+    just log info "Generating OIDC kubeconfig..."
+    exec bash -lic '
     set -euo pipefail
-    for bin in op kubectl kubectl-oidc_login sops yq; do
-        command -v "$bin" >/dev/null || { echo "missing required binary: $bin" >&2; exit 1; }
-    done
     out="{{ justfile_dir() }}/kubeconfig-oidc"
     issuer="$(op read "{{ issuer_ref }}")"
     client_id="$(op read "{{ client_ref }}")"
-    server="$(yq -e '.endpoint' "{{ justfile_dir() }}/talos/talconfig.yaml")"
+    server="$(yq -e ".endpoint" "{{ justfile_dir() }}/talos/talconfig.yaml")"
     [[ -n "$issuer" && -n "$client_id" && -n "$server" ]] || { echo "issuer, client ID or server is empty" >&2; exit 1; }
-    tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+    tmp="$(mktemp -d)"; trap "rm -rf \"$tmp\"" EXIT
     # Public Kubernetes CA certificate only; the CA key in the same file is never read.
-    sops -d --extract '["certs"]["k8s"]["crt"]' "{{ justfile_dir() }}/talos/talsecret.sops.yaml" | base64 -d > "$tmp/ca.crt"
+    sops -d --extract "[\"certs\"][\"k8s\"][\"crt\"]" "{{ justfile_dir() }}/talos/talsecret.sops.yaml" | base64 -d > "$tmp/ca.crt"
     [[ -s "$tmp/ca.crt" ]] || { echo "could not read the cluster CA from talsecret.sops.yaml" >&2; exit 1; }
     export KUBECONFIG="$tmp/kubeconfig"
     kubectl config set-cluster kubernetes --server "$server" --certificate-authority "$tmp/ca.crt" --embed-certs=true >/dev/null
+    # kubelogin token cache: macOS uses the native Keychain via the keyring
+    # backend. WSL needs gnome-keyring (freedesktop Secret Service) running —
+    # which the mrdynamo/dotfiles repo starts in its bashrc — so the same
+    # keyring backend works on both platforms. Linux without that daemon
+    # falls back to a plain file cache.
+    if [ "$(uname -s)" = Linux ] && [ -z "${GNOME_KEYRING_CONTROL:-}" ]; then
+        token_cache_storage=disk
+    else
+        token_cache_storage=keyring
+    fi
     kubectl config set-credentials oidc \
         --exec-api-version=client.authentication.k8s.io/v1 \
         --exec-interactive-mode=IfAvailable \
@@ -73,11 +89,12 @@ kubeconfig-oidc issuer_ref="op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_I
         --exec-arg=--oidc-extra-scope=email \
         --exec-arg=--oidc-extra-scope=groups \
         --exec-arg=--oidc-extra-scope=offline_access \
-        --exec-arg=--token-cache-storage=keyring >/dev/null
+        --exec-arg="--token-cache-storage=$token_cache_storage" >/dev/null
     kubectl config set-context oidc@kubernetes --cluster kubernetes --user oidc --namespace default >/dev/null
     kubectl config use-context oidc@kubernetes >/dev/null
     install -m 600 "$tmp/kubeconfig" "$out"
-    echo "Wrote $out (try: KUBECONFIG=$out kubectl auth whoami)"
+    just log info "Wrote $out (try: kubectl auth whoami)"
+    '
 
 [doc('Wait for nodes to be not-ready')]
 wait:
