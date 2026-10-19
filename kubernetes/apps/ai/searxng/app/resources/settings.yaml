@@ -28,7 +28,7 @@ ui:
   results_on_new_tab: true
   static_use_hash: true
   theme_args:
-    simple_style: auto
+    simple_style: black
 
 categories_as_tabs:
   general:
