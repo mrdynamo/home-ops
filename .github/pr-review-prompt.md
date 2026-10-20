@@ -68,6 +68,40 @@ in this repo that depend on the upgraded one (shared services, internal consumer
 Map each finding from the research step against what this repository actually uses. A
 breaking change that affects a feature we don't use is not actionable.
 
+#### Resource blast-radius via Konflate (required)
+
+The review environment has the **Konflate MCP server** wired through LiteLLM. Konflate
+renders the PR's applied YAML against the cluster state at submission time and produces
+caution lints (data-loss, immutable-field, RBAC, suspend/prune), image-tag changes, and
+render failures — signals a raw `git diff` cannot show. Use the following tools on every
+PR that touches Kubernetes manifests, HelmReleases, OCIRepositories, Kustomizations, or
+Flux resources:
+
+- `mcp__konflate__list_pull_requests` — confirm the PR is registered with Konflate; if
+  it isn't, surface that as an `unresolved` required check rather than guessing.
+- `mcp__konflate__get_pr_summary` — fetch the cluster-impact summary, caution lint
+  list, image changes, and render status for the current PR number.
+- `mcp__konflate__get_pr_diff` — fetch one resource's rendered diff; pass the
+  `resource` argument (a resource id like `r0` or a title substring) to keep the
+  response bounded. Use this when the summary's caution lints reference specific
+  resources.
+
+Cross-reference the upstream-vs-repo findings above with Konflate's caution lints:
+
+- **Data-loss, immutable-field, RBAC, suspend/prune** cautions from Konflate → `blocker`
+  unless the operator has confirmed otherwise in the PR thread. Always emit a matching
+  structured `finding` with `category: "compatibility"`.
+- **Image changes** from Konflate that you did not surface from the upstream release
+  notes → `major` (the lockfile diff told you about the bump; the summary told you
+  about a side-car or init container you missed). Cross-check by reading the relevant
+  HelmRelease/OCIRepository file in the diff.
+- **Render failures** from Konflate → `blocker`. The PR cannot apply cleanly, full stop.
+
+Map Konflate's cautions onto the existing `findings[]` schema (`severity`, `category`,
+`file`, `line`, `message`). Treat the rendered cluster effect as a first-class input —
+it is the only place that sees `webhook.receivers: ['failed']`, an immutable ConfigMap
+name change, or a `resources.limits` reduction that would OOM a live pod.
+
 ### 4. Categorize
 
 Sort actionable findings into three buckets:

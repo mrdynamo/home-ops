@@ -56,6 +56,30 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify Konflate MCP tools via LiteLLM
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: |
+          set -euo pipefail
+          # LiteLLM exposes configured MCP tools at /mcp-rest/tools/list. The
+          # MCP server is registered with alias `konflate` against the konflate
+          # app in flux-system. Confirm the tool surface before letting the
+          # reviewer start — without this, the action silently skips a missing
+          # server (tool-loop.md: "A server that fails to connect is logged
+          # and skipped — it never breaks the loop").
+          curl -fsS \
+            -H "Authorization: Bearer ${LITELLM_API_KEY}" \
+            http://litellm.ai.svc:4000/mcp-rest/tools/list \
+            > /tmp/litellm-mcp-tools.json
+          python3 -c "
+          import json, sys
+          tools = json.load(open('/tmp/litellm-mcp-tools.json'))
+          konflate = [t for t in tools if str(t.get('name','')).startswith('konflate.')]
+          assert konflate, f'no konflate.* tools exposed via LiteLLM: {json.dumps(tools)[:500]}'
+          names = sorted(t['name'] for t in konflate)
+          print(f'OK: {len(konflate)} konflate MCP tools: {names}')
+          "
+
       - name: Review PR
         id: ai-review
         uses: misospace/pr-reviewer-action@e207a7d11d2ee41f77493b2314e30e7ca694da50 # v3.6.0
@@ -68,6 +92,14 @@ jobs:
           # Stable per-run LiteLLM session id (misospace/pr-reviewer-action#1037).
           ai-extra-headers: |
             x-litellm-session-id: AI_PR-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          # Konflate MCP server via LiteLLM. The action's `tool-mcp-token`
+          # sends the value verbatim as `Authorization: <token>`; LiteLLM's
+          # get_api_key() accepts `Authorization` as a fallback header to
+          # `x-litellm-api-key` (litellm/proxy/auth/user_api_key_auth.py),
+          # so prepending `Bearer ` here satisfies both the action's bearer
+          # semantics and LiteLLM's auth normalization.
+          tool-mcp-servers: "konflate=http://litellm.ai.svc:4000/konflate/mcp"
+          tool-mcp-token: "Bearer ${{ secrets.LITELLM_API_KEY }}"
           publish-review-comment: "true"
           publish-mode: review_verdict
           allow-approve: "true"
