@@ -298,7 +298,7 @@ mcp_servers:
     auth_value: os.environ/GITHUB_MCP_PAT
     url: https://api.githubcopilot.com/mcp/
     description: "GitHub MCP Server"
-    access_groups: [mcp-access]
+    # access_groups: [mcp-access]
 
   enhanced_channel_manager_mcp_server:
     alias: ecm
@@ -307,7 +307,7 @@ mcp_servers:
     auth_value: os.environ/ECM_MCP_API_KEY
     url: http://enhanced-channel-manager.default.svc:6101/mcp
     description: "Enhanced Channel Manager MCP Server"
-    access_groups: [mcp-access]
+    # access_groups: [mcp-access]
 
   konflate_mcp_server:
     alias: konflate
@@ -315,7 +315,7 @@ mcp_servers:
     auth_type: none
     url: http://konflate.flux-system.svc:8080/mcp
     description: "Konflate MCP Server"
-    access_groups: [mcp-access]
+    # access_groups: [mcp-access]
 
 #########################
 # Application Settings  #
