@@ -55,6 +55,10 @@ jobs:
           ai-base-url: "http://litellm.ai.svc:4000/v1"
           ai-model: "qwen3.5:9b"
           ai-api-key: ${{ secrets.LITELLM_API_KEY }}
+          # Stable per-run LiteLLM session id (misospace/pr-reviewer-action#1037).
+          ai-extra-headers: |
+            x-litellm-session-id: ${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}
+            x-litellm-trace-id: ${{ github.workflow }}-${{ github.run_id }}
           # ai-primary-retries: '30'
           # ai-primary-retry-delay-sec: '30'
           # ai-fallback-api-format: 'anthropic'
