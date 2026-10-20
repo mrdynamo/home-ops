@@ -45,6 +45,17 @@ jobs:
             http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
           grep -q 'minimax/MiniMax-M3' /tmp/litellm-models.json
 
+      - name: Log LiteLLM session id
+        run: |
+          {
+            echo "### LiteLLM session"
+            echo
+            echo '```'
+            echo "AI_PR-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Review PR
         id: ai-review
         uses: misospace/pr-reviewer-action@e207a7d11d2ee41f77493b2314e30e7ca694da50 # v3.6.0
