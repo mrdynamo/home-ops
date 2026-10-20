@@ -298,7 +298,6 @@ mcp_servers:
     auth_value: os.environ/GITHUB_MCP_PAT
     url: https://api.githubcopilot.com/mcp/
     description: "GitHub MCP Server"
-    # access_groups: [mcp-access]
 
   enhanced_channel_manager_mcp_server:
     alias: ecm
@@ -307,7 +306,6 @@ mcp_servers:
     auth_value: os.environ/ECM_MCP_API_KEY
     url: http://enhanced-channel-manager.default.svc:6101/mcp
     description: "Enhanced Channel Manager MCP Server"
-    # access_groups: [mcp-access]
 
   konflate_mcp_server:
     alias: konflate
@@ -315,7 +313,6 @@ mcp_servers:
     auth_type: none
     url: http://konflate.flux-system.svc:8080/mcp
     description: "Konflate MCP Server"
-    # access_groups: [mcp-access]
 
 #########################
 # Application Settings  #
@@ -334,6 +331,7 @@ general_settings:
   store_prompts_in_spend_logs: true
   use_redis_transaction_buffer: true # HA
   enable_mcp_registry: true
+  require_key_mcp_access_defined: true
 
 router_settings:
   routing_strategy: simple-shuffle
