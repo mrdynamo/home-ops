@@ -257,8 +257,11 @@ Required top-level keys, in this order:
   - `new_version` — version after the upgrade
 - `required_check_dispositions` — array of objects. The v3 reviewer action
   injects a deterministic list of required review questions in its user
-  message (under "Required checks"). For EACH item, emit one entry echoing the
-  check text verbatim, with a status and a short rationale. Status values:
+  message (under "Required checks"). For EACH item, emit one entry echoing
+  the check text byte-for-byte (identity is matched case- and
+  whitespace-insensitive server-side; paraphrased, reordered, or invented
+  identifiers are dropped and silently counted as "Unaddressed"), with a
+  status and a short rationale. Status values:
   - `satisfied` — the diff and corpus prove the check passes. Rationale: one
     sentence citing the file and what changed.
   - `not_applicable` — the check does not apply to this PR's diff. Rationale
@@ -282,8 +285,21 @@ Required top-level keys, in this order:
   - Auth / DB-migration / path-handling checks → `not_applicable` for plain
     dependency bumps; `satisfied` only when the diff actually changes those
     surfaces.
-  - `verify no functional changes beyond lockfile hashes` (digest-only PRs) →
-    `satisfied` with rationale pointing at the digest diff.
+  - `verify only image digests changed; repository and tag unchanged`
+    (image-digest-only Renovate PRs — `HelmRelease` `image:` sha256 refresh
+    with the tag and repo unchanged) → `satisfied` with rationale pointing
+    at the diff (e.g., "tag `2.338.0` unchanged on both files; only
+    `sha256:c867ec…` → `sha256:7ece17…` in `image:` line 33").
+
+  The check text MUST be echoed verbatim from the "Required checks" list
+  the action injects in its user message — case- and whitespace-insensitive
+  identity is enforced server-side (misospace/pr-reviewer-action
+  docs/required-checks.md: "Identity is the exact deterministic check text
+  echoed back … unknown/forged check identities are dropped, never
+  credited"). Paraphrasing or restating the check collapses the entry to
+  no attributable identity and the validator silently counts that check
+  as "Unaddressed", which downgrades the review from `complete` to
+  `partial` and withholds the approval.
 
   A `required_check_dispositions` array covering every check is what flips the
   review from "advisory comment" to a real `approve` verdict. Emit it on every
