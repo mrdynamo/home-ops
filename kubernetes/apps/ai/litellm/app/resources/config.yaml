@@ -34,7 +34,7 @@ _minimax_model_info: &minimax_model_info
   mode: chat
 
 _anthropic_litellm_params: &anthropic_litellm_params
-  api_base: https://api.anthropic.com/v1
+  api_base: https://api.anthropic.com
   # No `api_key` here on purpose: the docs say a deployment without one "serves
   # only subscription users" — with one, a request without a subscription
   # token silently falls back to that PAYG key and bypasses the OAuth path.
