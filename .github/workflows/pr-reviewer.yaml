@@ -62,21 +62,55 @@ jobs:
         run: |
           set -euo pipefail
           # LiteLLM exposes configured MCP tools at /mcp-rest/tools/list. The
-          # MCP server is registered with alias `konflate` against the konflate
-          # app in flux-system. Confirm the tool surface before letting the
-          # reviewer start — without this, the action silently skips a missing
-          # server (tool-loop.md: "A server that fails to connect is logged
-          # and skipped — it never breaks the loop").
+          # konflate server is registered in litellm/app/resources/config.yaml
+          # as `konflate_mcp_server` with `alias: konflate` and
+          # url: http://konflate.flux-system.svc:8080/mcp. Confirm the tool
+          # surface before letting the reviewer start — without this, the
+          # action silently skips a missing server (tool-loop.md: "A server
+          # that fails to connect is logged and skipped — it never breaks
+          # the loop").
+          #
+          # Response shape (LiteLLM OpenAPI, GET /mcp-rest/tools/list):
+          #   {"tools": [{"name": "...", "description": "...",
+          #               "inputSchema": {...},
+          #               "mcp_info": {"server_name": "...",
+          #                            "alias": "...",
+          #                            "server_id": "...",
+          #                            "logo_url": "..."}},
+          #              ...],
+          #    "error": null, "message": "..."}
+          # Tool names come back UNPREFIXED by upstream convention; the
+          # konflate affiliation lives in mcp_info.alias (or server_name on
+          # builds that don't echo the alias).
           curl -fsS \
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
             http://litellm.ai.svc:4000/mcp-rest/tools/list \
             > /tmp/litellm-mcp-tools.json
           python3 -c "
           import json, sys
-          tools = json.load(open('/tmp/litellm-mcp-tools.json'))
-          konflate = [t for t in tools if str(t.get('name','')).startswith('konflate.')]
-          assert konflate, f'no konflate.* tools exposed via LiteLLM: {json.dumps(tools)[:500]}'
-          names = sorted(t['name'] for t in konflate)
+          body = json.load(open('/tmp/litellm-mcp-tools.json'))
+          # Recent LiteLLM wraps the response in an envelope; some older
+          # builds returned a bare array. Accept both.
+          if isinstance(body, dict):
+              tools = body.get('tools') or []
+          elif isinstance(body, list):
+              tools = body
+          else:
+              sys.exit(f'unexpected /mcp-rest/tools/list response type: {type(body).__name__}: {json.dumps(body)[:500]}')
+          def is_konflate(t):
+              if not isinstance(t, dict):
+                  return False
+              info = t.get('mcp_info') or {}
+              # Canonical match: the user-facing alias we configured.
+              if info.get('alias') == 'konflate':
+                  return True
+              # Fallback: the registered server_name from the LiteLLM
+              # config (kubernetes/apps/ai/litellm/app/resources/config.yaml).
+              return info.get('server_name') == 'konflate_mcp_server'
+          konflate = [t for t in tools if is_konflate(t)]
+          if not konflate:
+              sys.exit(f'no konflate MCP tools exposed via LiteLLM: {json.dumps(body)[:500]}')
+          names = sorted(t.get('name', '<unnamed>') for t in konflate)
           print(f'OK: {len(konflate)} konflate MCP tools: {names}')
           "
 
