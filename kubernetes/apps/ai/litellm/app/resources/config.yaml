@@ -46,13 +46,18 @@ _anthropic_model_info: &anthropic_model_info
   litellm_provider: anthropic
   mode: chat
   # Uniform across the entire Anthropic line on Claude Pro/Max today.
-  # Haiku is the only entry that overrides the two reasoning/computer_use
-  # flags (false) — see its per-model block for the carve-out.
+  # The only carve-outs are Haiku-4.5, which flips the reasoning and
+  # computer_use flags off and drops to a 200k/64k window — see its
+  # per-model block. Per-model pricing is always spelled out; only these
+  # provider-wide traits belong in the anchor.
   supports_tool_choice: true
   supports_vision: true
   supports_prompt_caching: true
   supports_reasoning: true
   supports_computer_use: true
+  max_input_tokens: 1000000
+  max_output_tokens: 131072
+  max_tokens: 131072
 
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
@@ -316,6 +321,17 @@ model_list:
   # through `Authorization: Bearer sk-ant-oat...`. See
   # https://docs.litellm.ai/docs/tutorials/claude_code_max_subscription.
 
+  - model_name: anthropic/claude-opus-5-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-opus-5-5
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000004
+      output_cost_per_token: 0.00002
+      cache_creation_input_token_cost: 0.000005
+      cache_read_input_token_cost: 0.0000002
+
   - model_name: anthropic/claude-opus-5
     litellm_params:
       <<: *anthropic_litellm_params
@@ -326,9 +342,6 @@ model_list:
       output_cost_per_token: 0.000025
       cache_creation_input_token_cost: 0.00000625
       cache_read_input_token_cost: 0.0000005
-      max_input_tokens: 1000000
-      max_output_tokens: 131072
-      max_tokens: 131072
 
   - model_name: anthropic/claude-opus-4-8
     litellm_params:
@@ -340,9 +353,17 @@ model_list:
       output_cost_per_token: 0.000025
       cache_creation_input_token_cost: 0.00000625
       cache_read_input_token_cost: 0.0000005
-      max_input_tokens: 1000000
-      max_output_tokens: 131072
-      max_tokens: 131072
+
+  - model_name: anthropic/claude-sonnet-5-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-sonnet-5-5
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.00001
+      cache_creation_input_token_cost: 0.0000025
+      cache_read_input_token_cost: 0.0000001
 
   - model_name: anthropic/claude-sonnet-5
     litellm_params:
@@ -354,9 +375,6 @@ model_list:
       output_cost_per_token: 0.000015
       cache_creation_input_token_cost: 0.00000375
       cache_read_input_token_cost: 0.0000003
-      max_input_tokens: 1000000
-      max_output_tokens: 131072
-      max_tokens: 131072
 
   - model_name: anthropic/claude-sonnet-4-6
     litellm_params:
@@ -368,9 +386,27 @@ model_list:
       output_cost_per_token: 0.000015
       cache_creation_input_token_cost: 0.00000375
       cache_read_input_token_cost: 0.0000003
-      max_input_tokens: 1000000
-      max_output_tokens: 131072
-      max_tokens: 131072
+
+  - model_name: anthropic/claude-haiku-5-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-haiku-5-5
+    model_info:
+      <<: *anthropic_model_info
+      # Haiku 5.5 is the only model on Anthropic priced by prompt LENGTH:
+      # a request whose prompt exceeds 100,000 tokens bills at the
+      # `_above_100k_tokens` rate on every category. LiteLLM parses the
+      # threshold out of the field name, so one entry covers both tiers —
+      # no separate >100k deployment needed. Prompt length counts cache
+      # reads and writes too, matching Anthropic's own billing rule.
+      input_cost_per_token: 0.0000001
+      output_cost_per_token: 0.0000005
+      cache_creation_input_token_cost: 0.000000125
+      cache_read_input_token_cost: 0.00000001
+      input_cost_per_token_above_100k_tokens: 0.0000005
+      output_cost_per_token_above_100k_tokens: 0.0000025
+      cache_creation_input_token_cost_above_100k_tokens: 0.000000625
+      cache_read_input_token_cost_above_100k_tokens: 0.00000005
 
   - model_name: anthropic/claude-haiku-4-5
     litellm_params:
