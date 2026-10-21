@@ -33,6 +33,27 @@ _minimax_model_info: &minimax_model_info
   litellm_provider: minimax
   mode: chat
 
+_anthropic_litellm_params: &anthropic_litellm_params
+  api_base: https://api.anthropic.com/v1
+  # No `api_key` here on purpose: the docs say a deployment without one "serves
+  # only subscription users" — with one, a request without a subscription
+  # token silently falls back to that PAYG key and bypasses the OAuth path.
+  # Per-user `Authorization: Bearer sk-ant-oat...` is forwarded as-is.
+  # https://docs.litellm.ai/docs/tutorials/claude_code_max_subscription
+  # api_key: &anthropic_api_key os.environ/ANTHROPIC_API_KEY
+
+_anthropic_model_info: &anthropic_model_info
+  litellm_provider: anthropic
+  mode: chat
+  # Uniform across the entire Anthropic line on Claude Pro/Max today.
+  # Haiku is the only entry that overrides the two reasoning/computer_use
+  # flags (false) — see its per-model block for the carve-out.
+  supports_tool_choice: true
+  supports_vision: true
+  supports_prompt_caching: true
+  supports_reasoning: true
+  supports_computer_use: true
+
 model_list:
   # These aliases keep the client-facing names stable while LiteLLM
   # forwards the upstream model IDs that each llama.cpp server expects.
@@ -286,6 +307,88 @@ model_list:
       model: minimax/MiniMax-M3
     model_info: *minimax-m3_model_info
 
+  #########################
+  # Anthropic Plan Models #
+  #########################
+  # Cost/tokens below reflect standard PAYG rates so cost-tracking dashboards
+  # display meaningful values; actual billing is via each user's Claude
+  # Pro/Max/Team subscription token, forwarded per-request from the client
+  # through `Authorization: Bearer sk-ant-oat...`. See
+  # https://docs.litellm.ai/docs/tutorials/claude_code_max_subscription.
+
+  - model_name: anthropic/claude-opus-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-opus-5
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000005
+      output_cost_per_token: 0.000025
+      cache_creation_input_token_cost: 0.00000625
+      cache_read_input_token_cost: 0.0000005
+      max_input_tokens: 1000000
+      max_output_tokens: 131072
+      max_tokens: 131072
+
+  - model_name: anthropic/claude-opus-4-8
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-opus-4-8
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000005
+      output_cost_per_token: 0.000025
+      cache_creation_input_token_cost: 0.00000625
+      cache_read_input_token_cost: 0.0000005
+      max_input_tokens: 1000000
+      max_output_tokens: 131072
+      max_tokens: 131072
+
+  - model_name: anthropic/claude-sonnet-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-sonnet-5
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      cache_creation_input_token_cost: 0.00000375
+      cache_read_input_token_cost: 0.0000003
+      max_input_tokens: 1000000
+      max_output_tokens: 131072
+      max_tokens: 131072
+
+  - model_name: anthropic/claude-sonnet-4-6
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-sonnet-4-6
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      cache_creation_input_token_cost: 0.00000375
+      cache_read_input_token_cost: 0.0000003
+      max_input_tokens: 1000000
+      max_output_tokens: 131072
+      max_tokens: 131072
+
+  - model_name: anthropic/claude-haiku-4-5
+    litellm_params:
+      <<: *anthropic_litellm_params
+      model: anthropic/claude-haiku-4-5
+    model_info:
+      <<: *anthropic_model_info
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000005
+      cache_creation_input_token_cost: 0.00000125
+      cache_read_input_token_cost: 0.0000001
+      max_input_tokens: 200000
+      max_output_tokens: 65536
+      max_tokens: 65536
+      # Haiku-4.5 lacks extended thinking and computer-use — flip both off.
+      supports_reasoning: false
+      supports_computer_use: false
+
 #########################
 #      MCP Servers      #
 #########################
@@ -337,6 +440,9 @@ router_settings:
   routing_strategy: simple-shuffle
   redis_host: os.environ/REDIS_HOST
   redis_port: os.environ/REDIS_PORT
+  # Required for per-user OAuth tokens: one expired `sk-ant-oat01` would
+  # otherwise cooldown the deployment and surface 429s for everyone else.
+  disable_cooldowns: true
 
 litellm_settings:
   success_callback: ["prometheus"]
