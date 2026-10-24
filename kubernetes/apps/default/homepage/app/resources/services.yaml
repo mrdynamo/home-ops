@@ -148,6 +148,12 @@
         icon: lubelogger.png
         namespace: default
         app: lubelogger
+    - Invoice Ninja:
+        href: https://invoice.${INTERNAL_SECRET_DOMAIN}/
+        description: Self-hosted invoicing solution
+        icon: invoiceninja.svg
+        namespace: default
+        app: invoiceninja
     - Twitch Points:
         href: https://twitchpoints.${INTERNAL_SECRET_DOMAIN}/
         description: Twitch Points tracking and management
