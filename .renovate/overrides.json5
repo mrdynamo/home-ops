@@ -78,5 +78,19 @@
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(-r(?<build>\\d+))?$",
     },
+    {
+      // Handle nginx-unprivileged tags (e.g. 1.27.4-alpine)
+      // The suffix is captured as "compatibility" so Renovate only proposes
+      // tags with the same suffix, and never swaps the image variant
+      // (alpine -> alpine-slim, or the plain non-alpine tag).
+      // https://docs.renovatebot.com/modules/versioning/regex/
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/nginxinc/nginx-unprivileged"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>[a-z0-9.-]+)$",
+    },
   ],
 }

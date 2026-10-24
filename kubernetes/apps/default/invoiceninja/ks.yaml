@@ -11,14 +11,56 @@ spec:
       app.kubernetes.io/name: *app
   components:
     - ../../../../components/volsync
+    - ../../../../components/dragonfly
   dependsOn:
     - name: longhorn
       namespace: storage
+    # The MariaDB datadir claim is created (and backed up) here.
+    - name: invoiceninja-db
+      namespace: *namespace
   interval: 1h
   path: ./kubernetes/apps/default/invoiceninja/app
   postBuild:
     substitute:
       APP: *app
+      REDIS_INDEX: "6"
+      VOLSYNC_CAPACITY: 1Gi
+      VOLSYNC_SCHEDULE: 0 17 * * 3  # Cron in UTC (CST: -6, CST: -5)
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  retryInterval: 2m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: *namespace
+  timeout: 5m
+  wait: false
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &db invoiceninja-db
+  namespace: &namespace default
+spec:
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *db
+  # Same volsync component as the app: it names the claim after the app
+  # ("invoiceninja-db") and handles its backup/restore.
+  components:
+    - ../../../../components/volsync
+  dependsOn:
+    - name: longhorn
+      namespace: storage
+  interval: 1h
+  path: ./kubernetes/apps/default/invoiceninja/db
+  postBuild:
+    substitute:
+      APP: *db
       VOLSYNC_CAPACITY: 1Gi
       VOLSYNC_SCHEDULE: 0 17 * * 3  # Cron in UTC (CST: -6, CST: -5)
     substituteFrom:

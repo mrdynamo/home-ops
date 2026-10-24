@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The resources for this app are provided by the volsync component, which is
+# wired in from the parent Kustomization (../ks.yaml) with APP=invoiceninja-db.
+# It owns the "invoiceninja-db" claim and its backup/restore.
+resources: []
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

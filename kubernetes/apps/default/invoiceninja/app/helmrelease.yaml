@@ -3,63 +3,274 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: invoiceninja
+  name: &app invoiceninja
 spec:
+  timeout: 5m
   interval: 1h
   chartRef:
     kind: OCIRepository
-    name: invoiceninja
+    name: *app
   values:
+    global:
+      # Both persistence items below use an existingClaim, so the chart never
+      # creates a PVC of its own. This flag is kept as a guard: should a
+      # persistence item without an existingClaim ever be added, the chart
+      # names its PVC "<app>-<identifier>" instead of colliding with the
+      # volsync-managed claim that is named after the app.
+      alwaysAppendIdentifierToResourceName: true
+    # The service block comes first because it is where the shared names are
+    # anchored: YAML anchors are document-scoped, so they have to be declared
+    # before they are used, and the controllers and the volume mounts below
+    # reference those very same names and ports.
+    service:
+      *app :
+        controller: *app
+        ports:
+          http:
+            port: &port 8080
+      mariadb:
+        controller: &mariadb mariadb
+        ports:
+          mysql:
+            port: &dbport 3306
     controllers:
-      invoiceninja:
+      *app :
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          wait-dependencies:
+            image:
+              repository: ghcr.io/home-operations/busybox
+              tag: 1.38.0@sha256:ff88728f0d5fe50a9984f6cc04d7d1185590b628f29ef4e6a3ec8cae7169e0c8
+            command:
+              - /bin/sh
+              - -c
+              - |
+                until nc -z invoiceninja-mariadb 3306; do
+                  echo "waiting for mariadb"
+                  sleep 2
+                done
+                until nc -z dragonfly.database.svc 6379; do
+                  echo "waiting for redis"
+                  sleep 2
+                done
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 65534
+              runAsGroup: 65534
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 16Mi
         containers:
           app:
             image:
               repository: docker.io/invoiceninja/invoiceninja-debian
               tag: 5.13.50@sha256:a441339c959b7e8e8a9f346dd4eff2759f0f39a87a5b3eff875c465fbca1566b
+            ports:
+              - name: fpm
+                containerPort: 9000
+                protocol: TCP
             env:
               TZ: America/Chicago
-              APP_URL: "https://invoice.${INTERNAL_SECRET_DOMAIN}/"
-            envFrom:
-              - secretRef:
-                  name: "{{ .Release.Name }}-secret"
+              APP_URL: "https://invoice.${INTERNAL_SECRET_DOMAIN}"
+              APP_ENV: production
+              APP_DEBUG: "false"
+              REQUIRE_HTTPS: "false"
+              TRUSTED_PROXIES: "*"
+              PHANTOMJS_PDF_GENERATION: "false"
+              PDF_GENERATOR: snappdf
+              CACHE_DRIVER: redis
+              QUEUE_CONNECTION: redis
+              SESSION_DRIVER: redis
+              REDIS_HOST: dragonfly.database.svc
+              REDIS_PORT: "6379"
+              REDIS_DB: "6"
+              REDIS_CACHE_DB: "7"
+              FILESYSTEM_DISK: debian_docker
+              DB_CONNECTION: mysql
+              DB_HOST: "{{ .Release.Name }}-mariadb"
+              DB_PORT: "3306"
+              DB_DATABASE: &database invoiceninja
+              DB_USERNAME: &dbuser invoiceninja
+              MAIL_MAILER: log
+              MAIL_FROM_ADDRESS: "invoice@${INTERNAL_SECRET_DOMAIN}"
+              MAIL_FROM_NAME: "Invoice Ninja"
+              IS_DOCKER: "true"
+              SCOUT_DRIVER: "null"
+              # Secrets are pulled key-by-key (NOT via envFrom) so the MariaDB
+              # root password never reaches the application container.
+              APP_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: &secret "{{ .Release.Name }}-secret"
+                    key: APP_KEY
+              IN_USER_EMAIL:
+                valueFrom:
+                  secretKeyRef:
+                    name: *secret
+                    key: IN_USER_EMAIL
+              IN_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *secret
+                    key: IN_PASSWORD
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *secret
+                    key: DB_PASSWORD
             probes:
-              liveness: &probes
-                enabled: false
+              liveness:
+                enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /health
-                    port: &port 8003
-                  initialDelaySeconds: 15
-                  periodSeconds: 10
-                  timeoutSeconds: 5
-                  failureThreshold: 3
-              readiness: *probes
+                  exec:
+                    command: &health
+                      - /bin/sh
+                      - -c
+                      - 'REMOTE_ADDR=127.0.0.1 REQUEST_URI=/health REQUEST_METHOD=GET SCRIPT_FILENAME=/var/www/html/public/index.php cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q "{\"status\":\"ok\",\"message\":\"API is healthy\"}"'
+                  initialDelaySeconds: 120
+                  timeoutSeconds: 10
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: *health
+                  initialDelaySeconds: 40
+                  timeoutSeconds: 10
+                  periodSeconds: 20
+                  failureThreshold: 6
             securityContext:
-              allowPrivilegeEscalation: true
+              # supervisord runs as root and init.sh needs chown/runuser/mv.
+              allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
-              capabilities: {drop: ["ALL"]}
+              runAsNonRoot: false
+              capabilities:
+                add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+              limits:
+                memory: 512Mi
+          nginx:
+            image:
+              repository: ghcr.io/nginxinc/nginx-unprivileged
+              tag: 1.27.4-alpine@sha256:e234d4f7e346c098f7b22245690372382aded5be988611eb2c53ae62231eece7
+            ports:
+              - name: http
+                containerPort: *port
+                protocol: TCP
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  initialDelaySeconds: 20
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: &nginxuid 101
+              runAsGroup: *nginxuid
+              capabilities:
+                drop: ["ALL"]
             resources:
               requests:
                 cpu: 10m
                 memory: 64Mi
               limits:
-                memory: 512Mi
-    defaultPodOptions:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
-    service:
-      app:
-        ports:
-          http:
-            port: *port
+                memory: 64Mi
+      *mariadb :
+        pod:
+          securityContext:
+            fsGroup: &mariadbuid 999
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: ghcr.io/mariadb/mariadb
+              tag: 12.3.3@sha256:206bcda2595c868ee3ef4690c321fb7a786623dfba84aac2d8dd0ab060b25da8
+            ports:
+              - name: mysql
+                containerPort: *dbport
+                protocol: TCP
+            args:
+              - --character-set-server=utf8mb4
+              - --collation-server=utf8mb4_unicode_ci
+            env:
+              MARIADB_DATABASE: *database
+              MARIADB_USER: *dbuser
+              MARIADB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *secret
+                    key: DB_PASSWORD
+              MARIADB_ROOT_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: *secret
+                    key: MARIADB_ROOT_PASSWORD
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: &ping
+                      - /bin/sh
+                      - -c
+                      - mariadb-admin ping -h 127.0.0.1 -u"$MARIADB_USER" -p"$MARIADB_PASSWORD"
+                  initialDelaySeconds: 30
+                  timeoutSeconds: 10
+                  periodSeconds: 20
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command: *ping
+                  initialDelaySeconds: 20
+                  timeoutSeconds: 10
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              runAsNonRoot: true
+              runAsUser: *mariadbuid
+              runAsGroup: *mariadbuid
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 256Mi
     route:
       app:
         hostnames:
@@ -68,6 +279,59 @@ spec:
           - name: internal
             namespace: kube-system
             sectionName: https
+        rules:
+          - backendRefs:
+              - name: *app
+                port: *port
     persistence:
+      # Both claims are created and backed up by the volsync component, which
+      # names them after the app:
+      #   config  -> "invoiceninja"     (app storage, in the app Kustomization)
+      #   db-data -> "invoiceninja-db"  (mariadb datadir, in the db Kustomization)
       config:
         existingClaim: "{{ .Release.Name }}"
+        advancedMounts:
+          *app :
+            app:
+              - path: &storage /var/www/html/storage
+            nginx:
+              - path: *storage
+                readOnly: true
+      db-data:
+        existingClaim: "{{ .Release.Name }}-db"
+        advancedMounts:
+          *mariadb :
+            app:
+              - path: /var/lib/mysql
+      public:
+        type: emptyDir
+        advancedMounts:
+          *app :
+            app:
+              - path: &public /var/www/html/public
+            nginx:
+              - path: *public
+                readOnly: true
+      tmp:
+        type: emptyDir
+        advancedMounts:
+          *app :
+            nginx:
+              - path: /tmp
+      nginx-config:
+        # Built by Flux from app/resources/*.conf via the configMapGenerator
+        # in app/kustomization.yaml, so the .conf files stay editable outside
+        # of this HelmRelease.
+        type: configMap
+        name: invoiceninja-nginx
+        advancedMounts:
+          *app :
+            nginx:
+              - path: /etc/nginx/conf.d
+                readOnly: true
+    defaultPodOptions:
+      hostUsers: true
+      securityContext:
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
