@@ -158,12 +158,16 @@ spec:
               capabilities:
                 add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
                 drop: ["ALL"]
+            # 512Mi is not enough: supervisord runs php-fpm, two queue:work
+            # workers and the scheduler in this one container, and snappdf
+            # spawns Chromium on top of that for PDF rendering. The container
+            # was OOMKilled (exit 137) at the 512Mi limit.
             resources:
               requests:
                 cpu: 100m
-                memory: 512Mi
+                memory: 1Gi
               limits:
-                memory: 512Mi
+                memory: 1Gi
           nginx:
             image:
               repository: ghcr.io/nginxinc/nginx-unprivileged
