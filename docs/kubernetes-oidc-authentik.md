@@ -47,6 +47,8 @@ User-confirmed scope decisions:
 ### Phase 0 — Pre-flight (no cluster changes)
 
 1. **Decide and document the OIDC client identity.** Add a new 1Password item named `kubernetes` (so Headlamp's `headlamp` item stays separate). For a public PKCE client, store `KUBERNETES_OIDC_CLIENT_ID` and `KUBERNETES_OIDC_ISSUER_URL` (the exact `issuer` value from Authentik's discovery document). Do not store a client secret for a public client. The issuer must be reachable over HTTPS from the operator's laptop and each control-plane node. The bootstrap cert path is unaffected.
+
+   **Vault:** store the `kubernetes` item in the `Chezmoi` vault, not `kubernetes-connect`. The `kubernetes-connect` vault holds the cluster-provisioning secrets (1Password Connect token, SOPS age key) and the in-cluster `ClusterSecretStore` is scoped to it; headless Linux hosts authenticate with a 1Password **service account** that only has access to `Chezmoi`, so a `kubernetes-connect` item is unreachable there. Neither OIDC field is a secret (public PKCE client, public identifier), so the vault choice costs nothing in confidentiality.
 2. **Verify `kubectl-oidc-login` (or `kubelogin`) is available** via mise. `.mise.toml` already pins `aqua:int128/kubelogin` at `1.36.4`; do not add a duplicate entry. This binary is the `exec` plugin the OIDC kubeconfig will call.
 3. **Decide the OIDC group name.** Use the literal string `kubernetes-admins`. It will appear both in the Authentik group definition and in the Kubernetes `ClusterRoleBinding`.
 
@@ -58,6 +60,7 @@ Goal: have a working OIDC client for the kube-apiserver to validate against. The
    - Name: `Kubernetes`
    - Signing Key: the default Authentik signing key is suitable; this is separate from the HTTPS certificate used to serve Authentik
    - Redirect URIs: `http://localhost:8000` and `http://localhost:18000` if retaining kubelogin's default listener fallback. If pinning a single listener port, register only the URI that the chosen configuration actually uses.
+   - Allowed grant types: keep **Authorization code** and add `urn:ietf:params:oauth:grant-type:device_code`. The device authorization grant is what lets a headless host sign in from another browser with no callback listener and no tunnel (see Phase 4).
    - Scopes/scope mappings: `openid`, `email`, `profile`, `groups`, and `offline_access` if refresh tokens are wanted. Authentik must have the relevant group and offline-access scope mappings enabled.
    - Subject mode: `Based on the User's username`
 2. **Create a matching Application** in Authentik:
@@ -216,14 +219,19 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - Use an Authentik public client with PKCE so no client secret is stored in the kubeconfig. Request `openid`, `profile`, `email`, `groups`, and `offline_access` if the Authentik provider is configured to issue refresh tokens.
    - Write only to `kubeconfig-oidc` in the repo root (gitignored), and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
 
-   **Implemented:** `just bootstrap kubeconfig-oidc` in `bootstrap/mod.just`. It reads two 1Password fields (override with the `issuer_ref` / `client_ref` arguments):
+   **Implemented:** `just bootstrap kubeconfig-oidc` in `bootstrap/mod.just`. The recipe takes one optional argument — the mode — and nothing else. The 1Password references are module-level variables (`oidc_issuer_ref`, `oidc_client_ref`), so they never appear on the command line:
+
+   | Command | Sign-in flow |
+   |---------|--------------|
+   | `just bootstrap kubeconfig-oidc` | **Standard desktop.** The browser authorization-code flow: kubelogin opens the browser on this machine and captures the callback on `127.0.0.1:8000` (falling back to `:18000`). |
+   | `just bootstrap kubeconfig-oidc headless` | **No browser on this machine.** The device authorization grant (RFC 8628): kubelogin prints a verification URL and a code to complete on another device. No callback listener, no tunnel, no stdin. |
 
    | Field | Value |
    |-------|-------|
-   | `op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_ISSUER_URL` | The exact `issuer` from Authentik's discovery document, usually `https://auth.<domain>/application/o/kubernetes/` (trailing slash included). It must equal the `url` in `talos/patches/controller/oidc.yaml`. Check with `curl -s <issuer>.well-known/openid-configuration \| jq -r .issuer`. |
-   | `op://kubernetes-connect/kubernetes/KUBERNETES_OIDC_CLIENT_ID` | The Authentik provider's client ID (same value as the `audiences` entry in `oidc.yaml`). |
+   | `op://Chezmoi/kubernetes/KUBERNETES_OIDC_ISSUER_URL` | The exact `issuer` from Authentik's discovery document, usually `https://auth.<domain>/application/o/kubernetes/` (trailing slash included). It must equal the `url` in `talos/patches/controller/oidc.yaml`. Check with `curl -s <issuer>.well-known/openid-configuration \| jq -r .issuer`. |
+   | `op://Chezmoi/kubernetes/KUBERNETES_OIDC_CLIENT_ID` | The Authentik provider's client ID (same value as the `audiences` entry in `oidc.yaml`). |
 
-   The `kubernetes` item name is a choice; change the defaults in the recipe if you store the fields elsewhere. The recipe does not need the bootstrap `kubeconfig`: the API server URL comes from `endpoint` in `talos/talconfig.yaml`, and the cluster CA certificate (public part only) is decrypted from `talos/talsecret.sops.yaml` with sops, so the age key must be available.
+   The `kubernetes` item name is a choice; change the two variables in `bootstrap/mod.just` if you store the fields elsewhere. The recipe does not need the bootstrap `kubeconfig`: the API server URL comes from `endpoint` in `talos/talconfig.yaml`, and the cluster CA certificate (public part only) is decrypted from `talos/talsecret.sops.yaml` with sops, so the age key must be available.
 
    Do not run the original sample unchanged: its shell variables do not persist between lines, it leaves the VIP as a placeholder, it has no cluster CA, and it persists a client secret in exec arguments.
 
@@ -231,10 +239,102 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - `--oidc-extra-scope` (with the `oidc-` prefix) — not `--extra-scope`. The unscoped form is silently ignored. Repeat the flag once per scope, do not comma-join values.
    - By default kubelogin tries `127.0.0.1:8000`, then `127.0.0.1:18000`. Explicitly setting `--listen-address=127.0.0.1:8000` replaces that list and disables the fallback. Register both redirect URIs if retaining the default list; otherwise register the single configured callback.
    - There is **no** `--callback-hostname` flag — the loopback callback host is derived from `--listen-address`.
-   - `--token-cache-storage=keyring` keeps cached tokens in the OS keyring instead of plaintext on disk. Drop this only if the machine has no supported keyring and accept the security implications of file-backed token cache under `${HOME}/.kube/cache/oidc-login`.
-   - `--grant-type=auto` lets kubelogin pick `authcode` if a browser is reachable, `device-code` otherwise. Useful when SSH'd into a headless box.
+   - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. The standard mode therefore passes `auto`; the headless mode passes `device-code` plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist.
 
-   The recipe assumes `op` (1Password CLI) is on `$PATH` and the user is signed in to the `kubernetes-connect` 1Password account. The bootstrap kubeconfig at `${REPO}/kubeconfig` is **not** touched.
+   The recipe assumes `op` (1Password CLI) is on `$PATH` and signed in to the account that owns the `Chezmoi` vault. Desktop hosts use the 1Password desktop-app integration; native Linux hosts authenticate with a 1Password service account. The 1Password access model lives in the `mrdynamo/dotfiles` repo (the `onepassword.command` / `onepassword.mode: service` settings and the shell profile that exports the token), so every host resolves `op` the same way. Because that resolution happens through a **zsh alias** on WSL, the recipe body runs under `zsh -lic` rather than bash — the dotfiles stay the single source of truth for which CLI is used, and the recipe contains no machine-type checks. The bootstrap kubeconfig at `${REPO}/kubeconfig` is **not** touched.
+
+   **No token in plaintext.** The recipe never selects kubelogin's `disk` storage — `~/.kube/cache/oidc-login/<sha256>` (dir `0700`, file `0600`) is plaintext JSON holding the **refresh token**, and anyone who reads it can mint fresh ID tokens and authenticate as `oidc:kubernetes-admins` → `cluster-admin` until it is revoked.
+
+   The keyring is owned by the **dotfiles**, not by this repo. The recipe asks one helper where the token may go:
+
+   ```sh
+   oidc-token-cache   # prints "keyring" or "none", nothing else
+   ```
+
+   | Host | Storage | Where the token lives |
+   |------|---------|----------------------|
+   | macOS | `keyring` | macOS Keychain, unlocked by the login session |
+   | Linux / WSL2, unlocked by `chezmoi update` | `keyring` | gnome-keyring, encrypted with the passphrase from 1Password |
+   | Anything else, or a locked keyring | `none` | Nowhere — every `kubectl` call re-runs the sign-in |
+
+   The recipe prints a notice when the storage is `none`, so a silent downgrade to a plaintext cache is not possible. The kubeconfig it writes holds no token and no secret — issuer URL, client ID, CA certificate and exec command only — and is installed `0600`.
+
+   The `keyring` answer is not cosmetic: kubelogin stores the token in the login collection, and a failed write is **fatal** — the whole `kubectl` call aborts with `could not write the token cache`. A locked collection would therefore break every command, so the helper asks the Secret Service for the collection's `Locked` property and answers `none` when it is not `false`.
+
+   ### The keyring lifecycle (dotfiles)
+
+   `mrdynamo/dotfiles` is applied by chezmoi on every machine, and `chezmoi update` is the one command that leaves a machine ready:
+
+   | File in `mrdynamo/dotfiles` | What it does |
+   |---|---|
+   | `home/run_always_after_30-keyring.sh.tmpl` | Makes the keyring available and unlocked. Runs on every apply. |
+   | `home/dot_local/bin/executable_oidc-token-cache.tmpl` | `~/.local/bin/oidc-token-cache` — prints `keyring` or `none`. |
+   | `home/dot_config/keyring/packages.{debian,ubuntu}.conf` | The pinned apt packages; Renovate bumps them through the `deb` datasource. |
+   | `home/dot_config/zsh/env.zsh.tmpl` | Exports `DBUS_SESSION_BUS_ADDRESS`, so kubectl's exec plugin reaches the same Secret Service. |
+
+   It needs one 1Password item: **`op://chezmoi/gnome-keyring/PASSPHRASE`** (vault `chezmoi`, item `gnome-keyring`, password field `PASSPHRASE`). It holds the passphrase of the gnome-keyring *login keyring* only — not an OIDC token. The value is piped straight from the 1Password CLI into `gnome-keyring-daemon --unlock` on stdin; it is never written to a file and never appears in a process argument list.
+
+   What `chezmoi update` does per host:
+
+   | Host | What happens |
+   |---|---|
+   | macOS | Nothing is unlocked: the login keychain is unlocked by the login session. The script only checks that the keychain can be used, with a throwaway item that is written and deleted again. It never touches the items you have stored. |
+   | Linux / WSL2 | Installs the pinned packages that are missing (needs passwordless `sudo`, otherwise it prints the command), makes sure a session bus exists, stops the systemd `gnome-keyring-daemon` units for this session, and unlocks the login keyring with the passphrase from 1Password. |
+
+   Two details of the Linux path are why it is a script and not a one-liner:
+
+   - **The daemon that owns `org.freedesktop.secrets` has to be the one that unlocks.** gnome-keyring requests the bus name without `REPLACE`, so a daemon that is already running — the systemd unit, or the one D-Bus activates on demand — keeps the name, leaves the collection **locked**, and `gnome-keyring-daemon --unlock` then does nothing. The script stops the systemd units and replaces a foreign owner before unlocking.
+   - **A wrong passphrase is silent.** The daemon starts and owns the name, but the collection stays locked. The script checks the `Locked` property, not the exit code, and when the passphrase does not open the keyring that is on disk it moves that keyring aside (`login.keyring.bak-<timestamp>`) and lets `--unlock` create a fresh one. Nothing is ever deleted.
+
+   The unlock applies to the running daemon, so it has to be redone whenever the daemon restarts. `chezmoi update` after a reboot is the intended way to do it — that is the command you already run on every machine.
+
+   > **The systemd units are stopped, not disabled.** `gnome-keyring-daemon.service` and `gnome-keyring-daemon.socket` are stopped for the session, because that daemon owns the bus name with a locked collection. They come back at the next login, and the next `chezmoi update` stops them again. Make it permanent with `systemctl --user disable gnome-keyring-daemon.service gnome-keyring-daemon.socket` if a graphical session should never own the Secret Service name.
+
+   **WSL.** WSL is not special-cased anywhere. The dotfiles decide which `op` runs (the alias `op='op.exe'` on WSL), and the keyring script uses the same Linux path as a native Linux host: gnome-keyring and dbus come from the pinned Ubuntu packages, and the session bus comes from the systemd user session — or from a private bus when WSL has no systemd, whose address is remembered in `~/.local/state/chezmoi/dbus-session-address` and exported by the shell profile.
+
+   *What the old recipe did.* The previous implementation selected kubelogin's storage like this:
+
+   ```bash
+   if [ "$(uname -s)" = Linux ] && [ -z "${GNOME_KEYRING_CONTROL:-}" ]; then
+       token_cache_storage=disk
+   else
+       token_cache_storage=keyring
+   fi
+   ```
+
+   `GNOME_KEYRING_CONTROL` is normally unset on WSL, so the old recipe selected `disk` there: the **refresh token was written in plaintext** to `~/.kube/cache/oidc-login/<sha256>` (directory `0700`, file `0600`), inside the distro's ext4.vhdx. That file is a complete cluster-admin credential — it can mint fresh ID tokens and authenticate as `oidc:kubernetes-admins` → `cluster-admin` until the refresh token is revoked. The current recipe never selects `disk`; the token goes to the keyring, or nowhere.
+
+   *Where the keyring file lives.* gnome-keyring keeps it in `$XDG_DATA_HOME/keyrings/` — `~/.local/share/keyrings/login.keyring` on Linux and WSL. It is one encrypted file (`0600`), encrypted with the passphrase from 1Password, so a leaked file is not a cluster-admin credential.
+
+   *Troubleshooting.*
+
+   | Symptom | Cause | Fix |
+   |---|---|---|
+   | `No unlocked OS keyring` when generating the kubeconfig | The keyring was not unlocked in this session | `chezmoi update` |
+   | `could not read op://chezmoi/gnome-keyring/PASSPHRASE` | The item does not exist, or 1Password is not signed in | Create the item, then `chezmoi update` |
+   | `the login keyring could not be unlocked` | The passphrase does not open the keyring on disk | The script moves the stale keyring aside and retries; if it still fails, delete the `~/.local/share/keyrings/login.keyring.bak-*` files you no longer need |
+   | `missing packages and sudo needs a password` | The packages are missing and `sudo` needs a password | Run the printed `sudo apt-get install -y ...` command, then `chezmoi update` |
+   | `could not write the token cache` from kubectl | The keyring was locked after the kubeconfig was generated | `chezmoi update`, then run the command again |
+
+   *Verifying.* The helper answers with the storage the recipe would pick, `secret-tool search --all` lists the cached items, and the plaintext cache directory must not exist:
+
+   ```sh
+   oidc-token-cache                              # keyring
+   secret-tool search --all                      # the cached kubelogin item
+   ls ~/.kube/cache/oidc-login/                  # must not exist
+   ```
+
+   **Headless hosts.** Use the device authorization grant (RFC 8628) — no callback listener, no SSH tunnel, and no stdin needed:
+
+   ```sh
+   just bootstrap kubeconfig-oidc headless
+   ```
+
+   kubelogin prints a verification URL plus a code; open the URL in any browser — the laptop, the phone — approve it, and the token returns to the terminal over the device endpoint. Authentik supports this: `DEVICE_CODE` is one of the provider's grant types and the discovery document always advertises `device_authorization_endpoint`, so the only provider-side requirement is adding `urn:ietf:params:oauth:grant-type:device_code` to the provider's allowed grant types (see Phase 1).
+
+   If you would rather keep the browser flow on a headless host, forward the callback port to the machine that has the browser — `ssh -L 8000:127.0.0.1:8000 <headless-host>` — and the provider's redirect to `http://localhost:8000` travels back through the tunnel. Both loopback URIs must be registered on the Authentik provider (see Phase 1). The keyboard variant (paste the authorization code back into the terminal) is not exposed by the recipe: kubelogin needs an explicit `--oidc-redirect-url` and a TTY for it.
+
+   One caveat common to both flows: Authentik only issues refresh tokens when the `offline_access` scope is mapped on the provider. Without a refresh token the short-lived ID token expires and every command re-runs the flow — which is what `none` storage forces anyway, and what a keyring avoids.
 
 2. **Keep the bootstrap credential unchanged.** The repo-root `kubeconfig` (Talos client-cert) is intentionally NOT modified. It remains usable if at least one kube-apiserver is healthy; it cannot restore API availability if all apiservers are down, in which case use Talos management access and the saved known-good machine configs.
 
@@ -265,7 +365,7 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
    just bootstrap kubeconfig-oidc
    ```
 
-   Should print the path and exit 0.
+   Should print the path and exit 0. On a host without a browser use `just bootstrap kubeconfig-oidc headless` instead.
 
 4. **OIDC login works** (browser opens, Authentik challenges, returns token):
 
@@ -348,7 +448,7 @@ The bootstrap kubeconfig (`KUBECONFIG=./kubeconfig kubectl ...`) remains valid w
 
 ## Conventions to Honour
 
-- **Domain templating:** Flux substitution variables are not automatically available to local Just recipes or Talos config patches. Read the issuer from the configured 1Password item for the recipe and verify the generated Talos values.
+- **Domain templating:** Flux substitution variables are not automatically available to local Just recipes or Talos config patches. Read the issuer from the `Chezmoi` 1Password item for the recipe and verify the generated Talos values. The item's `KUBERNETES_OIDC_ISSUER_URL` and `KUBERNETES_OIDC_CLIENT_ID` must stay equal to the `url` and `audiences[0]` values in `talos/patches/controller/oidc.yaml`; that patch is what the API server actually validates against, so a drift between the two produces a kubeconfig that authenticates nowhere.
 - **Issuer URL must match Authentik discovery metadata** and be reachable from the control planes. The current Authentik HelmRelease uses the `external` gateway; do not configure an internal hostname unless that route and DNS path have been explicitly verified.
 - **Flux substitution does not apply to Talos patches.** Resolve any domain or client-ID values before applying the Talos config, and check generated output for placeholders.
 - **SOPS-encrypt any checked-in secret-bearing file.** The recipe in Phase 4 reads 1Password at runtime and writes the kubeconfig to `${HOME}` — nothing is committed, so no encryption needed for it.
