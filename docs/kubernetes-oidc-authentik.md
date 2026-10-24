@@ -61,14 +61,21 @@ Goal: have a working OIDC client for the kube-apiserver to validate against. The
    - Signing Key: the default Authentik signing key is suitable; this is separate from the HTTPS certificate used to serve Authentik
    - Redirect URIs: `http://localhost:8000` and `http://localhost:18000` if retaining kubelogin's default listener fallback. If pinning a single listener port, register only the URI that the chosen configuration actually uses.
    - Allowed grant types: keep **Authorization code** and add `urn:ietf:params:oauth:grant-type:device_code`. The device authorization grant is what lets a headless host sign in from another browser with no callback listener and no tunnel (see Phase 4).
-   - Scopes/scope mappings: `openid`, `email`, `profile`, `groups`, and `offline_access` if refresh tokens are wanted. Authentik must have the relevant group and offline-access scope mappings enabled.
+   - Scopes/scope mappings: `openid`, `email`, `profile`, `groups`, and `offline_access` if refresh tokens are wanted. Authentik must have the relevant group and offline-access scope mappings enabled. **`groups` must be in the provider's allowed scopes, not only in a scope mapping** — when it is missing, Authentik silently narrows the requested scope set to the overlap (the server log says *"Application requested scopes not configured, setting to overlap"*), the ID token carries no `groups` claim, and the `oidc:kubernetes-admins` binding in Phase 3 never matches.
    - Subject mode: `Based on the User's username`
 2. **Create a matching Application** in Authentik:
    - Name: `Kubernetes`
    - Provider: the one above
    - Slug: `kubernetes`
 3. **Create an Authentik group** named `kubernetes-admins` and add your operator user to it. The `/application/o/userinfo/` endpoint returns a UserInfo response, not an ID token. Inspect the actual ID token claims locally (and/or call UserInfo with the access token) to confirm that `groups` is an array containing exactly the expected group value. The reserved global slugs in Authentik are `authorize`, `token`, `device`, `userinfo`, `introspect`, `revoke` — there is no `user/info` endpoint.
-4. **Store the client ID** in the new 1Password item `kubernetes`. With a public client using PKCE, no client secret is needed or stored.
+4. **Give the brand a device code flow.** The device authorization grant needs one thing the provider does not cover: a flow on the *brand*.
+   - **Flows and Stages → Flows → New Flow**: Name `Device code flow`, Title `Device code flow`, Slug `default-device-code-flow`, **Designation: `Stage Configuration`**, **Authentication: `Require authentication`** → Create. The flow can stay empty — Authentik appends the code-entry stage itself.
+   - **System → Brands → Default brand → Edit**: set **Default code flow** to that flow → Update.
+
+   Without this, `/device?code=…` answers **HTTP 404 with an empty body** — a blank white page after the login. The server log says *"Brand has no device code flow configured"* (`authentik.providers.oauth2.views.device_init`). The check happens before the code is even looked at, so the `?code=` link fails exactly like the plain URL.
+
+   The device code itself lives for the provider's **access code validity** (`expires_in`, one minute with the Authentik default), so the browser step has to be completed within that window.
+5. **Store the client ID** in the new 1Password item `kubernetes`. With a public client using PKCE, no client secret is needed or stored.
 
 After Phase 1, the OIDC issuer is live and reachable at `https://auth.${SECRET_DOMAIN}/application/o/kubernetes/`. **You can still `kubectl` only with the bootstrap cert** — the API server isn't configured for OIDC yet.
 
@@ -223,8 +230,11 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
 
    | Command | Sign-in flow |
    |---------|--------------|
-   | `just bootstrap kubeconfig-oidc` | **Standard desktop.** The browser authorization-code flow: kubelogin opens the browser on this machine and captures the callback on `127.0.0.1:8000` (falling back to `:18000`). |
-   | `just bootstrap kubeconfig-oidc headless` | **No browser on this machine.** The device authorization grant (RFC 8628): kubelogin prints a verification URL and a code to complete on another device. No callback listener, no tunnel, no stdin. |
+   | `just bootstrap kubeconfig-oidc` | **The default.** The browser authorization-code flow on a machine that has a browser: kubelogin opens the browser on this machine and captures the callback on `127.0.0.1:8000` (falling back to `:18000`). On a machine with **no display** — a headless Linux box — it falls back to the device grant instead, because the browser flow cannot work there. |
+   | `just bootstrap kubeconfig-oidc headless` | **The device authorization grant** (RFC 8628), explicitly. kubelogin prints a verification URL and a code to complete on another device. No callback listener, no tunnel, no stdin. Same result as the default on a headless host. |
+   | `just bootstrap kubeconfig-oidc browser` | Forces the browser flow on a headless machine, for the `ssh -L 8000:127.0.0.1:8000` tunnel case. Rarely needed — the device grant works everywhere. |
+
+   The default decides between the two grants by whether the host has a display: `DISPLAY` or `WAYLAND_DISPLAY` set means a browser can be opened, and the browser flow is used; on Linux with neither, the device grant is used and the recipe says so on stderr. The reason is that the browser flow fails in a confusing way on a headless host — kubelogin tries to listen on `127.0.0.1:8000` for the callback and either reports `bind: address already in use` or waits for a callback that can never arrive.
 
    | Field | Value |
    |-------|-------|
@@ -239,7 +249,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - `--oidc-extra-scope` (with the `oidc-` prefix) — not `--extra-scope`. The unscoped form is silently ignored. Repeat the flag once per scope, do not comma-join values.
    - By default kubelogin tries `127.0.0.1:8000`, then `127.0.0.1:18000`. Explicitly setting `--listen-address=127.0.0.1:8000` replaces that list and disables the fallback. Register both redirect URIs if retaining the default list; otherwise register the single configured callback.
    - There is **no** `--callback-hostname` flag — the loopback callback host is derived from `--listen-address`.
-   - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. The standard mode therefore passes `auto`; the headless mode passes `device-code` plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist.
+   - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. So the recipe picks the grant itself: `authcode` on a host with a display, `device-code` (plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist) on a host without one. `just bootstrap kubeconfig-oidc browser` forces `authcode`; `headless` forces `device-code`.
 
    The recipe assumes `op` (1Password CLI) is on `$PATH` and signed in to the account that owns the `Chezmoi` vault. Desktop hosts use the 1Password desktop-app integration; native Linux hosts authenticate with a 1Password service account. The 1Password access model lives in the `mrdynamo/dotfiles` repo (the `onepassword.command` / `onepassword.mode: service` settings and the shell profile that exports the token), so every host resolves `op` the same way. Because that resolution happens through a **zsh alias** on WSL, the recipe body runs under `zsh -lic` rather than bash — the dotfiles stay the single source of truth for which CLI is used, and the recipe contains no machine-type checks. The bootstrap kubeconfig at `${REPO}/kubeconfig` is **not** touched.
 
@@ -315,6 +325,9 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    | `the login keyring could not be unlocked` | The passphrase does not open the keyring on disk | The script moves the stale keyring aside and retries; if it still fails, delete the `~/.local/share/keyrings/login.keyring.bak-*` files you no longer need |
    | `missing packages and sudo needs a password` | The packages are missing and `sudo` needs a password | Run the printed `sudo apt-get install -y ...` command, then `chezmoi update` |
    | `could not write the token cache` from kubectl | The keyring was locked after the kubeconfig was generated | `chezmoi update`, then run the command again |
+   | The device-code link opens a **blank white page** after logging in | The brand has no device code flow: `/device?code=…` answers 404 with an empty body | Create a `Stage Configuration` flow and set it as the brand's **Default code flow** (see Phase 1) |
+   | The sign-in succeeds but `kubectl auth whoami` shows **no groups** | `groups` is missing from the provider's allowed scopes, so the ID token has no `groups` claim | Add the `groups` scope to the provider (see Phase 1) |
+   | The device code is rejected as expired | The device code lives for the provider's access code validity (one minute by default) | Complete the browser step within the window, or raise the provider's access code validity |
 
    *Verifying.* The helper answers with the storage the recipe would pick, `secret-tool search --all` lists the cached items, and the plaintext cache directory must not exist:
 
@@ -324,15 +337,16 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    ls ~/.kube/cache/oidc-login/                  # must not exist
    ```
 
-   **Headless hosts.** Use the device authorization grant (RFC 8628) — no callback listener, no SSH tunnel, and no stdin needed:
+   **Headless hosts.** The device authorization grant (RFC 8628) — no callback listener, no SSH tunnel, and no stdin needed. `just bootstrap kubeconfig-oidc` picks it by itself on a host with no display, so the plain command is enough:
 
    ```sh
-   just bootstrap kubeconfig-oidc headless
+   just bootstrap kubeconfig-oidc            # picks device-code here
+   just bootstrap kubeconfig-oidc headless   # asks for it explicitly
    ```
 
    kubelogin prints a verification URL plus a code; open the URL in any browser — the laptop, the phone — approve it, and the token returns to the terminal over the device endpoint. Authentik supports this: `DEVICE_CODE` is one of the provider's grant types and the discovery document always advertises `device_authorization_endpoint`, so the only provider-side requirement is adding `urn:ietf:params:oauth:grant-type:device_code` to the provider's allowed grant types (see Phase 1).
 
-   If you would rather keep the browser flow on a headless host, forward the callback port to the machine that has the browser — `ssh -L 8000:127.0.0.1:8000 <headless-host>` — and the provider's redirect to `http://localhost:8000` travels back through the tunnel. Both loopback URIs must be registered on the Authentik provider (see Phase 1). The keyboard variant (paste the authorization code back into the terminal) is not exposed by the recipe: kubelogin needs an explicit `--oidc-redirect-url` and a TTY for it.
+   If you would rather keep the browser flow on a headless host, run `just bootstrap kubeconfig-oidc browser` and forward the callback port to the machine that has the browser — `ssh -L 8000:127.0.0.1:8000 <headless-host>` — and the provider's redirect to `http://localhost:8000` travels back through the tunnel. Both loopback URIs must be registered on the Authentik provider (see Phase 1). The keyboard variant (paste the authorization code back into the terminal) is not exposed by the recipe: kubelogin needs an explicit `--oidc-redirect-url` and a TTY for it.
 
    One caveat common to both flows: Authentik only issues refresh tokens when the `offline_access` scope is mapped on the provider. Without a refresh token the short-lived ID token expires and every command re-runs the flow — which is what `none` storage forces anyway, and what a keyring avoids.
 

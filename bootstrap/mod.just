@@ -53,14 +53,18 @@ kubeconfig lb="cilium":
 kubeconfig-oidc mode="":
     # Two ways to run this recipe, and no other arguments:
     #
-    #   just bootstrap kubeconfig-oidc            # standard desktop: the
-    #       browser authorization-code flow. kubelogin opens the browser on
-    #       this machine and captures the callback on 127.0.0.1:8000.
+    #   just bootstrap kubeconfig-oidc            # the default: the browser
+    #       authorization-code flow on a machine that has a browser, and the
+    #       device authorization grant (RFC 8628) on one that has not.
     #
-    #   just bootstrap kubeconfig-oidc headless   # no browser on this machine:
-    #       the device authorization grant (RFC 8628). kubelogin prints a URL
-    #       and a code to complete on another device. No callback listener, no
-    #       tunnel, nothing to open.
+    #   just bootstrap kubeconfig-oidc headless   # the device authorization
+    #       grant, explicitly. kubelogin prints a URL and a code to complete
+    #       on another device. No callback listener, no tunnel, nothing to
+    #       open.
+    #
+    #   just bootstrap kubeconfig-oidc browser    # force the browser flow on
+    #       a headless machine, for the ssh -L 8000:127.0.0.1:8000 tunnel
+    #       case. Rarely needed: the device grant works everywhere.
     #
     # `[script('bash')]` runs the recipe as `bash <file>` — a fresh non-interactive
     # bash that does NOT source .bashrc. `exec` replaces this outer bash with a
@@ -95,12 +99,25 @@ kubeconfig-oidc mode="":
         headless)
             grant_type="device-code"
             ;;
+        browser)
+            grant_type="authcode"
+            ;;
         *)
-            echo "unknown mode: $mode (expected 'headless')" >&2
+            echo "unknown mode: $mode (expected 'headless' or 'browser')" >&2
             exit 1
             ;;
     esac
-    just log info "Generating OIDC kubeconfig..." "mode" "${mode:-standard}"
+    # The browser flow needs a browser on this host: kubelogin listens on
+    # 127.0.0.1:8000 and waits for the callback. On a headless Linux box there
+    # is no browser, and the failure is a confusing "could not listen: bind:
+    # address already in use" or "no browser to open". So the default mode
+    # falls back to the device grant there, which needs neither.
+    if [[ "$grant_type" == "auto" ]] && [[ "$(uname -s)" == "Linux" ]] \
+        && [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
+        grant_type="device-code"
+        echo "no display on this host: using the device-code sign-in (same as 'just bootstrap kubeconfig-oidc headless')" >&2
+    fi
+    just log info "Generating OIDC kubeconfig..." "mode" "${mode:-default}" "grant" "$grant_type"
     command -v zsh >/dev/null 2>&1 || { echo "zsh not found: the recipe body runs under zsh so the dotfiles apply" >&2; exit 1; }
     export OIDC_GRANT_TYPE="$grant_type"
     exec zsh -lic "$(cat <<'OIDC_KUBECONFIG_SCRIPT'
