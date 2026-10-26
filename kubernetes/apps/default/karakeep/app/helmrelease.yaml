@@ -121,9 +121,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
-                memory: 587Mi
+                memory: 887Mi
               limits:
-                memory: 587Mi
+                memory: 887Mi
 
       meilisearch:
         pod:
