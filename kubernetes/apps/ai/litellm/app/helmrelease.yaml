@@ -46,6 +46,7 @@ spec:
               DOCS_URL: "/docs"
               ROOT_REDIRECT_URL: "/ui"
               UI_USERNAME: admin
+              MAX_STRING_LENGTH_PROMPT_IN_DB: 1024 # Maximum string length for prompts stored in the database. DEFAULT: 2048 characters
               ## SSO Settings
               GENERIC_AUTHORIZATION_ENDPOINT: "https://auth.${SECRET_DOMAIN}/application/o/authorize/"
               GENERIC_TOKEN_ENDPOINT: "https://auth.${SECRET_DOMAIN}/application/o/token/"
