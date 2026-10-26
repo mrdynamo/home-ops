@@ -43,10 +43,10 @@ reboot-node node:
     gum confirm "Reboot node {{ node }}?" --default="No" && \
         talosctl -n "$(just talos node-ip {{ node }})" reboot -m powercycle || exit 0
 
-[doc('Render Talos config for a node')]
-render-config node: secrets
-    tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT; \
-    topf --nodes-filter "^{{ node }}$" render --output "$tmp" >/dev/null && cat "$tmp/{{ node }}.yaml"
+[doc('Render Talos configs to talos/output (all nodes, or one)')]
+render-config node="": secrets
+    topf {{ if node == "" { "" } else { "--nodes-filter '^" + node + "$'" } }} render --output "{{ talos_dir }}/output"
+    just log info "Rendered Talos config" "dir" "{{ talos_dir }}/output"
 
 [doc('Reset a node')]
 reset-node node:
@@ -62,6 +62,7 @@ shutdown-node node:
 talosconfig: secrets
     mkdir -p "$(dirname "$TALOSCONFIG")"
     topf talosconfig > "$TALOSCONFIG"
+    just log info "Wrote talosconfig" "file" "$TALOSCONFIG"
 
 [doc('Upgrade Kubernetes version on the cluster')]
 upgrade-k8s version:
