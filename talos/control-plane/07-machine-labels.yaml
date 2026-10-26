@@ -1,0 +1,6 @@
+---
+# Set by talosctl gen config on control planes; restated because all/01 drops the generated
+# KubeNodeConfig that would otherwise carry it.
+machine:
+  nodeLabels:
+    node.kubernetes.io/exclude-from-external-load-balancers: ""

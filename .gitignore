@@ -20,6 +20,12 @@
 kubeconfig
 kubeconfig-oidc
 talosconfig
+# Talos: `just talos render-config` writes plaintext machine configs to talos/output,
+# and `just talos download-image` saves installer ISOs under talos/. /output/ catches
+# a bare `topf render` run from the repo root, which defaults to ./output.
+/talos/output/
+/output/
+/talos/*.iso
 # Misc.
 .private/
 .task/

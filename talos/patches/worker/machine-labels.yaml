@@ -1,4 +1,0 @@
-machine:
-  nodeLabels:
-    descheduler/enabled: "true"
-    node.longhorn.io/create-default-disk: "true"

@@ -1,0 +1,6 @@
+---
+# Talos 1.14 generates workloadIsolation: true; upgraded nodes have no such document and
+# run non-isolated, which iSCSI (Longhorn) needs.
+apiVersion: v1alpha1
+kind: SecurityProfileConfig
+workloadIsolation: false

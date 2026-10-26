@@ -1,0 +1,7 @@
+---
+# The workers' running config has no FilesystemTrimConfig (they were last configured
+# before Talos generated one), so they never ran the weekly fstrim the control planes do.
+# Drop the generated document to keep that behaviour; delete this file to opt in.
+apiVersion: v1alpha1
+kind: FilesystemTrimConfig
+$patch: delete

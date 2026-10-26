@@ -1,0 +1,19 @@
+---
+# Replace the generated document outright: list fields merge by appending, which would
+# keep the 10.244.0.0/16 / 10.96.0.0/12 defaults next to ours.
+apiVersion: v1alpha1
+kind: KubeNetworkConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeNetworkConfig
+dnsDomain: cluster.local
+podSubnets:
+  - 10.42.0.0/16
+serviceSubnets:
+  - 10.43.0.0/16
+---
+# Cilium is the CNI
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+$patch: delete

@@ -1,0 +1,8 @@
+---
+# Talos 1.14 generates this document with an unset mount.secure, which means noexec /var.
+# Upgraded nodes have no such document and keep exec, which Longhorn v1 needs.
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+mount:
+  secure: false
