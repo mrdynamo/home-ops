@@ -63,7 +63,15 @@ EOF
 
 (
 	cd "$workdir"
-	zip -q -9 "$archive_file" database.dump metadata.json
+	if command -v zip >/dev/null 2>&1; then
+		zip -q -9 "$archive_file" database.dump metadata.json
+	else
+		# No zip binary (e.g. the CNPG minimal image): Perl's core
+		# IO::Compress::Zip writes the same deflate archive.
+		perl -MIO::Compress::Zip=zip,\$ZipError -e \
+			'zip [qw(database.dump metadata.json)] => $ARGV[0], Level => 9, Zip64 => 1 or die "zip failed: $ZipError\n"' \
+			"$archive_file"
+	fi
 )
 
 mv "$archive_file" "$backup_file"
