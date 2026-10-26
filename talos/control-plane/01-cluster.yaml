@@ -1,0 +1,39 @@
+---
+cluster:
+  allowSchedulingOnControlPlanes: false
+  etcd:
+    extraArgs:
+      heartbeat-interval: "500"
+      election-timeout: "5000"
+      listen-metrics-urls: http://0.0.0.0:2381
+    advertisedSubnets:
+      - 192.168.30.0/24
+---
+# CoreDNS is deployed by Flux
+apiVersion: v1alpha1
+kind: KubeCoreDNSConfig
+enabled: false
+---
+apiVersion: v1alpha1
+kind: KubeAPIServerConfig
+extraArgs:
+  ## https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
+  enable-aggregator-routing: "true"
+  feature-gates: "MutatingAdmissionPolicy=true,ResourceHealthStatus=true,DRAPartitionableDevices=true,DRAExtendedResource=true,HPAScaleToZero=true"
+  runtime-config: "admissionregistration.k8s.io/v1beta1=true"
+---
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+  feature-gates: "HPAScaleToZero=true"
+---
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+  feature-gates: "DRAPartitionableDevices=true,DRAExtendedResource=true"
+---
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false

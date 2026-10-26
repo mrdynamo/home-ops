@@ -1,0 +1,12 @@
+---
+# Keep the kubelet and node settings in the v1alpha1 .machine.kubelet/.machine.nodeLabels
+# form the nodes already run. The KubeletConfig document has no extraMounts, which the
+# workers need for the Longhorn bind mount, and Talos rejects either document while any
+# .machine.kubelet, .machine.nodeLabels or .cluster.allowSchedulingOnControlPlanes is set.
+apiVersion: v1alpha1
+kind: KubeletConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+$patch: delete

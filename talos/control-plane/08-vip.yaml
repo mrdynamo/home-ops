@@ -1,0 +1,6 @@
+---
+# ethSel0 is the LinkAliasConfig in all/07-network.yaml.tpl
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+name: 192.168.30.10
+link: ethSel0
