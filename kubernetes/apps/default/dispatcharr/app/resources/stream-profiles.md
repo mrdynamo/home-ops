@@ -64,5 +64,5 @@ different render node.
 - Confirm `/dev/dri/renderD128` is passed through to the Dispatcharr container/pod
   and that the `intel_gpu`/`i915` VAAPI/QSV runtime is installed in the image.
 - Check Dispatcharr Helm values for iGPU device passthrough (repo has existing
-  intel-gpu Talos patches under `talos/patches/intel-gpu/` and schematic
+  intel-gpu Talos patches under `talos/node/k8s-04/` and schematic
   `talos/schematics/worker-intel-gpu.yaml.j2` for reference).
