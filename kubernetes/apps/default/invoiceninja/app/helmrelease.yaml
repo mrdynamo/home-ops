@@ -164,10 +164,10 @@ spec:
             # was OOMKilled (exit 137) at the 512Mi limit.
             resources:
               requests:
-                cpu: 100m
-                memory: 1Gi
+                cpu: 383m
+                memory: 1178Mi
               limits:
-                memory: 1Gi
+                memory: 1178Mi
           nginx:
             image:
               repository: ghcr.io/nginxinc/nginx-unprivileged

@@ -102,10 +102,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 1730m
-                memory: 2059Mi
+                cpu: 304m
+                memory: 2058Mi
               limits:
-                memory: 2059Mi
+                memory: 2058Mi
       backup:
         type: cronjob
         cronjob:

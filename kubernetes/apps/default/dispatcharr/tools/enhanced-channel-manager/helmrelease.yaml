@@ -44,10 +44,10 @@ spec:
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 1150m
-                memory: 876Mi
+                cpu: 1889m
+                memory: 858Mi
               limits:
-                memory: 876Mi
+                memory: 858Mi
           mcp:
             image:
               repository: ghcr.io/motwakorb/enhancedchannelmanager-mcp
