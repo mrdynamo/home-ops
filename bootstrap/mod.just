@@ -4,8 +4,13 @@ set shell := ['bash', '-euo', 'pipefail', '-c']
 
 bootstrap_dir := justfile_dir() + '/bootstrap'
 kubernetes_dir := justfile_dir() + '/kubernetes'
-controller := `talosctl config info -o yaml | yq -e '.endpoints[0]'`
-nodes := `talosctl config info -o yaml | yq -e '.nodes | join (" ")'`
+topf_config := justfile_dir() + '/talos/topf.yaml'
+# Read from topf.yaml, not the talosconfig: on a fresh machine there is no talosconfig yet.
+controller := shell('yq -e "[.nodes[] | select(.role == \"control-plane\")][0].ip" "$1"', topf_config)
+nodes := shell('yq -e ".nodes[].host" "$1" | xargs', topf_config)
+
+# The bootstrap runs before Authentik exists, so it uses the admin kubeconfig, never kubeconfig-oidc.
+export KUBECONFIG := justfile_dir() + '/kubeconfig'
 
 # 1Password references for the OIDC kubeconfig. Both are public identifiers
 # (issuer URL and public PKCE client ID), not secrets.
@@ -13,18 +18,28 @@ oidc_issuer_ref := "op://Chezmoi/kubernetes/KUBERNETES_OIDC_ISSUER_URL"
 oidc_client_ref := "op://Chezmoi/kubernetes/KUBERNETES_OIDC_CLIENT_ID"
 
 [private]
-default: talos k8s (kubeconfig "node") wait namespaces resources crds apps kubeconfig
+default: preflight talos k8s (kubeconfig "node") wait namespaces resources crds apps kubeconfig
+
+[private]
+preflight:
+    for cli in topf talosctl sops yq kubectl helmfile minijinja-cli gum; do \
+        command -v "$cli" &>/dev/null || { just log fatal "Missing required CLI" "stage" "$0" "cli" "$cli"; exit 1; }; \
+    done
+    for f in "{{ justfile_dir() }}/.sops.yaml" "{{ topf_config }}" "${SOPS_AGE_KEY_FILE:-}"; do \
+        [[ -f "$f" ]] || { just log fatal "Missing required file" "stage" "$0" "file" "${f:-SOPS_AGE_KEY_FILE unset}"; exit 1; }; \
+    done
+    [[ -n "${TALOSCONFIG:-}" ]] || { just log fatal "TALOSCONFIG is not set" "stage" "$0"; exit 1; }
 
 [doc('Install Talos')]
 talos:
     just log info "Running stage..." "stage" "$0"
+    just talos talosconfig
+    # topf connects insecurely to nodes in maintenance mode and applies nothing to a node
+    # that already runs this config. No node is Ready until Cilium is installed.
     for n in {{ nodes }}; do \
-        if ! op=$(just talos apply-node "$n" --insecure 2>&1); then \
-            if [[ "$op" == *"certificate required"* ]]; then \
-                just log info "Talos already configured, skipping apply of config" "stage" "$0" "node" "$n"; \
-                continue; \
-            fi; \
-            just log fatal "Failed to apply Talos configuration" "stage" "$0" "node" "$n" "output" "$op"; \
+        if ! TOPF_CONFIRM=false just talos apply-node "$n" --allow-not-ready --skip-post-apply-checks; then \
+            just log fatal "Failed to apply Talos configuration" "stage" "$0" "node" "$n"; \
+            exit 1; \
         fi; \
     done
 
@@ -39,11 +54,12 @@ k8s:
 [doc('Fetch kubeconfig')]
 kubeconfig lb="cilium":
     just log info "Running stage..." "stage" "$0"
-    if ! talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }}; then \
-        just log fatal "Failed to fetch kubeconfig" "stage" "$0"; \
-    fi
+    until talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }} &>/dev/null; do \
+        just log info "Kubeconfig not available yet. Retrying in 5 seconds..." "stage" "$0"; \
+        sleep 5; \
+    done
     if [[ "{{ lb }}" != "cilium" ]]; then \
-        if ! kubectl config set-cluster main --server "https://{{ controller }}:6443"; then \
+        if ! kubectl config set-cluster "$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')" --server "https://{{ controller }}:6443"; then \
             just log fatal "Failed to set kubectl cluster server address" "stage" "$0"; \
         fi; \
     fi
@@ -130,7 +146,7 @@ kubeconfig-oidc mode="":
     # otherwise end up inside the issuer URL.
     issuer="$(op read "{{ oidc_issuer_ref }}" | tr -d "\r")"
     client_id="$(op read "{{ oidc_client_ref }}" | tr -d "\r")"
-    server="$(yq -e ".endpoint" "{{ justfile_dir() }}/talos/talconfig.yaml")"
+    server="$(yq -e ".clusterEndpoint" "{{ topf_config }}")"
     [[ -n "$issuer" && -n "$client_id" && -n "$server" ]] || { echo "issuer, client ID or server is empty" >&2; exit 1; }
     # The device-code grant completes the sign-in on another device: this host
     # has no browser to open.
@@ -156,8 +172,9 @@ kubeconfig-oidc mode="":
     fi
     tmp="$(mktemp -d)"; trap "rm -rf \"$tmp\"" EXIT
     # Public Kubernetes CA certificate only; the CA key in the same file is never read.
-    sops -d --extract "[\"certs\"][\"k8s\"][\"crt\"]" "{{ justfile_dir() }}/talos/talsecret.sops.yaml" | base64 -d > "$tmp/ca.crt"
-    [[ -s "$tmp/ca.crt" ]] || { echo "could not read the cluster CA from talsecret.sops.yaml" >&2; exit 1; }
+    secrets="{{ justfile_dir() }}/talos/$(yq ".secretsPath // \"secrets.yaml\"" "{{ topf_config }}")"
+    sops -d --extract "[\"certs\"][\"k8s\"][\"crt\"]" "$secrets" | base64 -d > "$tmp/ca.crt"
+    [[ -s "$tmp/ca.crt" ]] || { echo "could not read the cluster CA from $secrets" >&2; exit 1; }
     export KUBECONFIG="$tmp/kubeconfig"
     kubectl config set-cluster kubernetes --server "$server" --certificate-authority "$tmp/ca.crt" --embed-certs=true >/dev/null
     kubectl config set-credentials oidc \
