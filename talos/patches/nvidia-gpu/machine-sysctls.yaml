@@ -1,3 +1,0 @@
-machine:
-  sysctls:
-    net.core.bpf_jit_harden: 1          # eBPF JIT hardening

@@ -4,7 +4,7 @@ clusterEndpoint: https://192.168.30.10:6443
 talosVersion: v1.14.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.37.1
-secretsPath: talsecret.sops.yaml
+secretsPath: secrets.sops.yaml
 nodes:
   - host: k8s-01
     ip: 192.168.30.21
