@@ -31,6 +31,20 @@
       minimumGroupSize: 2,
     },
     {
+      description: "CloudNativePG PostgreSQL Group",
+      groupName: "cloudnative-pg-postgresql",
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/cloudnative-pg/postgresql"
+      ],
+      group: {
+        commitMessageTopic: "{{{groupName}}} group",
+      },
+      minimumGroupSize: 2,
+    },
+    {
       description: "Flux Operator Group",
       groupName: "flux-operator",
       matchDatasources: [
