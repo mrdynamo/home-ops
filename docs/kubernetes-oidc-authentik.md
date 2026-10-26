@@ -289,18 +289,23 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    | Host | What happens |
    |---|---|
    | macOS | Nothing is unlocked: the login keychain is unlocked by the login session. The script only checks that the keychain can be used, with a throwaway item that is written and deleted again. It never touches the items you have stored. |
-   | Linux / WSL2 | Installs the pinned packages that are missing (needs passwordless `sudo`, otherwise it prints the command), makes sure a session bus exists, stops the systemd `gnome-keyring-daemon` units for this session, and unlocks the login keyring with the passphrase from 1Password. |
+   | Linux / WSL2 | Installs the pinned packages that are missing, makes sure a session bus exists, stops the systemd `gnome-keyring-daemon` units for this session, and unlocks the login keyring with the passphrase from 1Password. The install needs `sudo`: passwordless where the host is configured for it, otherwise the script asks for the password once on the terminal (`sudo -v`) and sudo caches it for the rest of the run. Without a terminal to ask on, it prints the `apt-get install` command instead of hanging. |
 
    Two details of the Linux path are why it is a script and not a one-liner:
 
    - **The daemon that owns `org.freedesktop.secrets` has to be the one that unlocks.** gnome-keyring requests the bus name without `REPLACE`, so a daemon that is already running — the systemd unit, or the one D-Bus activates on demand — keeps the name, leaves the collection **locked**, and `gnome-keyring-daemon --unlock` then does nothing. The script stops the systemd units and replaces a foreign owner before unlocking.
    - **A wrong passphrase is silent.** The daemon starts and owns the name, but the collection stays locked. The script checks the `Locked` property, not the exit code, and when the passphrase does not open the keyring that is on disk it moves that keyring aside (`login.keyring.bak-<timestamp>`) and lets `--unlock` create a fresh one. Nothing is ever deleted.
 
-   The unlock applies to the running daemon, so it has to be redone whenever the daemon restarts. `chezmoi update` after a reboot is the intended way to do it — that is the command you already run on every machine.
+   The unlock applies to the running daemon, so it has to be redone whenever the daemon restarts. `chezmoi update` after a reboot is the intended way to do it — that is the command you already run on every machine. On WSL that means running it again after the distro has been shut down (`wsl --shutdown`, a Windows reboot, or a restart from the VS Code WSL extension): the encrypted `login.keyring` file survives the restart, but the daemon that holds the unlocked collection in memory does not.
 
    > **The systemd units are stopped, not disabled.** `gnome-keyring-daemon.service` and `gnome-keyring-daemon.socket` are stopped for the session, because that daemon owns the bus name with a locked collection. They come back at the next login, and the next `chezmoi update` stops them again. Make it permanent with `systemctl --user disable gnome-keyring-daemon.service gnome-keyring-daemon.socket` if a graphical session should never own the Secret Service name.
 
    **WSL.** WSL is not special-cased anywhere. The dotfiles decide which `op` runs (the alias `op='op.exe'` on WSL), and the keyring script uses the same Linux path as a native Linux host: gnome-keyring and dbus come from the pinned Ubuntu packages, and the session bus comes from the systemd user session — or from a private bus when WSL has no systemd, whose address is remembered in `~/.local/state/chezmoi/dbus-session-address` and exported by the shell profile.
+
+   Two things are specific to WSL, and the same script handles both:
+
+   - **The keyring is not installed natively.** WSL ships no gnome-keyring, so `chezmoi update` installs it. The install needs root and WSL's `sudo` asks for the password, so the **first `chezmoi update` on a WSL host prompts for the sudo password** — enter it once and the rest of the run needs no password again. Run it from a terminal; from a script, a CI job or a task runner with no terminal to ask on, the script prints the `apt-get install` command for you to run as root instead of hanging on a prompt nobody can see.
+   - **The passphrase comes from the Windows 1Password app.** `op` is the alias for `op.exe`, so the passphrase is read through the Windows desktop app, which has to be running and unlocked. There is no 1Password service account on WSL, and none is needed. A locked Windows app makes the read fail; the script then says so and points at the app.
 
    *What the old recipe did.* The previous implementation selected kubelogin's storage like this:
 
@@ -323,7 +328,8 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    | `No unlocked OS keyring` when generating the kubeconfig | The keyring was not unlocked in this session | `chezmoi update` |
    | `could not read op://chezmoi/gnome-keyring/PASSPHRASE` | The item does not exist, or 1Password is not signed in | Create the item, then `chezmoi update` |
    | `the login keyring could not be unlocked` | The passphrase does not open the keyring on disk | The script moves the stale keyring aside and retries; if it still fails, delete the `~/.local/share/keyrings/login.keyring.bak-*` files you no longer need |
-   | `missing packages and sudo needs a password` | The packages are missing and `sudo` needs a password | Run the printed `sudo apt-get install -y ...` command, then `chezmoi update` |
+   | `sudo needs a password and there is no terminal to ask on` | The packages are missing, `sudo` needs a password, and `chezmoi update` was not run from a terminal | Run the printed `apt-get install -y ...` command as root, then `chezmoi update` from a terminal |
+   | `sudo needs a password; enter it to install the keyring packages` | The packages are missing on WSL and `sudo` asks for the password | Enter the sudo password — the install and the unlock then continue |
    | `could not write the token cache` from kubectl | The keyring was locked after the kubeconfig was generated | `chezmoi update`, then run the command again |
    | The device-code link opens a **blank white page** after logging in | The brand has no device code flow: `/device?code=…` answers 404 with an empty body | Create a `Stage Configuration` flow and set it as the brand's **Device code flow** (see Phase 1) |
    | The sign-in succeeds but `kubectl auth whoami` shows **no groups** | The ID token has no `groups` claim: no scope mapping on the provider produces one. The *scope name* `groups` is irrelevant — Authentik clamps the requested scopes to the configured scope names and the claim has to ride along with a scope that is granted | Check `claims_supported` in the discovery document; if `groups` is absent, add a scope mapping whose expression produces the claim (see Phase 1) |
