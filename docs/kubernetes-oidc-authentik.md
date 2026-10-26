@@ -282,6 +282,8 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    | `home/dot_config/keyring/packages.{debian,ubuntu}.conf` | The pinned apt packages; Renovate bumps them through the `deb` datasource. |
    | `home/dot_config/zsh/env.zsh.tmpl` | Exports `DBUS_SESSION_BUS_ADDRESS`, so kubectl's exec plugin reaches the same Secret Service. |
 
+   *How the pinned versions are kept current.* The pins are the versions the distributions install by default: on Ubuntu 24.04 that is the release and the `-updates` pocket (`46.1-2ubuntu0.2`, `1.14.10-4ubuntu4.1`, …), and on Debian 13 it is the release pocket (`48.0-1`, `1.16.2-2`, …). Renovate tracks them through the `deb` datasource with a custom regex manager in the dotfiles repository, and the Ubuntu rule follows the `-updates` and `-security` pockets as well, so a new point release arrives as a pull request. Two limits are worth knowing: the `deb` datasource only reads `Packages.gz`, and Debian publishes its security pocket as `Packages.xz` only — a **Debian** security update for one of these four packages is therefore *not* picked up automatically; and the pinned version is only used when the package is missing, so an installed package is never downgraded to a pin.
+
    It needs one 1Password item: **`op://chezmoi/gnome-keyring/PASSPHRASE`** (vault `chezmoi`, item `gnome-keyring`, password field `PASSPHRASE`). It holds the passphrase of the gnome-keyring *login keyring* only — not an OIDC token. The value is piped straight from the 1Password CLI into `gnome-keyring-daemon --unlock` on stdin; it is never written to a file and never appears in a process argument list.
 
    What `chezmoi update` does per host:
