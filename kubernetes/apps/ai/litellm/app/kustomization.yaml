@@ -12,6 +12,7 @@ configMapGenerator:
     files:
       - config.yaml=./resources/config.yaml
       - dashboard.json=./resources/dashboard.json
+      - prune-prompts.sh=./resources/prune-prompts.sh
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
