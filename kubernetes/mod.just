@@ -71,6 +71,10 @@ sync-oci:
         kubectl -n "$ns" annotate --field-manager flux-client-side-apply --overwrite ocirepo "$name" reconcile.fluxcd.io/requestedAt="$(date +%s)"; \
     done
 
+[doc('Force Flux to pull in changes from the Git repository')]
+reconcile:
+    flux --namespace flux-system reconcile kustomization flux-system --with-source
+
 [doc('View a secret')]
 view-secret namespace secret:
     kubectl view-secret -n {{ namespace }} {{ secret }}

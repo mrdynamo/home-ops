@@ -5,6 +5,7 @@ talos_dir := justfile_dir() + '/talos'
 topf_config := talos_dir + '/topf.yaml'
 # Read from topf.yaml, not the talosconfig: on a fresh machine there is no talosconfig yet.
 controller := shell('yq -e "[.nodes[] | select(.role == \"control-plane\")][0].ip" "$1"', topf_config)
+kubernetes_version := shell('yq -e ".kubernetesVersion" "$1"', topf_config)
 
 export TOPFCONFIG := topf_config
 
@@ -48,6 +49,11 @@ render-config node="": secrets
     topf {{ if node == "" { "" } else { "--nodes-filter '^" + node + "$'" } }} render --output "{{ talos_dir }}/output"
     just log info "Rendered Talos config" "dir" "{{ talos_dir }}/output"
 
+[doc('Reset every node back to maintenance mode, destroying the cluster (full=true wipes the whole disk)')]
+reset full="false":
+    gum confirm "Reset ALL nodes to maintenance mode? This destroys the cluster." --default="No" && \
+        topf --confirm=false reset --graceful=false --full={{ full }} || exit 0
+
 [doc('Reset a node')]
 reset-node node:
     gum confirm "Reset node {{ node }}?" --default="No" && \
@@ -64,8 +70,8 @@ talosconfig: secrets
     topf talosconfig > "$TALOSCONFIG"
     just log info "Wrote talosconfig" "file" "$TALOSCONFIG"
 
-[doc('Upgrade Kubernetes version on the cluster')]
-upgrade-k8s version:
+[doc('Upgrade Kubernetes on the cluster (defaults to kubernetesVersion in topf.yaml)')]
+upgrade-k8s version=kubernetes_version:
     talosctl -n "{{ controller }}" upgrade-k8s --to {{ version }}
 
 [doc('Upgrade Talos on a node to the talosVersion in topf.yaml')]
