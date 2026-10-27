@@ -83,7 +83,7 @@ spec:
                 cpu: 16m
                 memory: 511Mi
               limits:
-                memory: 511Mi
+                memory: 811Mi
             probes: *probes
             # resources:
             #   requests:
