@@ -24,10 +24,11 @@ template file *args:
     minijinja-cli "{{ file }}" {{ args }} | "$op" inject | tr -d '\r'
 
 # Written via a 0600 temp file, so a failed render never clobbers the existing output.
-# Render a template to its name without the `.j2` suffix (`just render cloudflare-tunnel.json.j2`)
+# Render templates/<path>.j2 to <path>, mirroring the layout under templates/ (`just render templates/talos/foo.yaml.j2`)
 render file:
-    dest="{{ file }}"; dest="${dest%.j2}"; \
-    [[ "$dest" != "{{ file }}" ]] || { just log fatal "Not a .j2 template" file "{{ file }}"; exit 1; }; \
-    tmp="$(mktemp "$dest.XXXXXX")"; \
-    just template "{{ file }}" > "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; exit 1; }; \
+    rel="{{ file }}"; rel="${rel#templates/}"; src="templates/$rel"; dest="${rel%.j2}"; \
+    [[ "$dest" != "$rel" ]] || { just log fatal "Not a .j2 template" file "{{ file }}"; exit 1; }; \
+    [[ -f "$src" ]] || { just log fatal "Template not found" file "$src"; exit 1; }; \
+    mkdir -p "$(dirname "$dest")"; tmp="$(mktemp "$dest.XXXXXX")"; \
+    just template "$src" > "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; exit 1; }; \
     just log info "Rendered" file "$dest"
