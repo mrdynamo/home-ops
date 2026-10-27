@@ -27,6 +27,8 @@ spec:
       news_feed_enabled: "false"
     plugins:
       plugin_admin_enabled: "false"
+      # Bundled plugin updates cannot replace files on the read-only root filesystem.
+      preinstall_auto_update: "false"
     security:
       angular_support_enabled: "true"
     server:
