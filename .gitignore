@@ -1,4 +1,5 @@
 # Secrets
+*.crt
 *.pub
 *.key
 *.decrypted~*.yaml
