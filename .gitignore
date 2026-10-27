@@ -2,17 +2,11 @@
 *.pub
 *.key
 *.decrypted~*.yaml
-/age.key
-/age.key.tpl
 /age.pq.key
-/age.pq.key.tpl
 /cloudflare-tunnel.json
 /github-deploy.key
-/github-deploy.key.tpl
 /github-deploy.key.pub
-/github-deploy.key.pub.tpl
 /github-push-token.txt
-/github-push-token.txt.tpl
 # Template config files
 /cluster.yaml
 /nodes.yaml
