@@ -479,6 +479,13 @@ router_settings:
   # Required for per-user OAuth tokens: one expired `sk-ant-oat01` would
   # otherwise cooldown the deployment and surface 429s for everyone else.
   disable_cooldowns: true
+  # Claude Code's auto-mode permission classifier requests a bare
+  # `claude-sonnet-5` (server-side flag, ignores ANTHROPIC_DEFAULT_*_MODEL and
+  # CLAUDE_CODE_AUTO_MODE_MODEL). Unmatched, every classifier call fails and
+  # auto mode blocks the tool call. Route it to Sonnet 5.5.
+  model_group_alias:
+    claude-sonnet-5: anthropic/claude-sonnet-5-5
+    claude-sonnet-5[1m]: anthropic/claude-sonnet-5-5
 
 litellm_settings:
   success_callback: ["prometheus"]
