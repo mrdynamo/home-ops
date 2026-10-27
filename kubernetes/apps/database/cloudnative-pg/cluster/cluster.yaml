@@ -85,12 +85,10 @@ spec:
 
       - name: timescaledb
         image:
-          # renovate: datasource=docker depName=ghcr.io/mrdynamo/timescaledb-bridge
           reference: ghcr.io/mrdynamo/timescaledb-bridge:2.29.2@sha256:9d540efa45cb60542b6c6b674e88a23dec654fb25046fe1d5b4c031cbabdd0e1
 
       - name: timescaledb_toolkit
         image:
-          # renovate: datasource=docker depName=ghcr.io/mrdynamo/timescaledb-toolkit
           reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.25.0@sha256:ed18523de90b39f4939472a0a8d113c93f360004f5de42815b6933ffd1b8eaf4
 
   managed:
