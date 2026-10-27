@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mpforce1/twitch-channel-points-miner
-              tag: 2.0.0@sha256:9cdd262c2ad48c12ec0c7e121023dea612a1c2f22b0a3cf143dea42694d5352e
+              tag: 2.1.0@sha256:a045711fc7c70bc0acf74b63dce8f2ee0bcac1a8c2a5622e75134314c85366de
             env:
               TZ: America/Chicago
               TERM: xterm-256color
