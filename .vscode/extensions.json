@@ -3,6 +3,10 @@
     "blueglassblock.better-json5",
     "irongeek.vscode-env",
     "redhat.vscode-yaml",
-    "signageos.signageos-vscode-sops"
+    "signageos.signageos-vscode-sops",
+    "oxc.oxc-vscode",
+    "hverlin.mise-vscode",
+    "nefrob.vscode-just-syntax",
+    "PKief.material-icon-theme"
   ]
 }
