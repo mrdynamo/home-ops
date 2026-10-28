@@ -136,7 +136,11 @@ kubeconfig-oidc mode="":
     just log info "Generating OIDC kubeconfig..." "mode" "${mode:-default}" "grant" "$grant_type"
     command -v zsh >/dev/null 2>&1 || { echo "zsh not found: the recipe body runs under zsh so the dotfiles apply" >&2; exit 1; }
     export OIDC_GRANT_TYPE="$grant_type"
-    exec zsh -lic "$(cat <<'OIDC_KUBECONFIG_SCRIPT'
+    # `read`, not `"$(cat <<'EOF' ... EOF)"`: macOS ships bash 3.2, whose `$(`
+    # scanner counts parentheses through the heredoc body, so a bare `case`
+    # pattern like `device-code)` closes the substitution early and the rest
+    # of the body is parsed as bash. `read` returns 1 at EOF, hence `|| true`.
+    IFS= read -r -d '' oidc_script <<'OIDC_KUBECONFIG_SCRIPT' || true
     set -euo pipefail
     grant_type="$OIDC_GRANT_TYPE"
     out="{{ justfile_dir() }}/kubeconfig-oidc"
@@ -197,7 +201,7 @@ kubeconfig-oidc mode="":
     install -m 600 "$tmp/kubeconfig" "$out"
     just log info "Wrote $out (try: kubectl auth whoami)"
     OIDC_KUBECONFIG_SCRIPT
-    )"
+    exec zsh -lic "$oidc_script"
 
 [doc('Wait for nodes to be not-ready')]
 wait:
