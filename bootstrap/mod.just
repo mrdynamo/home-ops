@@ -47,12 +47,14 @@ k8s:
         sleep 5; \
     done
 
+# --merge=false -f replaces the whole file, so on break-glass recovery the OIDC kubeconfig is swapped for a
+# clean admin one rather than merged with it; `just manage kubeconfig` swaps it back.
 # umask 077 so a new kubeconfig is created 0600; the final chmod also tightens an existing file, since
 # neither talosctl nor kubectl changes the mode of a file that is already there.
 [doc('Fetch kubeconfig')]
 kubeconfig lb="cilium":
     just log info "Running stage..." "stage" "$0"
-    umask 077; until talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }} &>/dev/null; do \
+    umask 077; until talosctl kubeconfig -n "{{ controller }}" --merge=false -f {{ justfile_dir() }} &>/dev/null; do \
         just log info "Kubeconfig not available yet. Retrying in 5 seconds..." "stage" "$0"; \
         sleep 5; \
     done
