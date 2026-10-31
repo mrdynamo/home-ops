@@ -25,21 +25,17 @@ render file:
 
 [doc('Generate OIDC kubeconfig at kubeconfig-oidc in the repo root')]
 [script('bash')]
-kubeconfig-oidc mode="":
-    # Two ways to run this recipe, and no other arguments:
+kubeconfig:
+    # No arguments: the sign-in flow is picked from the session.
     #
-    #   just manage kubeconfig-oidc            # the default: the browser
-    #       authorization-code flow on a machine that has a browser, and the
-    #       device authorization grant (RFC 8628) on one that has not.
-    #
-    #   just manage kubeconfig-oidc headless   # the device authorization
-    #       grant, explicitly. kubelogin prints a URL and a code to complete
-    #       on another device. No callback listener, no tunnel, nothing to
-    #       open.
-    #
-    #   just manage kubeconfig-oidc browser    # force the browser flow on
-    #       a headless machine, for the ssh -L 8000:127.0.0.1:8000 tunnel
-    #       case. Rarely needed: the device grant works everywhere.
+    #   - SSH session: the device authorization grant (RFC 8628). kubelogin
+    #     prints a URL and a code to complete in a browser on another device;
+    #     a browser opened here would be on the wrong machine.
+    #   - macOS, or a display (DISPLAY / WAYLAND_DISPLAY) or BROWSER is set:
+    #     the browser authorization-code flow. On WSL, BROWSER opens the
+    #     Windows browser and the callback to 127.0.0.1:8000 comes back
+    #     through WSL's localhost forwarding.
+    #   - Anything else (a headless Linux box): the device grant.
     #
     # `[script('bash')]` runs the recipe as `bash <file>` — a fresh non-interactive
     # bash that does NOT source .bashrc. `exec` replaces this outer bash with a
@@ -66,33 +62,30 @@ kubeconfig-oidc mode="":
     # Service is reachable, and is not persisted at all otherwise. kubelogin's
     # plaintext `disk` cache is never used.
     set -euo pipefail
-    mode={{ quote(mode) }}
-    case "$mode" in
-        "")
-            grant_type="auto"
-            ;;
-        headless)
-            grant_type="device-code"
-            ;;
-        browser)
-            grant_type="authcode"
-            ;;
-        *)
-            echo "unknown mode: $mode (expected 'headless' or 'browser')" >&2
-            exit 1
-            ;;
-    esac
     # The browser flow needs a browser on this host: kubelogin listens on
-    # 127.0.0.1:8000 and waits for the callback. On a headless Linux box there
-    # is no browser, and the failure is a confusing "could not listen: bind:
-    # address already in use" or "no browser to open". So the default mode
-    # falls back to the device grant there, which needs neither.
-    if [[ "$grant_type" == "auto" ]] && [[ "$(uname -s)" == "Linux" ]] \
-        && [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
-        grant_type="device-code"
-        echo "no display on this host: using the device-code sign-in (same as 'just manage kubeconfig-oidc headless')" >&2
+    # 127.0.0.1:8000 and waits for the callback. Without one the failure is a
+    # confusing "could not listen" or "no browser to open", so fall back to the
+    # device grant, which needs neither. Both are passed to kubelogin
+    # explicitly rather than its own `auto`, so the log names the flow that runs.
+    #
+    # `just log` splices its key/value args into the shell unquoted, so the
+    # values stay single words; the readable sentence goes in the message.
+    if [[ -n "${SSH_CONNECTION:-}${SSH_TTY:-}" ]]; then
+        grant_type="device-code"; detected="ssh"
+    elif [[ "$(uname -s)" == "Darwin" ]]; then
+        grant_type="authcode"; detected="macos"
+    elif [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+        grant_type="authcode"; detected="display"
+    elif [[ -n "${BROWSER:-}" ]]; then
+        grant_type="authcode"; detected="browser-env"
+    else
+        grant_type="device-code"; detected="no-display"
     fi
-    just log info "Generating OIDC kubeconfig..." "mode" "${mode:-default}" "grant" "$grant_type"
+    case "$grant_type" in
+        device-code) how="headless sign-in: open the URL below in a browser on any device and enter the code" ;;
+        authcode) how="browser sign-in: a browser window opens on this machine" ;;
+    esac
+    just log info "Generating OIDC kubeconfig, $how" "grant" "$grant_type" "detected" "$detected"
     command -v zsh >/dev/null 2>&1 || { echo "zsh not found: the recipe body runs under zsh so the dotfiles apply" >&2; exit 1; }
     export OIDC_GRANT_TYPE="$grant_type"
     # `read`, not `"$(cat <<'EOF' ... EOF)"`: macOS ships bash 3.2, whose `$(`
