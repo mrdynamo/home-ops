@@ -47,10 +47,12 @@ k8s:
         sleep 5; \
     done
 
+# umask 077 so a new kubeconfig is created 0600; the final chmod also tightens an existing file, since
+# neither talosctl nor kubectl changes the mode of a file that is already there.
 [doc('Fetch kubeconfig')]
 kubeconfig lb="cilium":
     just log info "Running stage..." "stage" "$0"
-    until talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }} &>/dev/null; do \
+    umask 077; until talosctl kubeconfig -n "{{ controller }}" -f --force-context-name main {{ justfile_dir() }} &>/dev/null; do \
         just log info "Kubeconfig not available yet. Retrying in 5 seconds..." "stage" "$0"; \
         sleep 5; \
     done
@@ -59,6 +61,7 @@ kubeconfig lb="cilium":
             just log fatal "Failed to set kubectl cluster server address" "stage" "$0"; \
         fi; \
     fi
+    chmod 600 "$KUBECONFIG"
 
 [doc('Wait for nodes to be not-ready')]
 wait:

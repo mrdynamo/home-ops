@@ -64,10 +64,12 @@ shutdown-node node:
     gum confirm "Shutdown node {{ node }}?" --default="No" && \
         talosctl -n "$(just talos node-ip {{ node }})" shutdown --force || exit 0
 
+# Written via a 0600 `<dest>.render-tmp` file (gitignored), so the talosconfig is only readable by its
+# owner and a failed run never leaves an empty one behind.
 [doc('Write the talosconfig to $TALOSCONFIG')]
 talosconfig: secrets
-    mkdir -p "$(dirname "$TALOSCONFIG")"
-    topf talosconfig > "$TALOSCONFIG"
+    mkdir -p "$(dirname "$TALOSCONFIG")"; tmp="$TALOSCONFIG.render-tmp"; rm -f "$tmp"; umask 077; \
+    topf talosconfig > "$tmp" && mv "$tmp" "$TALOSCONFIG" || { rm -f "$tmp"; exit 1; }
     just log info "Wrote talosconfig" "file" "$TALOSCONFIG"
 
 [doc('Upgrade Kubernetes on the cluster (defaults to kubernetesVersion in topf.yaml)')]
