@@ -160,3 +160,18 @@ kubeconfig:
     just log info "Wrote $out, replacing any existing kubeconfig (try: kubectl auth whoami)"
     OIDC_KUBECONFIG_SCRIPT
     exec zsh -lic "$oidc_script"
+
+# Recovery for a lost talosconfig: topf derives it from the secrets bundle in git, so the repo and the
+# age key are all it needs. Never via `just talos talosconfig`: its `secrets` dependency generates a new
+# bundle when the file is missing, whose certificates the cluster would not accept. Written via a 0600
+# `<dest>.render-tmp` file (gitignored), so a failed run never clobbers the existing talosconfig.
+[doc('Regenerate the talosconfig from the SOPS-encrypted Talos secrets bundle')]
+talosconfig:
+    dest="${TALOSCONFIG:-{{ justfile_dir() }}/talosconfig}"; \
+    secrets="{{ justfile_dir() }}/talos/$(yq '.secretsPath // "secrets.yaml"' "{{ topf_config }}")"; \
+    [[ -f "$secrets" ]] || { just log fatal "Secrets bundle not found, refusing to generate a new one" "file" "$secrets"; exit 1; }; \
+    yq -e 'has("sops")' "$secrets" &>/dev/null || { just log fatal "Secrets bundle is not SOPS-encrypted" "file" "$secrets"; exit 1; }; \
+    [[ -f "${SOPS_AGE_KEY_FILE:-}" ]] || { just log fatal "Age key not found (just manage render templates/age.pq.key.j2)" "file" "${SOPS_AGE_KEY_FILE:-SOPS_AGE_KEY_FILE unset}"; exit 1; }; \
+    mkdir -p "$(dirname "$dest")"; tmp="$dest.render-tmp"; rm -f "$tmp"; umask 077; \
+    topf --topfconfig "{{ topf_config }}" talosconfig > "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; exit 1; }; \
+    just log info "Wrote talosconfig (try: talosctl version)" "file" "$dest"

@@ -90,6 +90,7 @@ topf reads `talos/topf.yaml` through `TOPFCONFIG` (set in `.mise.toml`), so it w
 | `just talos reset [full=true]` | Resets every node to maintenance mode. Destroys the cluster. |
 | `just bootstrap` | Builds the cluster from scratch (section 4). |
 | `just manage kubeconfig` | Replaces the admin `kubeconfig` with the OIDC one once Authentik is up; see [kubernetes-oidc-authentik.md](kubernetes-oidc-authentik.md). |
+| `just manage talosconfig` | Recovers a lost talosconfig: regenerates it from `talos/secrets.sops.yaml` (needs the age key). Unlike `just talos talosconfig`, it refuses to run when the bundle is missing instead of generating a new one. |
 | `just kube reconcile` | `flux reconcile ks flux-system --with-source`. |
 
 To change a patch: edit it, run `just talos diff-node <host>` for each affected node, then `just talos apply-node <host>` one node at a time (control planes last, the node holding the VIP last of all). Check that each diff says "without a reboot" before approving.
