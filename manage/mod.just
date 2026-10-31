@@ -23,9 +23,14 @@ render file:
     just template "$src" > "$tmp" && mv "$tmp" "$dest" || { rm -f "$tmp"; exit 1; }; \
     just log info "Rendered" file "$dest"
 
-[doc('Generate OIDC kubeconfig at kubeconfig-oidc in the repo root')]
+[doc('Replace the repo-root kubeconfig with the OIDC kubeconfig')]
 [script('bash')]
 kubeconfig:
+    # Writes `kubeconfig` in the repo root, replacing the admin kubeconfig that
+    # `just bootstrap` leaves there. The admin client certificate is then gone
+    # from disk; `just bootstrap kubeconfig` fetches a fresh one from Talos
+    # (needs the talosconfig) if OIDC is ever unavailable.
+    #
     # No arguments: the sign-in flow is picked from the session.
     #
     #   - SSH session: the device authorization grant (RFC 8628). kubelogin
@@ -95,7 +100,7 @@ kubeconfig:
     IFS= read -r -d '' oidc_script <<'OIDC_KUBECONFIG_SCRIPT' || true
     set -euo pipefail
     grant_type="$OIDC_GRANT_TYPE"
-    out="{{ justfile_dir() }}/kubeconfig-oidc"
+    out="{{ justfile_dir() }}/kubeconfig"
     # `op` is whatever the dotfiles make it: the Windows CLI on WSL, the
     # service-account CLI on native Linux, the desktop integration on macOS.
     # `tr -d "\r"` drops the CRLF the Windows build writes, which would
@@ -150,7 +155,8 @@ kubeconfig:
         ${skip_browser:+"$skip_browser"} >/dev/null
     kubectl config set-context oidc@kubernetes --cluster kubernetes --user oidc --namespace default >/dev/null
     kubectl config use-context oidc@kubernetes >/dev/null
+    # `install` replaces whatever is at $out, including the admin kubeconfig.
     install -m 600 "$tmp/kubeconfig" "$out"
-    just log info "Wrote $out (try: kubectl auth whoami)"
+    just log info "Wrote $out, replacing any existing kubeconfig (try: kubectl auth whoami)"
     OIDC_KUBECONFIG_SCRIPT
     exec zsh -lic "$oidc_script"

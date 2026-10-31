@@ -9,7 +9,8 @@ topf_config := justfile_dir() + '/talos/topf.yaml'
 controller := shell('yq -e "[.nodes[] | select(.role == \"control-plane\")][0].ip" "$1"', topf_config)
 nodes := shell('yq -e ".nodes[].host" "$1" | xargs', topf_config)
 
-# The bootstrap runs before Authentik exists, so it uses the admin kubeconfig, never kubeconfig-oidc.
+# The bootstrap runs before Authentik exists, so it uses the admin kubeconfig. Once Authentik is up,
+# `just manage kubeconfig` replaces this file with the OIDC kubeconfig.
 export KUBECONFIG := justfile_dir() + '/kubeconfig'
 
 [private]

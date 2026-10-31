@@ -18,7 +18,6 @@
     "*.gotmpl": "smarty",
     "helmfile.yaml": "helm",
     "kubeconfig": "kubernetes",
-    "kubeconfig-oidc": "kubernetes",
     "talosconfig": "kubernetes"
   },
   "material-icon-theme.folders.associations": {
@@ -50,8 +49,8 @@
   },
   "terminal.integrated.fontSize": 14,
   "vs-kubernetes": {
-    "vs-kubernetes.kubeconfig": "./kubeconfig-oidc",
-    "vs-kubernetes.knownKubeconfigs": ["./kubeconfig-oidc"]
+    "vs-kubernetes.kubeconfig": "./kubeconfig",
+    "vs-kubernetes.knownKubeconfigs": ["./kubeconfig"]
   },
   // "window.zoomLevel": -1,
   "yaml.schemaStore.enable": true,

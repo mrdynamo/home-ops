@@ -37,7 +37,7 @@ The Headlamp HelmRelease at `kubernetes/apps/observability/headlamp/app/helmrele
 User-confirmed scope decisions:
 
 - **LAN-only API exposure.** No Cloudflare Tunnel route for kube-apiserver, no SAN additions to `talos/all/04-machine-certsans.yaml`. OIDC only works on the homelab network. The bootstrap cert remains an independent auth path while kube-apiserver is healthy; Talos management access is needed if all API servers are down.
-- **On-demand kubeconfig via justfile.** No checked-in `kubeconfig.oidc.sops.yaml`. A `just kubeconfig-oidc` recipe generates the file locally.
+- **On-demand kubeconfig via justfile.** No checked-in `kubeconfig.oidc.sops.yaml`. `just manage kubeconfig` generates it locally as the repo-root `kubeconfig`, replacing the bootstrap admin kubeconfig.
 - **Single admin tier only** for the first cut: `kubernetes-admins` group → `cluster-admin`. Developer/viewer tiers deferred.
 
 ---
@@ -224,7 +224,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - Create a cluster entry for `https://192.168.30.10:6443` and embed the Kubernetes CA from the existing bootstrap kubeconfig or an equivalent trusted source. `--embed-certs=true` only embeds a CA when a CA file is supplied. Never copy the bootstrap user certificate or key into the OIDC kubeconfig.
    - Create an OIDC `exec` user using `kubectl oidc-login get-token`, the actual client ID, and `client.authentication.k8s.io/v1`; select the `oidc` context.
    - Use an Authentik public client with PKCE so no client secret is stored in the kubeconfig. Request `openid`, `profile`, `email`, `groups`, and `offline_access` if the Authentik provider is configured to issue refresh tokens.
-   - Write only to `kubeconfig-oidc` in the repo root (gitignored), and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
+   - Write only to `kubeconfig` in the repo root (gitignored), replacing the bootstrap admin kubeconfig, and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
 
    **Implemented:** `just manage kubeconfig` in `manage/mod.just`. The recipe takes no arguments: it picks the sign-in flow from the session, and logs which one it chose (`grant=… detected=…`) before signing in. The 1Password references are module-level variables (`oidc_issuer_ref`, `oidc_client_ref`), so they never appear on the command line:
 
@@ -253,7 +253,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - There is **no** `--callback-hostname` flag — the loopback callback host is derived from `--listen-address`.
    - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. So the recipe picks the grant itself (see the table above) and always passes it explicitly: `authcode` where a browser can be opened, `device-code` (plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist) everywhere else.
 
-   The recipe assumes `op` (1Password CLI) is on `$PATH` and signed in to the account that owns the `Chezmoi` vault. Desktop hosts use the 1Password desktop-app integration; native Linux hosts authenticate with a 1Password service account. The 1Password access model lives in the `mrdynamo/dotfiles` repo (the `onepassword.command` / `onepassword.mode: service` settings and the shell profile that exports the token), so every host resolves `op` the same way. Because that resolution happens through a **zsh alias** on WSL, the recipe body runs under `zsh -lic` rather than bash — the dotfiles stay the single source of truth for which CLI is used, and the recipe contains no machine-type checks. The bootstrap kubeconfig at `${REPO}/kubeconfig` is **not** touched.
+   The recipe assumes `op` (1Password CLI) is on `$PATH` and signed in to the account that owns the `Chezmoi` vault. Desktop hosts use the 1Password desktop-app integration; native Linux hosts authenticate with a 1Password service account. The 1Password access model lives in the `mrdynamo/dotfiles` repo (the `onepassword.command` / `onepassword.mode: service` settings and the shell profile that exports the token), so every host resolves `op` the same way. Because that resolution happens through a **zsh alias** on WSL, the recipe body runs under `zsh -lic` rather than bash — the dotfiles stay the single source of truth for which CLI is used, and the recipe contains no machine-type checks. The output **replaces** the bootstrap admin kubeconfig at `${REPO}/kubeconfig`; `just bootstrap kubeconfig` restores it for break-glass access.
 
    **No token in plaintext.** The recipe never selects kubelogin's `disk` storage — `~/.kube/cache/oidc-login/<sha256>` (dir `0700`, file `0600`) is plaintext JSON holding the **refresh token**, and anyone who reads it can mint fresh ID tokens and authenticate as `oidc:kubernetes-admins` → `cluster-admin` until it is revoked.
 
@@ -365,9 +365,10 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
 
 End-to-end check, in order. **Each step must pass before moving to the next.**
 
-1. **Bootstrap path still works** (rescue posture):
+1. **Bootstrap path still works** (rescue posture). This puts the admin kubeconfig back at the repo root; step 3 replaces it with the OIDC one again:
 
    ```sh
+   just bootstrap kubeconfig
    KUBECONFIG=./kubeconfig kubectl get nodes
    ```
 
@@ -399,7 +400,7 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 4. **OIDC login works** (browser opens, Authentik challenges, returns token):
 
    ```sh
-   KUBECONFIG=kubeconfig-oidc kubectl get nodes
+   KUBECONFIG=./kubeconfig kubectl get nodes
    ```
 
    First invocation opens a browser to `auth.${SECRET_DOMAIN}/...`, you log in, kubelogin captures the redirect, kubectl returns the 6 nodes.
@@ -407,7 +408,7 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 5. **Identity and group claims are correct** (check both an admin and, if available, a non-admin Authentik user):
 
    ```sh
-   KUBECONFIG=kubeconfig-oidc kubectl auth whoami -o yaml
+   KUBECONFIG=./kubeconfig kubectl auth whoami -o yaml
    ```
 
    `kubectl auth whoami` is included in the repository's pinned kubectl v1.37.1. An admin's output should have an `oidc:`-prefixed username and include `oidc:kubernetes-admins` and `system:authenticated` once. A non-admin may authenticate but must not receive the admin group.
@@ -432,7 +433,7 @@ Recovery sequence:
 2. Verify that the kube-apiserver is healthy and the control plane has recovered before restoring any other affected nodes, one at a time.
 3. Fix the patch, check it with `just talos diff-node <host>`, and retry a per-node `just talos apply-node <host>` only after the diff and recovery path have been checked.
 
-The bootstrap kubeconfig (`KUBECONFIG=./kubeconfig kubectl ...`) remains valid when an apiserver is healthy because the admin client cert is unaffected by OIDC configuration. It cannot help if all apiservers are down.
+`just manage kubeconfig` overwrites the admin kubeconfig, so the admin client certificate is not kept on disk. If OIDC is unavailable (Authentik down, a bad authenticator patch) but an apiserver is healthy, `just bootstrap kubeconfig` fetches a fresh admin kubeconfig from Talos into the same file; the admin cert is unaffected by OIDC configuration. Run `just manage kubeconfig` again once OIDC is back. Neither helps if all apiservers are down.
 
 ---
 
@@ -441,7 +442,7 @@ The bootstrap kubeconfig (`KUBECONFIG=./kubeconfig kubectl ...`) remains valid w
 ### Modified
 
 - `talos/control-plane/04-oidc.yaml.tpl` — `KubeAuthenticationConfig` JWT authenticator; the domain comes from the encrypted `data.secretDomain` in `talos/topf.yaml`.
-- `manage/mod.just` — `kubeconfig` recipe (`just manage kubeconfig`), which writes `kubeconfig-oidc`; the admin `kubeconfig` recipe stays in `bootstrap/mod.just`.
+- `manage/mod.just` — `kubeconfig` recipe (`just manage kubeconfig`), which replaces the repo-root `kubeconfig` with the OIDC one; the admin `kubeconfig` recipe stays in `bootstrap/mod.just` and only runs during bootstrap or break-glass recovery.
 - `kubernetes/apps/security/kustomization.yaml` — register the new `./auth/ks.yaml` under `resources:`.
 
 ### Created (under `kubernetes/apps/security/auth/`)
