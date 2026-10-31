@@ -29,6 +29,7 @@
     "bootstrap": "seeders",
     "bootstrap/helmfile.d": "helm",
     "flux": "pipe",
+    "manage": "command",
     "talos": "linux",
     // namespaces
     "actions-runner-system": "github",

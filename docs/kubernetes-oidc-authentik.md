@@ -226,13 +226,13 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - Use an Authentik public client with PKCE so no client secret is stored in the kubeconfig. Request `openid`, `profile`, `email`, `groups`, and `offline_access` if the Authentik provider is configured to issue refresh tokens.
    - Write only to `kubeconfig-oidc` in the repo root (gitignored), and fail clearly if `op`, `kubectl`, or `kubectl oidc-login` fails.
 
-   **Implemented:** `just bootstrap kubeconfig-oidc` in `bootstrap/mod.just`. The recipe takes one optional argument — the mode — and nothing else. The 1Password references are module-level variables (`oidc_issuer_ref`, `oidc_client_ref`), so they never appear on the command line:
+   **Implemented:** `just manage kubeconfig-oidc` in `manage/mod.just`. The recipe takes one optional argument — the mode — and nothing else. The 1Password references are module-level variables (`oidc_issuer_ref`, `oidc_client_ref`), so they never appear on the command line:
 
    | Command | Sign-in flow |
    |---------|--------------|
-   | `just bootstrap kubeconfig-oidc` | **The default.** The browser authorization-code flow on a machine that has a browser: kubelogin opens the browser on this machine and captures the callback on `127.0.0.1:8000` (falling back to `:18000`). On a machine with **no display** — a headless Linux box — it falls back to the device grant instead, because the browser flow cannot work there. |
-   | `just bootstrap kubeconfig-oidc headless` | **The device authorization grant** (RFC 8628), explicitly. kubelogin prints a verification URL and a code to complete on another device. No callback listener, no tunnel, no stdin. Same result as the default on a headless host. |
-   | `just bootstrap kubeconfig-oidc browser` | Forces the browser flow on a headless machine, for the `ssh -L 8000:127.0.0.1:8000` tunnel case. Rarely needed — the device grant works everywhere. |
+   | `just manage kubeconfig-oidc` | **The default.** The browser authorization-code flow on a machine that has a browser: kubelogin opens the browser on this machine and captures the callback on `127.0.0.1:8000` (falling back to `:18000`). On a machine with **no display** — a headless Linux box — it falls back to the device grant instead, because the browser flow cannot work there. |
+   | `just manage kubeconfig-oidc headless` | **The device authorization grant** (RFC 8628), explicitly. kubelogin prints a verification URL and a code to complete on another device. No callback listener, no tunnel, no stdin. Same result as the default on a headless host. |
+   | `just manage kubeconfig-oidc browser` | Forces the browser flow on a headless machine, for the `ssh -L 8000:127.0.0.1:8000` tunnel case. Rarely needed — the device grant works everywhere. |
 
    The default decides between the two grants by whether the host has a display: `DISPLAY` or `WAYLAND_DISPLAY` set means a browser can be opened, and the browser flow is used; on Linux with neither, the device grant is used and the recipe says so on stderr. The reason is that the browser flow fails in a confusing way on a headless host — kubelogin tries to listen on `127.0.0.1:8000` for the callback and either reports `bind: address already in use` or waits for a callback that can never arrive.
 
@@ -249,7 +249,7 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    - `--oidc-extra-scope` (with the `oidc-` prefix) — not `--extra-scope`. The unscoped form is silently ignored. Repeat the flag once per scope, do not comma-join values.
    - By default kubelogin tries `127.0.0.1:8000`, then `127.0.0.1:18000`. Explicitly setting `--listen-address=127.0.0.1:8000` replaces that list and disables the fallback. Register both redirect URIs if retaining the default list; otherwise register the single configured callback.
    - There is **no** `--callback-hostname` flag — the loopback callback host is derived from `--listen-address`.
-   - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. So the recipe picks the grant itself: `authcode` on a host with a display, `device-code` (plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist) on a host without one. `just bootstrap kubeconfig-oidc browser` forces `authcode`; `headless` forces `device-code`.
+   - `--grant-type` defaults to `auto`. In kubelogin v1.36.4 `auto` resolves to the browser **authcode** flow — it only switches to the password grant when `--username` is set, and it never falls back to device-code. So the recipe picks the grant itself: `authcode` on a host with a display, `device-code` (plus `--skip-open-browser`, so kubelogin does not try to launch a browser that does not exist) on a host without one. `just manage kubeconfig-oidc browser` forces `authcode`; `headless` forces `device-code`.
 
    The recipe assumes `op` (1Password CLI) is on `$PATH` and signed in to the account that owns the `Chezmoi` vault. Desktop hosts use the 1Password desktop-app integration; native Linux hosts authenticate with a 1Password service account. The 1Password access model lives in the `mrdynamo/dotfiles` repo (the `onepassword.command` / `onepassword.mode: service` settings and the shell profile that exports the token), so every host resolves `op` the same way. Because that resolution happens through a **zsh alias** on WSL, the recipe body runs under `zsh -lic` rather than bash — the dotfiles stay the single source of truth for which CLI is used, and the recipe contains no machine-type checks. The bootstrap kubeconfig at `${REPO}/kubeconfig` is **not** touched.
 
@@ -345,16 +345,16 @@ Goal: a single recipe produces an OIDC-enabled kubeconfig that any operator can 
    ls ~/.kube/cache/oidc-login/                  # must not exist
    ```
 
-   **Headless hosts.** The device authorization grant (RFC 8628) — no callback listener, no SSH tunnel, and no stdin needed. `just bootstrap kubeconfig-oidc` picks it by itself on a host with no display, so the plain command is enough:
+   **Headless hosts.** The device authorization grant (RFC 8628) — no callback listener, no SSH tunnel, and no stdin needed. `just manage kubeconfig-oidc` picks it by itself on a host with no display, so the plain command is enough:
 
    ```sh
-   just bootstrap kubeconfig-oidc            # picks device-code here
-   just bootstrap kubeconfig-oidc headless   # asks for it explicitly
+   just manage kubeconfig-oidc            # picks device-code here
+   just manage kubeconfig-oidc headless   # asks for it explicitly
    ```
 
    kubelogin prints a verification URL plus a code; open the URL in any browser — the laptop, the phone — approve it, and the token returns to the terminal over the device endpoint. Authentik supports this: `DEVICE_CODE` is one of the provider's grant types and the discovery document always advertises `device_authorization_endpoint`, so the only provider-side requirement is adding `urn:ietf:params:oauth:grant-type:device_code` to the provider's allowed grant types (see Phase 1).
 
-   If you would rather keep the browser flow on a headless host, run `just bootstrap kubeconfig-oidc browser` and forward the callback port to the machine that has the browser — `ssh -L 8000:127.0.0.1:8000 <headless-host>` — and the provider's redirect to `http://localhost:8000` travels back through the tunnel. Both loopback URIs must be registered on the Authentik provider (see Phase 1). The keyboard variant (paste the authorization code back into the terminal) is not exposed by the recipe: kubelogin needs an explicit `--oidc-redirect-url` and a TTY for it.
+   If you would rather keep the browser flow on a headless host, run `just manage kubeconfig-oidc browser` and forward the callback port to the machine that has the browser — `ssh -L 8000:127.0.0.1:8000 <headless-host>` — and the provider's redirect to `http://localhost:8000` travels back through the tunnel. Both loopback URIs must be registered on the Authentik provider (see Phase 1). The keyboard variant (paste the authorization code back into the terminal) is not exposed by the recipe: kubelogin needs an explicit `--oidc-redirect-url` and a TTY for it.
 
    One caveat common to both flows: Authentik only issues refresh tokens when the `offline_access` scope is mapped on the provider. Without a refresh token the short-lived ID token expires and every command re-runs the flow — which is what `none` storage forces anyway, and what a keyring avoids.
 
@@ -390,10 +390,10 @@ End-to-end check, in order. **Each step must pass before moving to the next.**
 3. **OIDC kubeconfig generation succeeds**:
 
    ```sh
-   just bootstrap kubeconfig-oidc
+   just manage kubeconfig-oidc
    ```
 
-   Should print the path and exit 0. On a host without a browser use `just bootstrap kubeconfig-oidc headless` instead.
+   Should print the path and exit 0. On a host without a browser use `just manage kubeconfig-oidc headless` instead.
 
 4. **OIDC login works** (browser opens, Authentik challenges, returns token):
 
