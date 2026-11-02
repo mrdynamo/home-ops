@@ -971,6 +971,18 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "custom.minWidth",
+                "value": 50
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Sent"
             },
             "properties": [
@@ -1025,7 +1037,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_client_connection_duration_seconds\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "expr": "dispatcharr_client_connection_duration_seconds\n* on(client_id, channel_uuid) group_left(ip_address, username)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1040,7 +1052,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_client_bytes_sent\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "expr": "dispatcharr_client_bytes_sent\n* on(client_id, channel_uuid) group_left(ip_address, username)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1055,7 +1067,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "dispatcharr_client_current_transfer_rate_bps\n* on(client_id, channel_uuid) group_left(ip_address)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
+          "expr": "dispatcharr_client_current_transfer_rate_bps\n* on(client_id, channel_uuid) group_left(ip_address, username)\n  dispatcharr_client_info\n* on(channel_uuid) group_left(channel_name)\n  dispatcharr_stream_metadata",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1109,20 +1121,21 @@
             },
             "includeByName": {},
             "indexByName": {
-              "Time": 4,
-              "Value #A": 11,
-              "Value #B": 12,
-              "Value #C": 13,
-              "channel_name": 3,
+              "Time": 5,
+              "Value #A": 12,
+              "Value #B": 13,
+              "Value #C": 14,
+              "channel_name": 4,
               "channel_number": 1,
-              "channel_uuid": 5,
+              "channel_uuid": 6,
               "client_id": 0,
-              "group": 6,
-              "instance": 7,
-              "ip_address": 2,
-              "job": 8,
-              "process": 9,
-              "type": 10
+              "group": 7,
+              "instance": 8,
+              "ip_address": 3,
+              "job": 9,
+              "process": 10,
+              "type": 11,
+              "username": 2
             },
             "renameByName": {
               "Value": "Duration",
@@ -1135,7 +1148,8 @@
               "logo_url": "Logo",
               "profile_name": "Profile",
               "provider": "Provider",
-              "type": "Type"
+              "type": "Type",
+              "username": "User"
             }
           }
         },
