@@ -86,13 +86,17 @@ kubeconfig:
     else
         grant_type="device-code"; detected="no-display"
     fi
+    # Writing the kubeconfig never signs in. kubelogin signs in on the first
+    # kubectl call, the `kubectl auth whoami` check at the end, and only when
+    # the keyring holds no valid or refreshable token, so the sign-in hint is
+    # logged right before that check as something that may happen.
     case "$grant_type" in
-        device-code) how="headless sign-in: open the URL below in a browser on any device and enter the code" ;;
-        authcode) how="browser sign-in: a browser window opens on this machine" ;;
+        device-code) how="kubectl prints a URL and a code to enter in a browser on any device" ;;
+        authcode) how="kubectl opens a browser window on this machine" ;;
     esac
-    just log info "Generating OIDC kubeconfig, $how" "grant" "$grant_type" "detected" "$detected"
+    just log info "Generating OIDC kubeconfig" "grant" "$grant_type" "detected" "$detected"
     command -v zsh >/dev/null 2>&1 || { echo "zsh not found: the recipe body runs under zsh so the dotfiles apply" >&2; exit 1; }
-    export OIDC_GRANT_TYPE="$grant_type"
+    export OIDC_GRANT_TYPE="$grant_type" OIDC_SIGNIN_HOW="$how"
     # `read`, not `"$(cat <<'EOF' ... EOF)"`: macOS ships bash 3.2, whose `$(`
     # scanner counts parentheses through the heredoc body, so a bare `case`
     # pattern like `device-code)` closes the substitution early and the rest
@@ -157,7 +161,23 @@ kubeconfig:
     kubectl config use-context oidc@kubernetes >/dev/null
     # `install` replaces whatever is at $out, including the admin kubeconfig.
     install -m 600 "$tmp/kubeconfig" "$out"
-    just log info "Wrote $out, replacing any existing kubeconfig (try: kubectl auth whoami)"
+    just log info "Wrote $out, replacing any existing kubeconfig"
+    # Non-fatal check: the kubeconfig is already in place, so a failure here
+    # (cluster unreachable, sign-in aborted) is reported but never fails the
+    # recipe. Only stdout is captured: kubelogin's sign-in prompt goes to
+    # stderr and stays visible. --request-timeout bounds the API call, not the
+    # sign-in, so a device-code prompt still waits for the user.
+    just log info "Verifying the kubeconfig" "check" "kubectl-auth-whoami"
+    if [[ "$token_cache_storage" == "keyring" ]]; then
+        just log info "Sign-in only if the keyring has no valid token for this issuer: $OIDC_SIGNIN_HOW"
+    else
+        just log info "No keyring, so this and every later kubectl call signs in: $OIDC_SIGNIN_HOW"
+    fi
+    if user="$(KUBECONFIG="$out" kubectl auth whoami --request-timeout=20s -o jsonpath="{.status.userInfo.username}")"; then
+        just log info "Kubeconfig works" "user" "${user:-unknown}"
+    else
+        just log warn "kubectl auth whoami failed; the kubeconfig is written, retry with: kubectl auth whoami"
+    fi
     OIDC_KUBECONFIG_SCRIPT
     exec zsh -lic "$oidc_script"
 
