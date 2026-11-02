@@ -72,7 +72,7 @@ spec:
           app:
             image:
               repository: docker.io/invoiceninja/invoiceninja-debian
-              tag: 5.13.52@sha256:a2e2360c2b2e71b3b0f89eb1de534a2a1e0475711013cee39583ede84c59eaf6
+              tag: 5.13.53@sha256:217a0f2d45403b9562f90af51762cdd22bc6d9728c9a8751571ff6bfefc51f64
             ports:
               - name: fpm
                 containerPort: 9000
