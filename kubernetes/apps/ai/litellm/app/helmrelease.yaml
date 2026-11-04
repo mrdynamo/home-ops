@@ -57,6 +57,10 @@ spec:
               AUTO_REDIRECT_UI_LOGIN_TO_SSO: true
               ## Postgres Settings
               DATABASE_URL: "postgresql://litellm@pooler-rw.database.svc:5432/litellm?sslmode=require&sslidentity=/var/run/secrets/prisma/client-identity.p12&sslcert=/var/run/secrets/root-ca/ca.crt"
+              PGSSLCERT: /var/run/secrets/postgresql/tls.crt
+              PGSSLKEY: /var/run/secrets/postgresql/tls.key
+              PGSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
+              ## Redis Settings
               REDIS_HOST: "{{ .Release.Name }}-dragonfly.ai.svc"
               REDIS_PORT: "6379"
             envFrom:
