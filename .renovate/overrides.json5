@@ -79,6 +79,21 @@
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(-r(?<build>\\d+))?$",
     },
     {
+      // Handle Apache Tika tags (e.g. 3.3.3.0-full and 4.2.0-full)
+      // Tika moved from four-part (3.3.3.0) to three-part (4.0.0) versions. Renovate's default
+      // docker versioning only considers tags with the same number of version segments, so it
+      // silently skipped every 4.x tag. The optional build group accepts both formats, and the
+      // suffix is captured as "compatibility" so only "-full" tags are ever proposed.
+      // https://docs.renovatebot.com/modules/versioning/regex/
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "docker.io/apache/tika"
+      ],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?-(?<compatibility>[a-z0-9.-]+)$",
+    },
+    {
       // Handle nginx-unprivileged tags (e.g. 1.27.4-alpine)
       // The suffix is captured as "compatibility" so Renovate only proposes
       // tags with the same suffix, and never swaps the image variant
