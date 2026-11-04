@@ -1,11 +1,70 @@
 # Supply-Chain Hardening: Image & Chart Verification Plan
 
-Status: research + proposal (revision 3). Nothing has been applied to the cluster.
+Status: in progress (revision 4). Phases 0–2 are live; Phases 3–5 are not started.
 Date: 2026-11-04
 
-Revision 3 changes: replaced assumptions with a measured inventory of every
-chart and image (repo and running cluster), corrected several earlier claims,
-and added Talos `ImageVerificationConfig` as a native enforcement option.
+Revision 4 changes: added §0 (implementation status and next steps) and
+updated each phase with what was merged. §2 is kept as the pre-implementation
+baseline.
+
+## 0. Implementation status and next steps
+
+### Done (merged to `main`, 2026-11-04)
+
+| Item | Commit(s) | Result |
+|---|---|---|
+| Inventory (Phase 0) | — | Appendix A |
+| zizmor workflow + fixes (Phase 1) | `4630ef28`, `41766132` | 0 findings; 3 documented ignores in `.github/zizmor.yml` (see Phase 1) |
+| Chart signature verification (Phase 2) | `1aff9e30`, `ad2dcb56`, `8a2809aa` | `spec.verify` on 81/102 `OCIRepository`s; all deployed ones `SourceVerified=True`, confirmed by source-controller logs |
+| Chart digest pinning (Phase 2) | `eab7889c` | `spec.ref.digest` on all 102 `OCIRepository`s; flux-local placeholder comments removed |
+| Pin remaining 5 images (Phase 1) | `08cee6bc` | No unpinned images left in repo values (§2.2) |
+| Renovate fix for Tika (hygiene) | `b19ccf23` | `docker.io/apache/tika` regex versioning; Renovate now proposes `4.2.0-full` (was silently skipping 4.x) |
+| flate replaces flux-local in just recipes | `8eeabcdd` | `render-local-ks` uses `flate build ks`; SOPS support waits on a flate release with `--supply` |
+| Local commit-signature verification | dotfiles | `allowed_signers` + GitHub web-flow key; all commits show `G`/`U` locally |
+| Image existence check on PRs (part of Phase 3) | already on since `31676424` | konflate `verifyImages: true` (`KONFLATE_VERIFY_IMAGES=true`), reports as the `Konflate` commit status |
+
+### Next steps (recommended order)
+
+1. **Renovate cooldown** (Phase 1): `minimumReleaseAge` for docker, helm
+   and github-releases updates, longer for majors. Images and charts have
+   none today. Needs a decision on length.
+2. **Scan for silently stuck images**: run Renovate in lookup-only dry-run
+   over the whole repo (as done for Tika) and list images where upstream
+   has newer tags but Renovate proposes nothing.
+3. **Image signature check on PRs** (Phase 3): allowlist file
+   (`.github/image-identities.yaml`, prefix → signer) plus a hosted-runner
+   job that runs `flate diff images`, then `cosign verify` /
+   `gh attestation verify` on changed `image@digest`s.
+4. **Restore scoped app tokens on the 3 review workflows** (Phase 1): check
+   the Claude GitHub App's granted permissions, re-add matching
+   `permission-*` inputs, drop the ignores in `.github/zizmor.yml`; ideally
+   also trim the app's own permissions.
+5. **Runtime enforcement** (Phase 4): Kyverno `ImageValidatingPolicy` in
+   Audit, generated from the Phase 3 allowlist; Deny per publisher after a
+   quiet week. Talos `ImageVerificationConfig` after, one node first.
+6. **Git commit verification** (Phase 5): `GitRepository.spec.verify`
+   (currently unset). Confirm every workflow that pushes to `main` signs
+   first.
+
+### Waiting on external events
+
+- **flate release with `--supply`** (on `main` since #1367/#1426, not in
+  v0.6.5): bump the pin in `.mise.toml`, then `render-local-ks`, `apply-ks`
+  and `delete-ks` work with SOPS substitution. Until then they fail with
+  "unknown flag: --supply".
+- **First Renovate PRs on digest-pinned charts**: confirm tag and digest are
+  bumped together.
+- **Tika 4.x PR**: major upgrade; check paperless-ngx compatibility before
+  merging.
+
+### Post-merge checks still open
+
+- Run `release` and `apply-krr` once via `workflow_dispatch` (changed by the
+  zizmor fixes; neither has run since).
+- `persist-credentials: false` on the review workflows' checkout is
+  unverified in a full run of `renovate-review` / `renovate-review-local`
+  (not run since Sep / May).
+- Make the `Zizmor` check required on `main`.
 
 ## 1. Goals
 
@@ -19,7 +78,9 @@ push, malicious chart release, poisoned CI workflow) reaches a running pod.
 4. **Don't break a homelab**: staged rollout, audit before enforce, fast
    rollback.
 
-## 2. Where the cluster is today (measured)
+## 2. Baseline before implementation (measured 2026-11-04)
+
+This section records the starting point. For what has changed since, see §0.
 
 Versions: Kubernetes v1.37.2, Talos 1.14.5, Flux distribution 2.10.0
 (source-controller v1.10.1), cosign v3.1.4 used for testing.
@@ -74,6 +135,12 @@ Findings that change the plan:
   docker.io.
 
 ### 2.2 Unpinned images in the repo
+
+**Resolved (`08cee6bc`):** all five pinned with `tag@sha256:…`. None could be
+moved to ghcr.io (no ghcr.io copies exist for tika, alpine/k8s or a matching
+alpine 3.24). `mirror.gcr.io/library/alpine` serves the same digest if Docker
+Hub rate limits become a problem. The litellm init container still runs
+`apk add openssl` at every start, which pinning doesn't cover.
 
 | Image | File |
 |---|---|
@@ -231,8 +298,11 @@ Worth adding, extended with a verification step:
   credentials in CI; `talosctl image pull` warms node caches but needs Talos
   API access on the runner.
 - Docker Hub rate limits apply (you run ~30 docker.io images).
-- `flate diff images` is not documented in its README; confirm with
-  `flate diff --help`. Fallback: extract images from the PR's rendered diff.
+- `flate diff images` exists (confirmed in v0.6.5: `flate diff images --base
+  <rev> -p kubernetes/apps -o json` prints a JSON list of changed images).
+- **Existence is already covered by konflate**: `verifyImages: true` makes it
+  HEAD every newly referenced image and fail its `Konflate` commit status on
+  a missing one. A separate CI job is only needed for signature checks.
 - **Gap**: chart-default images (73 unpinned running images) only appear if
   the tool renders the HelmRelease. Prefer rendered output over grepping
   values.
@@ -252,12 +322,12 @@ Layered, cheapest first:
 | Layer | Tool | Covers | Status |
 |---|---|---|---|
 | Inventory | cosign/gh/crane script | What is signed | **Done (Appendix A)** |
-| Update hygiene | Renovate `minimumReleaseAge`, pin 5 images | Fresh malicious releases | Quick win |
-| Workflow security | zizmor | Poisoned CI | Quick win |
-| Pre-merge | CI image-check + verify | Existence, signature on changed images | Medium |
-| Chart sync | Flux `OCIRepository.spec.verify` | 25 signed charts | Medium |
-| Runtime | **Kyverno (Audit → Deny)** or **Talos `ImageVerificationConfig`** | Signed publishers' images | Larger |
-| Git source | Flux `GitRepository.spec.verify` | Repo tampering | Medium (commits already signed) |
+| Update hygiene | Renovate `minimumReleaseAge`, pin 5 images | Fresh malicious releases | **Pins done**; cooldown not started |
+| Workflow security | zizmor | Poisoned CI | **Done** (3 review workflows' token scoping pending) |
+| Pre-merge | CI image-check + verify | Existence, signature on changed images | **Existence done (konflate)**; signatures not started |
+| Chart sync | Flux `OCIRepository.spec.verify` + `ref.digest` | Signed charts; all charts pinned | **Done, live** |
+| Runtime | **Kyverno (Audit → Deny)** or **Talos `ImageVerificationConfig`** | Signed publishers' images | Not started |
+| Git source | Flux `GitRepository.spec.verify` | Repo tampering | Not started (commits already signed) |
 
 **Runtime recommendation**: start with **Kyverno in Audit** for the signed
 publishers. Its PolicyReports give visibility Talos can't, and it can check the
@@ -282,14 +352,15 @@ occasionally; publishers add or drop signing over time.
 
 ### Phase 1: Quick wins (no cluster risk)
 
-1. **Renovate cooldown** in `.renovate/`:
+1. **Renovate cooldown** in `.renovate/` (**not started**):
    - `minimumReleaseAge: "3 days"` for `docker` and `helm` datasources (and
      github-releases), longer (e.g. 7 days) for majors.
    - Optionally a shorter age for signed core publishers you trust.
 2. **Pin the 5 unpinned images** (§2.2) with `@sha256:` digests.
+   **Done (`08cee6bc`).**
 3. **Add zizmor** as its own workflow on changes to `.github/workflows/**`,
    triage first-run findings, then make it required.
-   **Implemented (uncommitted, 2026-11-04):**
+   **Merged (`4630ef28`, partially reverted in `41766132`):**
    - `.github/workflows/zizmor.yaml`: PR/push on workflow changes,
      GitHub-hosted runner, `permissions: contents: read`, zizmor-action
      v0.8.1 (SHA-pinned), zizmor `1.32.0` with a Renovate annotation,
@@ -312,10 +383,24 @@ occasionally; publishers add or drop signing over time.
        `gh release create --generate-notes`.
    - Also lowered `GITHUB_TOKEN` `contents: write` to `read` in the three
      review jobs (only checkout uses it; the reviewer uses the app token).
-   - To verify after merge: the app tokens can't be granted permissions the
-     GitHub App doesn't have (token step fails loudly if so); run `release`
-     and `apply-krr` via `workflow_dispatch` once; watch the next Renovate
-     PR's review jobs. Then make the Zizmor check required on `main`.
+   - **Regression and partial revert (`41766132`):** the AI PR Reviewer
+     failed with "The permissions requested are not granted to this
+     installation" because the Claude GitHub App lacks at least one of the
+     four requested permissions. The `permission-*` inputs were removed from
+     pr-reviewer, renovate-review and renovate-review-local, and
+     `.github/zizmor.yml` ignores `github-app` for those three files only.
+     Scoping in labeler and release stayed (labeler confirmed working). The
+     reviewer passed again afterwards. Cost: those three LLM-driven jobs'
+     app tokens carry the app's full installation permissions again.
+   - Still to verify: run `release` and `apply-krr` once via
+     `workflow_dispatch`; then make the Zizmor check required on `main`.
+4. **Renovate versioning fix for Tika** (`b19ccf23`, found during this work):
+   Tika changed tag format from `3.3.3.0-full` to `4.0.0-full`, and default
+   docker versioning only compares tags with the same segment count, so 4.x
+   was skipped silently. A regex-versioning rule in
+   `.renovate/overrides.json5` fixes it; a Renovate 44.212.0 lookup dry-run
+   confirmed it now proposes `4.2.0-full`. Other images may have the same
+   problem (see §0 next steps).
 
 ### Phase 2: Flux chart verification
 
@@ -355,7 +440,7 @@ semver pattern):
 
 (`\|` in the table is an escaped pipe; use `|` in YAML.)
 
-**Implemented (uncommitted, 2026-11-04):** `spec.verify` added to **81 of
+**Implemented and merged (2026-11-04):** `spec.verify` added to **81 of
 102** `OCIRepository` files (+405 lines, no deletions), one
 `matchOIDCIdentity` per publisher, regexes anchored with `^…$`, single-quoted
 so backslashes stay literal. Validation:
@@ -366,8 +451,8 @@ so backslashes stay literal. Validation:
   `refs/heads/main` instead of a release tag for flux-operator).
 - All 81 files pass `kubectl apply --dry-run=server` against the cluster's
   OCIRepository CRD.
-- Not yet tested: source-controller's own verifier on the live cluster
-  (only cosign CLI so far).
+- source-controller's own verifier: confirmed live after merge (see Status
+  below).
 
 Additions beyond the table above: giantswarm (`https://oidc.circleci.com`,
 project-specific pipeline-definition subject) and node-feature-discovery
@@ -376,13 +461,17 @@ project-specific pipeline-definition subject) and node-feature-discovery
 reusable workflow (`action-stars/helm-workflows@<sha>`) that any repo can
 call, so the identity doesn't prove the chart came from Fluent.
 
-**Status (2026-11-04):** all three batches merged and live. 76+ deployed
-sources report `SourceVerified=True`, including flux-operator/flux-instance
-and the bundle-format, tag-signed and Google/CircleCI-signed charts. Flux's
-own verifier was confirmed in source-controller logs ("trying to verify the
-image using keyless method").
+**Status (2026-11-04):** all three batches merged and live (`1aff9e30`
+homepage canary, `ad2dcb56` 78 sources, `8a2809aa` flux-operator and
+flux-instance). Every deployed source with `verify` reports
+`SourceVerified=True`, including flux-operator/flux-instance and the
+bundle-format, tag-signed and Google/CircleCI-signed charts. Flux's own
+verifier was confirmed in source-controller logs ("trying to verify the image
+using keyless method"). Five sources with `verify` aren't deployed because
+their apps are disabled in Git (emby-logos, kptv-fast, streamflow,
+paperless-ai, unifi-dns); their blocks take effect if re-enabled.
 
-**Digest pinning (uncommitted):** `spec.ref.digest` added to all 102
+**Digest pinning (merged, `eab7889c`):** `spec.ref.digest` added to all 102
 `OCIRepository` files (stale flux-local placeholder comments removed; the old
 commented digests were out of date, e.g. flux-operator). Digests resolved with
 `crane digest <url>:<tag>`. Validation: all 44 deployed tag/digest pairs match
@@ -390,8 +479,10 @@ what Flux is running (0 differences); 24/24 signed refs pass `cosign verify`
 against `url@digest`; all 102 pass server-side dry-run; `flate diff` against
 `HEAD` shows no rendered image or HelmRelease changes. A digest overrides the
 tag, so a hand edit of only the tag will silently keep the old chart; Renovate
-updates both. `kubernetes/mod.just` still has a `flux-local` recipe (line 84)
-that is now stale.
+updates both (confirmed in history and in a Renovate 44.212.0 dry-run, which
+shows `autoReplaceStringTemplate: "tag: {{newValue}}\n    digest: {{newDigest}}"`).
+The stale `flux-local` recipe in `kubernetes/mod.just` was replaced with flate
+(`8eeabcdd`).
 
 Unsigned charts (no `verify` possible): jetstack (cert-manager, csi-driver,
 trust-manager), prometheus-community (4), openebs, ARC (2), authentik,
@@ -406,12 +497,15 @@ test the regex with `cosign verify` locally first.
 
 ### Phase 3: CI image check + verification
 
+**Status:** existence check done (konflate `verifyImages`); signature check
+not started.
+
 One workflow, PR-triggered, same-repo PRs only, `permissions: contents: read`:
 
-1. Render changed resources and extract changed images (`flate`, confirming
-   the subcommand, so chart-default images are included).
-2. Existence: `crane manifest "$IMAGE"` (hosted runner) or
-   `talosctl image pull` (in-cluster runner, cache warming).
+1. Render changed resources and extract changed images (`flate diff images
+   --base origin/main -p kubernetes/apps -o json`, so chart-default images
+   are included).
+2. Existence: **already handled by konflate**; no separate step needed.
 3. Verify: map image prefix → expected identity (same table as Phase 2/4,
    kept in one file in the repo, e.g. `.github/image-identities.yaml`).
    - Publisher known to sign → **fail** if verification fails.
@@ -500,11 +594,19 @@ One workflow, PR-triggered, same-repo PRs only, `permissions: contents: read`:
 
 ### Phase 5 (optional): Git source verification
 
-Your commits and Renovate's are already signed, so this is mostly config:
+**Status:** not started. The live `GitRepository` has no `spec.verify`. Only
+the local half is done: dotfiles trust both SSH signing keys and GitHub's
+web-flow key, so `git log --format=%G?` shows `G` for your commits and `U`
+(valid, untrusted key) for Renovate's.
+
+Your commits and Renovate's are already signed (last 300 commits: 55 SSH-signed
+by two different keys, 245 signed by GitHub key `B5690EEEBB952194`), so this
+is mostly config:
 
 1. Create a SOPS-encrypted (or plain; public keys aren't secret) Secret in
-   `flux-system` with `mrdynamo.sshpub` (your signing key) and
-   `github-web-flow.asc` (GitHub's web-flow key).
+   `flux-system` with both SSH public keys as `.sshpub` (the 1Password
+   macOS/WSL key and the personal Linux key) and `github-web-flow.asc`
+   (GitHub's web-flow key, from `https://github.com/web-flow.gpg`).
 2. Set `verify: {mode: HEAD, secretRef: {name: git-verification-keys}}` on the
    `GitRepository`. With flux-operator, this is likely a patch on the
    `FluxInstance` sync config; check whether flux-operator exposes it
@@ -551,11 +653,13 @@ signed image.
 1. Runtime: Kyverno (Audit → Deny), Talos `ImageVerificationConfig`, or both.
 2. Fail-open vs fail-closed once policies are stable.
 3. Renovate cooldown length (none today for images/charts).
-4. CI existence check: `crane` on a hosted runner, or `talosctl image pull`
-   in-cluster.
+4. ~~CI existence check: `crane` or `talosctl image pull`~~ Resolved:
+   konflate `verifyImages` already covers it.
 5. Whether to pursue Git commit verification (Phase 5).
 6. Unsigned long tail: accept, replace, or rebuild/sign into your own
    `ghcr.io/mrdynamo/*` images.
+7. Whether to switch `docker.io/library/alpine` to `mirror.gcr.io` (same
+   digest; avoids Docker Hub rate limits).
 
 ## Appendix A: Inventory summary (2026-11-04)
 
