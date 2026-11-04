@@ -297,6 +297,12 @@
         icon: victoriametrics.svg
         namespace: observability
         app: victoria-logs-single
+    - KGuardian:
+        href: https://kguardian.${INTERNAL_SECRET_DOMAIN}/
+        description: Kubernetes security advisor
+        icon: https://raw.githubusercontent.com/kguardian-dev/kguardian/refs/heads/main/assets/favicon.svg
+        namespace: kguardian
+        app: kguardian
 
 
 - Media:
