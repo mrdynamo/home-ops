@@ -1,0 +1,11 @@
+# zizmor configuration: https://docs.zizmor.sh/configuration/
+rules:
+  github-app:
+    ignore:
+      # The Claude bot GitHub App rejects explicit `permission-*` requests
+      # ("The permissions requested are not granted to this installation"),
+      # which broke the AI PR Reviewer. Re-enable scoping only after checking
+      # the app's granted permissions in its GitHub settings, then drop these.
+      - pr-reviewer.yaml
+      - renovate-review.yaml
+      - renovate-review-local.yaml
