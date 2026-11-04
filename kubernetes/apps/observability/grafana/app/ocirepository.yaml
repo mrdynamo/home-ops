@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 5.25.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:8cb589d52db1d1de3fec53078bc7f0547c4132d2bb309c6fc7645e8010fd4bfa
+    digest: sha256:ae311e8675c11a1d12112eb45676415a797f9dfb7eee91b82f422b53d7c7ab6d
   url: oci://ghcr.io/grafana/helm-charts/grafana-operator

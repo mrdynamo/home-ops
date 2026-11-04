@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.37.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:c0773e2b0fa3695bfb513d7ddbe2a2dd74e30bce4c45108933134ac7a63a50a2
+    digest: sha256:6b8dbb8247bdc3b244e997768b0a3002b72e897b3f759dda7ce488de7181478f
   url: oci://ghcr.io/home-operations/charts-mirror/descheduler
   verify:
     provider: cosign

@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 5.3.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:1bf84c8236b2346c49a21de13180e3e46eb5be34edf79f50e90bc1923721af0e
+    digest: sha256:0e13b145656490310ada364d8eb708e5f4f6384c7deb60d3f5f0fa56950ff63a
   url: oci://ghcr.io/bjw-s-labs/helm/app-template
   verify:
     provider: cosign

@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.46.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:ea8e0fa063f3d2d196ecc7d162026617b12f873a7b9176dd81ade42e94381c4a
+    digest: sha256:03d05e6f89c370416cace93034d946cb28f32a82372a48332b8a63eed671e67c
   url: oci://ghcr.io/home-operations/charts-mirror/headlamp
   verify:
     provider: cosign

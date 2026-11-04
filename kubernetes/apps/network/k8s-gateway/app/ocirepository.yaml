@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 4.0.1
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:1aecc089f2dc69c33a42e1e3d4128a6bb5861014025f9b7bea1792eb073966e8
+    digest: sha256:98df27ca64a00845e8ea05b3b8d36cae6533a4cd7d13b18c871be2b33e7810fd
   url: oci://codeberg.org/k8s-gateway/charts/k8s-gateway

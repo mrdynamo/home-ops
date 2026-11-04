@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: v0.16.1
+    digest: sha256:e2a0863493d3f275ef8d3c10828b9282b6ea1d06d899a6cb22f81ff5556a41b3
   url: oci://quay.io/jetstack/charts/cert-manager-csi-driver

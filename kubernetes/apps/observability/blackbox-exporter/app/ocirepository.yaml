@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 11.20.2
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:ce001525a832ebea6dbee1cee93c5f73877c41749fa616fb46ecc3dcf7c568da
+    digest: sha256:dff2a707004310c712745e884f548c4c63e6af43be14b831673b519b530c0fe8
   url: oci://ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter

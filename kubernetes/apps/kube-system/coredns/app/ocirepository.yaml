@@ -17,5 +17,4 @@ spec:
         subject: '^https://github\.com/coredns/helm/\.github/workflows/release\.yaml@refs/heads/master$'
   ref:
     tag: 1.50.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:3a1b37d1017545b8e919b16bc147be0ebb70d5b82f268c2a3d5f1432dc51d6ea
+    digest: sha256:f606e1c85008c1722cfdc8dcb5097a1c6f49af5ba4c38f32769be9a88a887da8

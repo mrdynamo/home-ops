@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: v1.7.1
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:dd0656cdc1dc461e73336c88db5b664446621cdbcc65f0c44a184a4d34fe7c4c
+    digest: sha256:334cdd6cd58e08e77289b87ec8756b9f65fd085929ac8bb31e8b847981023376
   url: oci://ghcr.io/dragonflydb/dragonfly-operator/helm/dragonfly-operator

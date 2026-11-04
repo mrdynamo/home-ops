@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 1.6.2
+    digest: sha256:125d64b6b132f026e5fd7a98e70c617da58d54eaba37fd2f88ea2edffdb3c3d6
   url: oci://ghcr.io/wiremind/wiremind-helm-charts/gateway-api-crds

@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 5.4.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:32608957de4e19e0c97890e56c56ae36c3b16b6ea96513904fd03af1edca05d2
+    digest: sha256:b885ec62379a71eca0a6b97373fc342280c7f65885608d522ee908c023f86bae
   url: oci://ghcr.io/piraeusdatastore/helm-charts/snapshot-controller

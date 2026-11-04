@@ -11,6 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.16.3
+    digest: sha256:2330e14257d2b1268ee842556f50fc76ec1700c8617ed97594daeba72550b2b5
   url: oci://ghcr.io/home-operations/charts/kromgo
   verify:
     provider: cosign

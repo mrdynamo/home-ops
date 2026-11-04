@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.13.11
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:898cd79df5750cf6cfac85ce1a0630b915d45c470c4de0773f1b44f8c7dbdf08
+    digest: sha256:e7b1a1faa0a446853a19657ea335b528676d9fb30df4eddc80f7dfe929a7447e
   url: oci://ghcr.io/victoriametrics/helm-charts/victoria-logs-single
   verify:
     provider: cosign

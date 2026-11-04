@@ -376,6 +376,23 @@ project-specific pipeline-definition subject) and node-feature-discovery
 reusable workflow (`action-stars/helm-workflows@<sha>`) that any repo can
 call, so the identity doesn't prove the chart came from Fluent.
 
+**Status (2026-11-04):** all three batches merged and live. 76+ deployed
+sources report `SourceVerified=True`, including flux-operator/flux-instance
+and the bundle-format, tag-signed and Google/CircleCI-signed charts. Flux's
+own verifier was confirmed in source-controller logs ("trying to verify the
+image using keyless method").
+
+**Digest pinning (uncommitted):** `spec.ref.digest` added to all 102
+`OCIRepository` files (stale flux-local placeholder comments removed; the old
+commented digests were out of date, e.g. flux-operator). Digests resolved with
+`crane digest <url>:<tag>`. Validation: all 44 deployed tag/digest pairs match
+what Flux is running (0 differences); 24/24 signed refs pass `cosign verify`
+against `url@digest`; all 102 pass server-side dry-run; `flate diff` against
+`HEAD` shows no rendered image or HelmRelease changes. A digest overrides the
+tag, so a hand edit of only the tag will silently keep the old chart; Renovate
+updates both. `kubernetes/mod.just` still has a `flux-local` recipe (line 84)
+that is now stale.
+
 Unsigned charts (no `verify` possible): jetstack (cert-manager, csi-driver,
 trust-manager), prometheus-community (4), openebs, ARC (2), authentik,
 dragonfly-operator, reflector, grafana-operator, intel GPU driver, ksgate,

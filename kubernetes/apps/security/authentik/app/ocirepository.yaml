@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 2026.8.5
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:2b8e2c5c3031810cad7d5bb3984ba5d43627b8ce2ac31d6f8fa6fe830877c2bc
+    digest: sha256:9683518d02b5e41f69d045b59a779c40260608b5631d18273407ea2cfe708712
   url: oci://ghcr.io/goauthentik/helm-charts/authentik

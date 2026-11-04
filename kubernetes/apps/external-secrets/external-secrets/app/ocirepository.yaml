@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 2.14.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:dc8d9f0139d8d606e198e947a8d9db089f820065f7f56cd4064d327ddf080d7c
+    digest: sha256:0e3d45f11522f2730ff55deef57bc43e0ff4aadc00bdab5557fa4d354b0c3ab7
   url: oci://ghcr.io/external-secrets/charts/external-secrets
   verify:
     provider: cosign

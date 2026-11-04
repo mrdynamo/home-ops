@@ -11,6 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 92.18.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:550ec77729a65e747a5fb5f37b1a168e8d7bf5a8ebe8c13188bfd308897e9b15
+    digest: sha256:bf0af6052d5e38a59118bb14f1cb5db1705a45d18799836d699e0a21d6ff5b76
   url: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack

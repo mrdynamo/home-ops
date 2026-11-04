@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.29.1
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:d216a2b1e3c1ea04e0baff88fff91d768cb1f4f21f83b1a8a6d620bcdf85435f
+    digest: sha256:3245fa051bb21d0dd9246272f57a2760b4234817a164a3167d2a1e7fb9f63fd9
   url: oci://ghcr.io/cloudnative-pg/charts/cloudnative-pg
   verify:
     provider: cosign

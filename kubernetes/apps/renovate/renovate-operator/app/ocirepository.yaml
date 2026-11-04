@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 6.8.0
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:502ba722d5eb392860441bee595b949efbc3b8d4fdc7dbed83c12084d15d1a12
+    digest: sha256:80f7431474c174f2279ddecbb74ae77af8fd2e7ff4c6c57c14a3200a04f3fad2
   url: oci://ghcr.io/mogenius/helm-charts/renovate-operator
   verify:
     provider: cosign

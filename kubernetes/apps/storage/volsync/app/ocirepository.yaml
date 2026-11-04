@@ -11,8 +11,7 @@ spec:
     operation: copy
   ref:
     tag: 0.18.5
-    # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
-    # digest: sha256:5f92f86ac42002c74f6d79b9e017a2d3fbb4f58585d6ae5ae9a7fa568fc78034
+    digest: sha256:1f23c55e3a595eac992d568a3bb23934944f553b245d14d5a8bfd5c7e0409eff
   url: oci://ghcr.io/home-operations/charts-mirror/volsync-perfectra1n
   verify:
     provider: cosign

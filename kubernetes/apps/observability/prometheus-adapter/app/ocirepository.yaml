@@ -11,4 +11,5 @@ spec:
     operation: copy
   ref:
     tag: 5.4.0
+    digest: sha256:5c0dd28e36b025ff51df328cbd78d862b7f7029b39ba74bf0efe62e03b10491e
   url: oci://ghcr.io/prometheus-community/charts/prometheus-adapter
