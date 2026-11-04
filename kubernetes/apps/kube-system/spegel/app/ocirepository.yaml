@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:1d56ff606ad14fd1255732019d60540f0982c60cf7afb9f66573e6e513f6bbcc
   url: oci://ghcr.io/spegel-org/helm-charts/spegel
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/spegel-org/spegel/\.github/workflows/release\.yaml@refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$'

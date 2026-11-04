@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:502ba722d5eb392860441bee595b949efbc3b8d4fdc7dbed83c12084d15d1a12
   url: oci://ghcr.io/mogenius/helm-charts/renovate-operator
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/mogenius/renovate-operator/\.github/workflows/release\.yaml@refs/tags/[0-9]+\.[0-9]+\.[0-9]+$'

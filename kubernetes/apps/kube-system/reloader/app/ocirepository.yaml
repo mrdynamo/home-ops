@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:05c912e1ed0703618454bf75a61e5ee19789f1108dd8ccf1e9fd246e4d127469
   url: oci://ghcr.io/stakater/charts/reloader
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/stakater/Reloader/\.github/workflows/push-helm-chart\.yaml@refs/heads/master$'

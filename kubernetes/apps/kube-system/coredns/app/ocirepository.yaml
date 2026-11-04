@@ -10,6 +10,11 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   url: oci://ghcr.io/coredns/charts/coredns
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/coredns/helm/\.github/workflows/release\.yaml@refs/heads/master$'
   ref:
     tag: 1.50.0
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED

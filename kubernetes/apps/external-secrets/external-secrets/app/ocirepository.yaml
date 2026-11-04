@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:dc8d9f0139d8d606e198e947a8d9db089f820065f7f56cd4064d327ddf080d7c
   url: oci://ghcr.io/external-secrets/charts/external-secrets
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/external-secrets/external-secrets/\.github/workflows/helm\.yml@refs/heads/main$'

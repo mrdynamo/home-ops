@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:d216a2b1e3c1ea04e0baff88fff91d768cb1f4f21f83b1a8a6d620bcdf85435f
   url: oci://ghcr.io/cloudnative-pg/charts/cloudnative-pg
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/cloudnative-pg/charts/\.github/workflows/release-publish\.yml@refs/heads/main$'

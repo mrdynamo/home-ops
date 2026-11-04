@@ -355,6 +355,27 @@ semver pattern):
 
 (`\|` in the table is an escaped pipe; use `|` in YAML.)
 
+**Implemented (uncommitted, 2026-11-04):** `spec.verify` added to **81 of
+102** `OCIRepository` files (+405 lines, no deletions), one
+`matchOIDCIdentity` per publisher, regexes anchored with `^…$`, single-quoted
+so backslashes stay literal. Validation:
+
+- All 24 unique chart:tag refs pass `cosign verify` using the issuer/subject
+  regexes parsed back out of the YAML (cosign and Flux both use Go RE2).
+- Negative tests fail as expected (wrong publisher identity; right repo but
+  `refs/heads/main` instead of a release tag for flux-operator).
+- All 81 files pass `kubectl apply --dry-run=server` against the cluster's
+  OCIRepository CRD.
+- Not yet tested: source-controller's own verifier on the live cluster
+  (only cosign CLI so far).
+
+Additions beyond the table above: giantswarm (`https://oidc.circleci.com`,
+project-specific pipeline-definition subject) and node-feature-discovery
+(`^(krel-trust|promoter-summaries)@k8s-releng-prod\.iam\.gserviceaccount\.com$`).
+**fluent-bit deliberately excluded**: its signer is a shared third-party
+reusable workflow (`action-stars/helm-workflows@<sha>`) that any repo can
+call, so the identity doesn't prove the chart came from Fluent.
+
 Unsigned charts (no `verify` possible): jetstack (cert-manager, csi-driver,
 trust-manager), prometheus-community (4), openebs, ARC (2), authentik,
 dragonfly-operator, reflector, grafana-operator, intel GPU driver, ksgate,

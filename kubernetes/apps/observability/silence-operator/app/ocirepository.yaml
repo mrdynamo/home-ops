@@ -14,3 +14,8 @@ spec:
     # digest: REPLACE WHEN FLUX-LOCAL #1101 IS RESOLVED
     # digest: sha256:93883e6415571a734525369c58d9c21f57fee3ad61b30a88b6fff0222c3260f9
   url: oci://gsoci.azurecr.io/charts/giantswarm/silence-operator
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://oidc\.circleci\.com$'
+        subject: '^https://circleci\.com/api/v2/projects/c8f4d22e-ef11-47ef-ae72-71c531dbae88/pipeline-definitions/70bae409-80ea-5dae-b228-784922f660fa$'
