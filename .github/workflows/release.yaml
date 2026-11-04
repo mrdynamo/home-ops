@@ -7,10 +7,14 @@ on:
   schedule:
     - cron: "0 0 1 * *" # 1st of every month at midnight
 
+# GITHUB_TOKEN is unused; all API calls use the scoped app token below.
+permissions: {}
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Generate Token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -18,6 +22,7 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       - name: Get Previous Release Tag and Determine Next Tag
         id: determine-next-tag
@@ -54,9 +59,11 @@ jobs:
 
             return `${nextMajorMinor}.${nextPatch}`;
 
+      # gh is preinstalled on GitHub-hosted runners; avoids handing a
+      # contents:write token to a third-party action.
       - name: Create Release
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
-        with:
-          generateReleaseNotes: true
-          tag: "${{ steps.determine-next-tag.outputs.result }}"
-          token: "${{ steps.app-token.outputs.token }}"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.determine-next-tag.outputs.result }}
+        run: gh release create "$TAG" --repo "$REPO" --generate-notes
