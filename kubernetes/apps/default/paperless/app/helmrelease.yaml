@@ -108,7 +108,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mchestr/gotenberg
-              tag: 8.17.3
+              tag: 8.17.3@sha256:4eb467ff026dc476deda1e7f8c135b9e198a3dbc3e93ab264f01d8a4fc1ff545
             resources:
               requests:
                 cpu: 10m
@@ -123,7 +123,7 @@ spec:
           app:
             image:
               repository: docker.io/apache/tika
-              tag: 3.3.3.0-full
+              tag: 3.3.3.0-full@sha256:6ef30abd65df4b6c478907904099d0245bdb0e0686f94fb9bc7493558442bb74
             # securityContext: *sc
             resources:
               requests:
