@@ -25,7 +25,7 @@ spec:
           krr:
             image:
               repository: robustadev/krr
-              tag: v1.31.2@sha256:c94a096ba3288743fc48ee6091afd1f6af3f716d52ff5194f425a980c4ea8215
+              tag: v1.31.3@sha256:d2de97052ea5050b54fa03d4aea015425794f568e72244c90f235fa7dc7b7db8
               pullPolicy: IfNotPresent
             command:
               - python
