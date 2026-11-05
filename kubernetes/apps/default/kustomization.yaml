@@ -37,6 +37,7 @@ resources:
   - ./syncthing/ks.yaml
   - ./tautulli/ks.yaml
   - ./tracearr/ks.yaml
+  - ./truenas-cert/ks.yaml
   - ./twitchpoints/ks.yaml
   - ./wizarr/ks.yaml
   - ./your-spotify/ks.yaml
