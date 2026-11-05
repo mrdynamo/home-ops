@@ -8,13 +8,18 @@ Stdlib only (no pip), configured through the environment:
   CERT_NAME_PREFIX   prefix for the imported certificate name
   CERT_DIR           directory holding tls.crt / tls.key (default /certs)
   API_KEY_FILE       file holding the TrueNAS API key (default /secrets/api-key)
+  ADDRESS_FILE       optional file holding the NAS IP (default /secrets/address). When
+                     set, connect to that IP instead of resolving TRUENAS_HOST, while
+                     still sending SNI and verifying the certificate for TRUENAS_HOST.
 """
 
 import base64
 import hashlib
 import json
 import os
+import http.client
 import re
+import socket
 import sys
 import time
 import urllib.error
@@ -25,6 +30,7 @@ HOST = os.environ["TRUENAS_HOST"]
 PREFIX = os.environ["CERT_NAME_PREFIX"]
 CERT_DIR = os.environ.get("CERT_DIR", "/certs")
 API_KEY_FILE = os.environ.get("API_KEY_FILE", "/secrets/api-key")
+ADDRESS_FILE = os.environ.get("ADDRESS_FILE", "/secrets/address")
 BASE = f"https://{HOST}/api/v2.0"
 
 
@@ -70,10 +76,29 @@ def leaf_info(pem):
 CERT = read(f"{CERT_DIR}/tls.crt").strip()
 KEY = read(f"{CERT_DIR}/tls.key").strip()
 API_KEY = read(API_KEY_FILE).strip()
+ADDRESS = read(ADDRESS_FILE).strip() if os.path.exists(ADDRESS_FILE) else ""
+# Tolerate a pasted URL: only the bare IP/host is wanted (scheme and path are ignored).
+ADDRESS = re.sub(r"^[A-Za-z][A-Za-z0-9+.-]*://", "", ADDRESS).split("/")[0]
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json",
 }
+
+
+class _PinnedConnection(http.client.HTTPSConnection):
+    """Dial ADDRESS but keep TLS SNI and hostname verification on the URL's host."""
+
+    def connect(self):
+        sock = socket.create_connection((ADDRESS, self.port), self.timeout)
+        self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+
+
+class _PinnedHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(_PinnedConnection, req, context=self._context)
+
+
+OPENER = urllib.request.build_opener(_PinnedHandler()) if ADDRESS else urllib.request.build_opener()
 
 
 def scrub(text, limit=500):
@@ -90,7 +115,7 @@ def api(method, path, body=None, params=None, tolerate_disconnect=False):
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, headers=HEADERS, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with OPENER.open(req, timeout=30) as r:
             raw = r.read()
     except urllib.error.HTTPError as e:
         print(f"{method} {path} failed: HTTP {e.code}")
