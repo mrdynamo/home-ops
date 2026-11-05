@@ -120,10 +120,10 @@ spec:
             securityContext: *sc
             resources:
               requests:
-                cpu: 10m
-                memory: 887Mi
+                cpu: 2215m
+                memory: 1021Mi
               limits:
-                memory: 887Mi
+                memory: 1021Mi
 
       meilisearch:
         pod:

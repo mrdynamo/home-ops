@@ -91,10 +91,10 @@ spec:
                   failureThreshold: 30
             resources:
               requests:
-                cpu: 31m
-                memory: 1277Mi
+                cpu: 549m
+                memory: 1347Mi
               limits:
-                memory: 1277Mi
+                memory: 1347Mi
       prune-prompts:
         type: cronjob
         cronjob:
