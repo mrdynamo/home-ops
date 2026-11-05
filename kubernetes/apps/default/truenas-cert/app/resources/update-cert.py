@@ -34,6 +34,15 @@ ADDRESS_FILE = os.environ.get("ADDRESS_FILE", "/secrets/address")
 BASE = f"https://{HOST}/api/v2.0"
 
 
+def log(message):
+    print(f"[truenas-cert-update] {message}", flush=True)
+
+
+def fail(message):
+    log(f"ERROR: {message}")
+    sys.exit(1)
+
+
 def read(path):
     with open(path, encoding="utf-8") as f:
         return f.read()
@@ -114,19 +123,17 @@ def api(method, path, body=None, params=None, tolerate_disconnect=False):
         url += "?" + urllib.parse.urlencode(params)
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, headers=HEADERS, method=method)
+    log(f"API {method} {path}")
     try:
         with OPENER.open(req, timeout=30) as r:
             raw = r.read()
     except urllib.error.HTTPError as e:
-        print(f"{method} {path} failed: HTTP {e.code}")
-        print(scrub(e.read().decode(errors="replace")))
-        sys.exit(1)
+        fail(f"{method} {path} returned HTTP {e.code}: {scrub(e.read().decode(errors='replace'))}")
     except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
         if tolerate_disconnect:
-            print(f"{method} {path}: connection dropped ({scrub(e)}); expected while the UI restarts")
+            log(f"Connection dropped ({scrub(e)}); expected while the web UI restarts")
             return None
-        print(f"{method} {path} failed: {scrub(e)}")
-        sys.exit(1)
+        fail(f"{method} {path} failed: {scrub(e)}")
     return json.loads(raw) if raw else None
 
 
@@ -136,46 +143,60 @@ def cert_id_of(value):
 
 
 def wait_for_job(job_id):
+    log(f"Waiting for import job {job_id} to finish")
     for _ in range(60):
         jobs = api("GET", "/core/get_jobs/", params={"id": job_id})
         if jobs:
             state = jobs[0].get("state")
             if state == "SUCCESS":
+                log(f"Import job {job_id} succeeded")
                 return
             if state in ("FAILED", "ABORTED"):
-                print(f"Import job {job_id} {state}: {scrub(jobs[0].get('error'))}")
-                sys.exit(1)
+                fail(f"Import job {job_id} {state}: {scrub(jobs[0].get('error'))}")
         time.sleep(1)
-    print(f"Timed out waiting for import job {job_id}")
-    sys.exit(1)
+    fail(f"Timed out waiting for import job {job_id}")
 
 
 def list_certs():
     return api("GET", "/certificate/", params={"limit": 0}) or []
 
 
+log(f"Starting certificate sync for {HOST}")
+not_before, sha256 = leaf_info(CERT)
+log(f"Step 1/5: Loaded local certificate (issued {not_before}, sha256 {sha256[:8]})")
+if ADDRESS:
+    log(f"Connecting to {HOST} via pinned address from secret (DNS lookup skipped)")
+else:
+    log(f"Connecting to {HOST} via DNS (no pinned address configured)")
+
+log("Step 2/5: Checking the certificate currently active on TrueNAS")
 general = api("GET", "/system/general/")
 active_id = cert_id_of(general.get("ui_certificate"))
 certs = list_certs()
+log(f"TrueNAS has {len(certs)} certificate(s) stored")
 
 active = next((c for c in certs if c.get("id") == active_id), None)
 if active and (active.get("certificate") or "").strip() == CERT:
-    print(f"Active UI certificate '{active.get('name')}' already matches; nothing to do")
+    log(f"SKIPPED: active UI certificate '{active.get('name')}' (id {active_id}) already matches the local certificate; no changes made")
     sys.exit(0)
+if active:
+    log(f"Active UI certificate '{active.get('name')}' (id {active_id}) differs from the local certificate; update required")
+else:
+    log(f"No active UI certificate found (ui_certificate={active_id}); update required")
 
 # <prefix>-<notBefore date>-<short fingerprint>; the fingerprint keeps two
 # certificates issued on the same day from colliding.
-not_before, sha256 = leaf_info(CERT)
 name = f"{PREFIX}-{not_before}-{sha256[:8]}"
 
 # Match by content, not name, so a re-run after a partial failure (imported but
 # not yet activated) reuses the import even if the date has rolled over.
+log("Step 3/5: Importing the certificate into TrueNAS")
 existing = next((c for c in certs if (c.get("certificate") or "").strip() == CERT), None)
 if existing:
-    print(f"Certificate '{existing.get('name')}' already imported (id {existing['id']})")
+    log(f"Certificate already imported as '{existing.get('name')}' (id {existing['id']}); reusing it instead of importing again")
     new_id = existing["id"]
 else:
-    print(f"Importing certificate '{name}'")
+    log(f"Importing certificate as '{name}'")
     result = api(
         "POST",
         "/certificate/",
@@ -196,11 +217,14 @@ else:
             break
         time.sleep(1)
     if new_id is None:
-        print(f"Certificate '{name}' not found after import")
-        sys.exit(1)
+        fail(f"Certificate '{name}' not found after import")
+    log(f"Imported certificate '{name}' (id {new_id})")
 
+log(f"Step 4/5: Setting certificate id {new_id} as the web UI certificate")
 api("PUT", "/system/general/", body={"ui_certificate": new_id})
-print(f"Set certificate id {new_id} as the UI certificate")
+log("Web UI certificate updated")
 
+log("Step 5/5: Restarting the TrueNAS web UI to apply the certificate")
 api("GET", "/system/general/ui_restart/", tolerate_disconnect=True)
-print("Web UI restart requested")
+log("Web UI restart requested")
+log(f"COMPLETED: TrueNAS now serves certificate id {new_id}")
