@@ -72,7 +72,7 @@ spec:
                 memory: 1101Mi
               limits:
                 cpu: 1500m
-                memory: 1101Mi
+                memory: 1501Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
