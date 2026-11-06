@@ -13,6 +13,17 @@ spec:
     fullnameOverride: victoria-logs
     retentionPeriod: 30d
     server:
+      # Keep the log sink off k8s-04: when that node freezes it would take the logs
+      # describing the freeze down with it.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
       persistentVolume:
         enabled: true
         storageClassName: longhorn-fast
