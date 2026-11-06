@@ -1,0 +1,25 @@
+---
+# Talos ships its service and kernel logs from the host network, where cluster DNS names
+# don't resolve (the host resolver is 1.1.1.1), so give the UDP inputs a fixed address.
+# Referenced by talos/all/11-machine-logging.yaml.tpl.
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluent-bit-talos
+  annotations:
+    lbipam.cilium.io/ips: 192.168.30.131
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  selector:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/name: fluent-bit
+  ports:
+    - name: talos-service
+      port: 10001
+      targetPort: 10001
+      protocol: UDP
+    - name: talos-kernel
+      port: 10002
+      targetPort: 10002
+      protocol: UDP

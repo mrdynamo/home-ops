@@ -55,6 +55,7 @@ spec:
           Port          10001
           Format        json
           Tag           talos-service.*
+          source_address_key source_address
 
         [INPUT]
           Name          udp
@@ -62,8 +63,17 @@ spec:
           Port          10002
           Format        json
           Tag           talos-kernel.*
+          source_address_key source_address
 
       filters: |-
+        # Talos kmsg records carry no node name, so derive one from the sender's address.
+        [FILTER]
+          name parser
+          match talos-*
+          key_name source_address
+          parser source_address
+          reserve_data on
+
         [FILTER]
           name kubernetes
           match kubernetes.*
@@ -98,6 +108,11 @@ spec:
 
       customParsers: |-
         [PARSER]
+          name source_address
+          format regex
+          regex ^(?:udp://)?(?<node_ip>[^:]+)
+
+        [PARSER]
           name containerd
           format regex
           regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
@@ -127,7 +142,7 @@ spec:
           match talos-service.*
           host victoria-logs-server.observability.svc.cluster.local
           port 9428
-          uri /insert/jsonline?_stream_fields=talos-service,talos-level&_msg_field=msg&_time_field=talos-time
+          uri /insert/jsonline?_stream_fields=node,talos-service&_msg_field=msg&_time_field=talos-time
           format json_lines
           json_date_format iso8601
           compress gzip
@@ -138,7 +153,7 @@ spec:
           match talos-kernel.*
           host victoria-logs-server.observability.svc.cluster.local
           port 9428
-          uri /insert/jsonline?_stream_fields=clock,facility,priority,seq,talos-level&_msg_field=msg&_time_field=talos-time
+          uri /insert/jsonline?_stream_fields=node_ip,facility&_msg_field=msg&_time_field=talos-time
           format json_lines
           json_date_format iso8601
           compress gzip
