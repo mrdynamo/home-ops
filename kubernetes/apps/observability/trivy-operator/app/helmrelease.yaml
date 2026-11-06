@@ -19,6 +19,9 @@ spec:
       builtInTrivyServer: true
       vulnerabilityScannerScanOnlyCurrentRevisions: true
       configAuditScannerScanOnlyCurrentRevisions: true
+      # SBOM reports are ~0.7-1.4 MB each and the apiserver caches every one in
+      # memory; ~160 of them added >1 GB of RSS per control plane
+      sbomGenerationEnabled: false
       annotations:
         reloader.stakater.com/auto: "true"
     serviceMonitor:
