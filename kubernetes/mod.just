@@ -7,7 +7,7 @@ kubernetes_dir := justfile_dir() + '/kubernetes'
 default:
     just -l kube
 
-[doc('Apply local Flux Kustomization (needs a flate release with --supply; see render-local-ks)')]
+[doc('Apply local Flux Kustomization')]
 apply-ks dir ks="*":
     just kube render-local-ks "{{ dir }}" "{{ ks }}" \
         | kubectl apply --server-side --field-manager=kustomize-controller -f /dev/stdin
@@ -16,7 +16,7 @@ apply-ks dir ks="*":
 browse-pvc namespace claim:
     kubectl-browse-pvc -n {{ namespace }} -i mirror.gcr.io/alpine:latest {{ claim }}
 
-[doc('Delete local Flux Kustomization (needs a flate release with --supply; see render-local-ks)')]
+[doc('Delete local Flux Kustomization')]
 delete-ks dir ks="*":
     just kube render-local-ks "{{ dir }}" "{{ ks }}" | kubectl delete -f /dev/stdin
 
@@ -83,12 +83,12 @@ view-secret namespace secret:
 render-local-ks dir ks="*":
     # flate resolves dependsOn across the tree, so it renders from apps/ and narrows by namespace (dir).
     #
-    # TODO: NOT AVAILABLE YET. `--supply` exists on flate's main branch (home-operations/flate#1367,
-    # reworked in #1426) but is not in a release: v0.6.5 (2026-09-02) rejects it with
-    # "unknown flag: --supply". Bump the flate pin in .mise.toml once a release includes it.
-    #
     # flate does not decrypt SOPS, so cluster-secrets is decrypted here and streamed over stdin
-    # (never written to disk) for postBuild substitution. Without it every ${VAR} (for example
-    # ${SECRET_DOMAIN}) renders as an empty string, which is unsafe to pipe into kubectl.
+    # (never written to disk) via --supply for postBuild substitution. Flux reads substituteFrom
+    # from the Kustomization's own namespace, and flate rejects a supplied object without one, so
+    # the Secret is placed in dir. --strict-substitutions fails the render on any unset ${VAR}
+    # instead of emitting an empty string, which is unsafe to pipe into kubectl. Secrets and CRDs
+    # are left out of the output by flate's default --skip-kinds.
     sops -d "{{ kubernetes_dir }}/components/common/sops/cluster-secrets.sops.yaml" \
-        | flate build ks --path "{{ kubernetes_dir }}/apps" --namespace "{{ dir }}" --supply - --skip-secrets --no-progress {{ if ks != "*" { ks } else { "" } }}
+        | yq '.metadata.namespace = "{{ dir }}"' \
+        | flate build ks --path "{{ kubernetes_dir }}/apps" --namespace "{{ dir }}" --supply - --strict-substitutions --no-progress {{ if ks != "*" { ks } else { "" } }}
