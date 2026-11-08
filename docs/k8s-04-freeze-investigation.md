@@ -5,7 +5,7 @@ description: Why k8s-04 freezes and never recovers, what was put in place to cap
 
 # k8s-04 Freeze Investigation
 
-> **Status (2026-11-06):** Phase 1 (evidence capture) is deployed and confirmed working: Talos service and kernel logs arrive in VictoriaLogs, and `node-forensics` writes per-boot files to k8s-04's NVMe. **Next:** wait for the next freeze, collect the evidence (§4), triage it (§5), test the watchdog (§6), then work through Phase 2 (§7).
+> **Status (2026-11-08):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe. **Next:** test the watchdog (§6), then Phase 2 row B (§7), starting with the C-state limit (B2).
 >
 > **Workaround in place:** Home Assistant power-cycles k8s-04's smart outlet when `HomeAssistantPowercycleK8s04Trigger` fires. Leave it as is: the node never recovers by itself.
 
@@ -38,6 +38,7 @@ Kernel arguments set by the schematic that matter here: `i915.enable_guc=3`, `in
 | 2026-10-27 | ? | 18:02 | Before the metrics window, unknown |
 | 2026-11-03 | 16:40:30 | 16:45:20 | Home Assistant (`HomeAssistantPowercycleK8s04Trigger` fired 16:43:42) |
 | 2026-11-06 | 21:25:00 | 21:27:45 | Same freeze; the HA power-cycle was triggered by hand before the cluster alerts fired (`bootstatus=0` afterwards, so not the watchdog) |
+| 2026-11-07 | 09:32:24 | 09:43:17 | Home Assistant (`HomeAssistantPowercycleK8s04Trigger` fired 09:41:45, `bootstatus=0`). First freeze with evidence; 12 h after the previous boot |
 
 ### What the metrics show before a freeze
 
@@ -53,11 +54,37 @@ Something sudden: either the network path dies while the kernel keeps running (N
 - Talos kernel and service log shipping had never delivered anything: it pointed at `fluent-bit.observability.svc.cluster.local`, which the host resolver (1.1.1.1) cannot resolve;
 - VictoriaLogs ran on k8s-04 itself.
 
+### Freeze of 2026-11-07: the evidence
+
+All times UTC. The boot that froze is `20261106T212746Z_dee52a2d`.
+
+| Source | Last record | Content |
+|---|---|---|
+| Local heartbeat file | 09:32:22 | All healthy: all three pings `ok`, `carrier=1`, no new `tx_err`/`tx_drop`, `nvme0=live`, load 1.4, 8 GiB available, 57 °C, `wdt=active/300s`. The next line (due 09:32:32) was never written |
+| Local kmsg file | 09:29:50 | `eth0: renamed from tmpc3c00` (routine pod start). No e1000e, i915/GuC, NVMe, MCE, lockup or oops line in the whole boot |
+| VictoriaLogs, Talos kernel log | 09:29:50 | The same line. Nothing after it |
+| VictoriaLogs, Talos service logs | 09:32:24.69 | Routine kubelet and apid lines. Nothing after it |
+| Prometheus | 09:32:45 | First `up == 0` |
+| iGPU / CPU / disk metrics | 09:32:30 | iGPU 0 % on every engine, about 0.5 cores busy, disk idle, 60–66 °C |
+
+Reading it against §5:
+
+- **Not the network.** Local disk writes stopped at the same time as the network, and the last heartbeat shows the link and all pings healthy.
+- **Not the NVMe.** Talos service logs come from memory over UDP and would have kept arriving after a disk dropout, together with an `nvme ... controller is down` line. They stopped within 2 s of the last disk write.
+- **So the whole machine hard-locked, at idle**, with no warning in the logs or metrics.
+
+Two more findings:
+
+- **Deep C-states are in use, despite `intel_idle.max_cstate=0`.** The idle driver is `acpi_idle`. On cpu0, the boot after the freeze spent about 48 % of its uptime in C2 (`MWAIT 0x31`) and used C3 (`MWAIT 0x60`, 1 ms exit latency) 19,000 times. A hard lock at idle on a client platform points straight at this (§7 B2).
+- **The Home Assistant trigger was about 6 min late.** `kube-state-metrics` ran on k8s-04, so the node-condition metrics behind `KubeNodeNotReadyHomeAssistantTrigger` and `KubeNodeUnreachableHomeAssistantTrigger` disappeared along with the node. They came back only once Kubernetes evicted KSM to k8s-06 (09:39), so the trigger fired at 09:41:45 instead of about 09:36. KSM now has the same `NotIn [k8s-04]` affinity as Prometheus, Alertmanager and VictoriaLogs.
+
 ### The node never recovering is itself a clue
 
 With a 5 min hardware watchdog, a real kernel hang should reset the machine after 5 min. It never does. Either Talos keeps feeding the watchdog (the kernel is alive, so the network is what died), or the watchdog does not actually reset this machine.
 
-The second is plausible: `/sys/class/watchdog/watchdog0/timeleft` reads a constant `300s` in every heartbeat, although Talos feeds it only every 1m40s. A running TCO timer should count down between feeds. §6 tests it.
+The second is plausible: `/sys/class/watchdog/watchdog0/timeleft` reads a constant `300s` in every heartbeat (all 4,113 of them in the boot that froze), although Talos feeds it only every 1m40s. A running TCO timer should count down between feeds. §6 tests it.
+
+The 2026-11-07 freeze makes the second explanation more likely, but does not prove it. The machine was dead (no disk writes, no network), so nothing could feed the watchdog, yet it had not reset 9.5 min later, when Home Assistant cut the power. That is well past the 5 min timeout. But on TCO v2 and later, the hardware resets only on the *second* expiry, which could mean up to about 10 min, so §6 still needs to wait past 12 min.
 
 ---
 
@@ -235,6 +262,8 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-03 | Freeze; HA power-cycled | No evidence captured (pre-Phase 1) |
 | 2026-11-06 | Freeze (dark 21:25); HA automation triggered by hand about 2.5 min later | No evidence captured (pre-Phase 1) |
 | 2026-11-06 | Phase 1 deployed (`node-forensics`, Talos log shipping fixed, VictoriaLogs moved off k8s-04) | Logs and local files confirmed |
+| 2026-11-07 | Freeze (dark 09:32:24); HA power-cycled at about 09:42 | Evidence captured: whole-machine hard lock at idle (§2) |
+| 2026-11-08 | `kube-state-metrics` kept off k8s-04 | Removes the ~6 min delay in the HA trigger |
 
 ---
 

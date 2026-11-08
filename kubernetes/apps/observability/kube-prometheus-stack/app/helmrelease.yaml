@@ -131,6 +131,17 @@ spec:
       #     memory: 200Mi
     kube-state-metrics:
       fullnameOverride: kube-state-metrics
+      # Keep off k8s-04: the Home Assistant power-cycle trigger depends on KSM's
+      # node-condition metrics, which vanish while KSM sits on the frozen node.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values:
+                      - k8s-04
       metricLabelsAllowlist:
         - pods=[*]
         - deployments=[*]
