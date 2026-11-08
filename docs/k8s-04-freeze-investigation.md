@@ -5,7 +5,9 @@ description: Why k8s-04 freezes and never recovers, what was put in place to cap
 
 # k8s-04 Freeze Investigation
 
-> **Status (2026-11-08):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe. **Next:** test the watchdog (§6), then Phase 2 row B (§7), starting with the C-state limit (B2).
+> **Status (2026-11-08):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe.
+>
+> **Test in progress (since 2026-11-08 02:02 UTC):** C-states C2 and C3 are disabled at runtime (§7 B2). This **does not survive a reboot**: re-apply it after every power-cycle, or the test is void. **Pass condition:** no freeze before 2026-11-22. **Next:** test the watchdog (§6) when convenient.
 >
 > **Workaround in place:** Home Assistant power-cycles k8s-04's smart outlet when `HomeAssistantPowercycleK8s04Trigger` fires. Leave it as is: the node never recovers by itself.
 
@@ -75,7 +77,15 @@ Reading it against §5:
 
 Two more findings:
 
-- **Deep C-states are in use, despite `intel_idle.max_cstate=0`.** The idle driver is `acpi_idle`. On cpu0, the boot after the freeze spent about 48 % of its uptime in C2 (`MWAIT 0x31`) and used C3 (`MWAIT 0x60`, 1 ms exit latency) 19,000 times. A hard lock at idle on a client platform points straight at this (§7 B2).
+- **Deep C-states are in use, despite `intel_idle.max_cstate=0`.** The idle driver is `acpi_idle`, using the states the BIOS advertises in `_CST`:
+
+  | Linux state | MWAIT hint | Hardware state | Exit latency | Use in the 16 h after the freeze |
+  |---|---|---|---|---|
+  | C1 | `0x00` | C1 (halt, core clock off) | 1 µs | about 33 % of cpu0's time |
+  | C2 | `0x31` | C7-class (core power-gated, shared cache flushed) | 253 µs | about 48 % of cpu0's time; about 20 M entries per thread |
+  | C3 | `0x60` | C10 (deepest package state) | 1,048 µs | 7–10 M entries on each of cpu1–11 (cpu0 only 19 k) |
+
+  That is roughly 700 deep-state entries and exits per thread per second. A rare failure on any one of them (voltage-regulator ramp, microcode, platform coordination with the iGPU, PCIe ASPM or the PCH) would look exactly like this freeze: sudden, at idle, with nothing logged, because the CPU that would log it is the part that stopped. Limiting C-states is the first Phase 2 test (§7 B2).
 - **The Home Assistant trigger was about 6 min late.** `kube-state-metrics` ran on k8s-04, so the node-condition metrics behind `KubeNodeNotReadyHomeAssistantTrigger` and `KubeNodeUnreachableHomeAssistantTrigger` disappeared along with the node. They came back only once Kubernetes evicted KSM to k8s-06 (09:39), so the trigger fired at 09:41:45 instead of about 09:36. KSM now has the same `NotIn [k8s-04]` affinity as Prometheus, Alertmanager and VictoriaLogs.
 
 ### The node never recovering is itself a clue
@@ -218,7 +228,25 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 ### B. Whole machine hard-locks
 
 1. **`i915.enable_guc=2` instead of `=3`.** `=3` forces GuC submission, which is not the i915 default on Rocket Lake. Quick Sync low-power encode only needs HuC loading (`=2`).
-2. **Fix the C-state limit.** `intel_idle.max_cstate=0` does not limit C-states: it disables `intel_idle` and falls back to ACPI idle, and deep C-states stay on. To actually rule them out, use `intel_idle.max_cstate=1`.
+2. **Limit C-states to C1. Being tested now, applied at runtime on 2026-11-08 02:02 UTC.** `intel_idle.max_cstate=0` does not limit C-states: it disables `intel_idle`, the kernel falls back to `acpi_idle`, and the BIOS's deep states stay on (§2).
+
+   **At runtime (current test).** This needs no reboot and takes effect at once. It is lost on every reboot, including an HA power-cycle, so re-run it after each one:
+
+   ```bash
+   kubectl -n observability exec ds/node-forensics -- sh -c \
+     'for c in /sys/devices/system/cpu/cpu[0-9]*; do echo 1 > $c/cpuidle/state2/disable; echo 1 > $c/cpuidle/state3/disable; done'
+   ```
+
+   Check it: `disable` reads `1`, and `usage` stops increasing, for `state2` and `state3` on every CPU:
+
+   ```bash
+   kubectl -n observability exec ds/node-forensics -- sh -c \
+     'for c in /sys/devices/system/cpu/cpu[0-9]*; do echo "$(basename $c) $(cat $c/cpuidle/state2/disable)$(cat $c/cpuidle/state3/disable) $(cat $c/cpuidle/state2/usage) $(cat $c/cpuidle/state3/usage)"; done'
+   ```
+
+   Revert: the same loop, writing `0`. Cost: an estimated 5–10 W more at idle (not measured; compare the smart plug's power reading if it has one), and none under load.
+
+   **Permanently (if the test passes).** Add `processor.max_cstate=1` to the schematic (`acpi_idle` honours it; `intel_idle.max_cstate=1` only helps if `intel_idle` drives this CPU, which is unconfirmed for Rocket Lake), then `just talos upgrade-node k8s-04`. After it boots, check that `state2` and `state3` are gone from `/sys/devices/system/cpu/cpu0/cpuidle/`, or that their `usage` stays at 0. If it passes, it can be loosened later one state at a time, to win power back.
 3. **NVMe power saving off:** `nvme_core.default_ps_max_latency_us=0` (also row C).
 4. **Hardware checks:** run memtest86+ for a full pass, overnight, from USB. Check Lenovo support for a BIOS newer than `M3JKT44A`.
 
@@ -264,6 +292,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-06 | Phase 1 deployed (`node-forensics`, Talos log shipping fixed, VictoriaLogs moved off k8s-04) | Logs and local files confirmed |
 | 2026-11-07 | Freeze (dark 09:32:24); HA power-cycled at about 09:42 | Evidence captured: whole-machine hard lock at idle (§2) |
 | 2026-11-08 | `kube-state-metrics` kept off k8s-04 | Removes the ~6 min delay in the HA trigger |
+| 2026-11-08 02:02 | **§7 B2 at runtime:** `state2` and `state3` disabled on all 12 CPUs (C1 is now the deepest state). Lost on reboot | Testing. Pass = no freeze before 2026-11-22 |
 
 ---
 
