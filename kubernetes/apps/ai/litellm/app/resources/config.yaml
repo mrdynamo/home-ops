@@ -423,10 +423,10 @@ model_list:
       model: anthropic/claude-sonnet-5
     model_info:
       <<: *anthropic_model_info
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000015
-      cache_creation_input_token_cost: 0.00000375
-      cache_read_input_token_cost: 0.0000003
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.00001
+      cache_creation_input_token_cost: 0.0000025
+      cache_read_input_token_cost: 0.0000002
 
   - model_name: claude-sonnet-4-6
     litellm_params:
