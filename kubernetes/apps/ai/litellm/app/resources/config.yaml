@@ -46,10 +46,9 @@ _anthropic_model_info: &anthropic_model_info
   litellm_provider: anthropic
   mode: chat
   # Uniform across the entire Anthropic line on Claude Pro/Max today.
-  # The only carve-outs are Haiku-4.5, which flips the reasoning and
-  # computer_use flags off and drops to a 200k/64k window — see its
-  # per-model block. Per-model pricing is always spelled out; only these
-  # provider-wide traits belong in the anchor.
+  # The only carve-out is Haiku-4.5, which drops to a 200k/64k window —
+  # see its per-model block. Per-model pricing is always spelled out; only
+  # these provider-wide traits belong in the anchor.
   supports_tool_choice: true
   supports_vision: true
   supports_prompt_caching: true
@@ -450,12 +449,12 @@ model_list:
       output_cost_per_token: 0.000005
       cache_creation_input_token_cost: 0.00000125
       cache_read_input_token_cost: 0.0000001
+      # Haiku-4.5 is the only Anthropic model with a 200k/64k window. It does
+      # support extended thinking (manual `budget_tokens`) and computer use
+      # (beta `computer_20250124`), so the anchor's flags apply as-is.
       max_input_tokens: 200000
       max_output_tokens: 65536
       max_tokens: 65536
-      # Haiku-4.5 lacks extended thinking and computer-use — flip both off.
-      supports_reasoning: false
-      supports_computer_use: false
 
 #########################
 #      MCP Servers      #
