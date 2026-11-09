@@ -17,4 +17,4 @@ spec:
         subject: '^https://github\.com/coredns/helm/\.github/workflows/release\.yaml@refs/heads/master$'
   ref:
     tag: 1.50.2
-    digest: sha256:1037b6e9e635a90f4215e9ef230a92aea6fa11723c53a08f57784337a3e93a25
+    digest: sha256:43a04aa7e5820b3749ed3b9e36ace5fc8e299f2a8b8bdcb747882641f32cf2d1
