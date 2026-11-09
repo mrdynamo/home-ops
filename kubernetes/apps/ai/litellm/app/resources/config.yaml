@@ -261,7 +261,7 @@ model_list:
   #########################
   # Minimax API Models    #
   #########################
-  - model_name: minimax/MiniMax-M2.7
+  - model_name: minimax-m2.7
     litellm_params:
       <<: *minimax_litellm_params
       model: minimax/MiniMax-M2.7
@@ -280,13 +280,13 @@ model_list:
       supports_prompt_caching: true
       supports_computer_use: false
 
-  - model_name: minimax/MiniMax-M2.7-openai
+  - model_name: minimax-m2.7-openai
     litellm_params:
       <<: *minimax_openai_litellm_params
       model: minimax/MiniMax-M2.7
     model_info: *minimax-m27_model_info
 
-  - model_name: minimax/MiniMax-M3
+  - model_name: minimax-m3
     litellm_params:
       <<: *minimax_litellm_params
       model: minimax/MiniMax-M3
@@ -305,7 +305,7 @@ model_list:
       supports_prompt_caching: true
       supports_computer_use: true
 
-  - model_name: minimax/MiniMax-M3-openai
+  - model_name: minimax-m3-openai
     litellm_params:
       <<: *minimax_openai_litellm_params
       model: minimax/MiniMax-M3
@@ -320,7 +320,7 @@ model_list:
   # through `Authorization: Bearer sk-ant-oat...`. See
   # https://docs.litellm.ai/docs/tutorials/claude_code_max_subscription.
 
-  - model_name: anthropic/claude-fable-5-2
+  - model_name: claude-fable-5-2
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-fable-5-2
@@ -332,7 +332,7 @@ model_list:
       cache_creation_input_token_cost: 0.00001
       cache_read_input_token_cost: 0.0000002
 
-  - model_name: anthropic/claude-opus-5-5
+  - model_name: claude-opus-5-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-opus-5-5
@@ -343,7 +343,7 @@ model_list:
       cache_creation_input_token_cost: 0.000005
       cache_read_input_token_cost: 0.0000002
 
-  - model_name: anthropic/claude-sonnet-5-5
+  - model_name: claude-sonnet-5-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-sonnet-5-5
@@ -354,7 +354,7 @@ model_list:
       cache_creation_input_token_cost: 0.0000025
       cache_read_input_token_cost: 0.0000001
 
-  - model_name: anthropic/claude-haiku-5-5
+  - model_name: claude-haiku-5-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-haiku-5-5
@@ -383,7 +383,7 @@ model_list:
   # updates, not yet deprecated. Retirement dates:
   # https://platform.claude.com/docs/en/about-claude/model-deprecations
 
-  - model_name: anthropic/claude-fable-5-1
+  - model_name: claude-fable-5-1
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-fable-5-1
@@ -395,7 +395,7 @@ model_list:
       cache_creation_input_token_cost: 0.0000125
       cache_read_input_token_cost: 0.00000025
 
-  - model_name: anthropic/claude-opus-5
+  - model_name: claude-opus-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-opus-5
@@ -406,7 +406,7 @@ model_list:
       cache_creation_input_token_cost: 0.00000625
       cache_read_input_token_cost: 0.0000005
 
-  - model_name: anthropic/claude-opus-4-8
+  - model_name: claude-opus-4-8
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-opus-4-8
@@ -417,7 +417,7 @@ model_list:
       cache_creation_input_token_cost: 0.00000625
       cache_read_input_token_cost: 0.0000005
 
-  - model_name: anthropic/claude-sonnet-5
+  - model_name: claude-sonnet-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-sonnet-5
@@ -428,7 +428,7 @@ model_list:
       cache_creation_input_token_cost: 0.00000375
       cache_read_input_token_cost: 0.0000003
 
-  - model_name: anthropic/claude-sonnet-4-6
+  - model_name: claude-sonnet-4-6
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-sonnet-4-6
@@ -439,7 +439,7 @@ model_list:
       cache_creation_input_token_cost: 0.00000375
       cache_read_input_token_cost: 0.0000003
 
-  - model_name: anthropic/claude-haiku-4-5
+  - model_name: claude-haiku-4-5
     litellm_params:
       <<: *anthropic_litellm_params
       model: anthropic/claude-haiku-4-5
@@ -510,13 +510,15 @@ router_settings:
   # Required for per-user OAuth tokens: one expired `sk-ant-oat01` would
   # otherwise cooldown the deployment and surface 429s for everyone else.
   disable_cooldowns: true
-  # Claude Code's auto-mode permission classifier requests a bare
-  # `claude-sonnet-5` (server-side flag, ignores ANTHROPIC_DEFAULT_*_MODEL and
-  # CLAUDE_CODE_AUTO_MODE_MODEL). Unmatched, every classifier call fails and
-  # auto mode blocks the tool call. Route it to Sonnet 5.5.
+  # Claude Code's auto-mode permission classifier requests
+  # `claude-sonnet-5` / `claude-sonnet-5[1m]` (server-side flag, ignores
+  # ANTHROPIC_DEFAULT_*_MODEL and CLAUDE_CODE_AUTO_MODE_MODEL). Unmatched,
+  # every classifier call fails and auto mode blocks the tool call. Route it to
+  # Sonnet 5.5 (same price, cheaper cache reads). The alias takes precedence
+  # over the legacy `claude-sonnet-5` deployment, which is unreachable by name.
   model_group_alias:
-    claude-sonnet-5: anthropic/claude-sonnet-5-5
-    claude-sonnet-5[1m]: anthropic/claude-sonnet-5-5
+    claude-sonnet-5: claude-sonnet-5-5
+    claude-sonnet-5[1m]: claude-sonnet-5-5
 
 litellm_settings:
   success_callback: ["prometheus"]

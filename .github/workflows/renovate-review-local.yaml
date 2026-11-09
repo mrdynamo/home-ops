@@ -74,7 +74,7 @@ jobs:
           # ai-primary-retry-delay-sec: '30'
           # ai-fallback-api-format: 'anthropic'
           # ai-fallback-base-url: "http://litellm.ai.svc:4000"
-          # ai-fallback-model: "minimax/MiniMax-M2.7"
+          # ai-fallback-model: "minimax-m2.7"
           # ai-fallback-api-key: ${{ secrets.LITELLM_API_KEY }}
           allowed-source-hosts: 'github.com,api.github.com,artifacthub.io,talos.dev,www.talos.dev'
           context-limit-mode: normal

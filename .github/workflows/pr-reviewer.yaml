@@ -44,7 +44,7 @@ jobs:
           curl -fsS \
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
             http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
-          grep -q 'minimax/MiniMax-M3' /tmp/litellm-models.json
+          grep -q 'minimax-m3' /tmp/litellm-models.json
 
       - name: Log LiteLLM session id
         run: |
@@ -122,7 +122,7 @@ jobs:
           github-token: ${{ steps.claude-token.outputs.token }}
           ai-api-format: anthropic
           ai-base-url: "http://litellm.ai.svc:4000/v1"
-          ai-model: "minimax/MiniMax-M3"
+          ai-model: "minimax-m3"
           ai-api-key: ${{ secrets.LITELLM_API_KEY }}
           # Stable per-run LiteLLM session id (misospace/pr-reviewer-action#1037).
           ai-extra-headers: |
@@ -172,7 +172,7 @@ jobs:
           evidence-blocker-enforcement: 'true'
           # Reasoning-model output headroom — the v3 inputs page warns
           # under-sized caps on reasoning models produce finish_reason=length
-          # and fail verdict JSON parsing. minimax/MiniMax-M3's max_output
+          # and fail verdict JSON parsing. minimax-m3's max_output
           # is 131072, so leave headroom for both the verdict JSON and the
           # review_markdown body without hitting the provider clamp.
           ai-max-tokens: '131072'

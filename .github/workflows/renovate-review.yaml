@@ -44,7 +44,7 @@ jobs:
           curl -fsS \
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
             http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
-          grep -q 'minimax/MiniMax-M3' /tmp/litellm-models.json
+          grep -q 'minimax-m3' /tmp/litellm-models.json
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe # v1.0.269
@@ -53,11 +53,12 @@ jobs:
         with:
           settings: |
             {
-              "model": "minimax/MiniMax-M3",
+              "model": "minimax-m3",
               "env": {
-                "ANTHROPIC_DEFAULT_SONNET_MODEL": "minimax/MiniMax-M3",
-                "ANTHROPIC_DEFAULT_OPUS_MODEL": "minimax/MiniMax-M3",
-                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "minimax/MiniMax-M3",
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": "minimax-m3",
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": "minimax-m3",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "minimax-m3",
+                "ANTHROPIC_DEFAULT_FABLE_MODEL": "minimax-m3",
                 "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
               },
               "enableAllProjectMcpServers": false
@@ -67,7 +68,7 @@ jobs:
           show_full_output: true
           allowed_bots: "robot-rosey[bot]"
           claude_args: |
-            --model minimax/MiniMax-M3
+            --model minimax-m3
             --allowedTools "Read,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh api:*),Bash(gh release view:*),Bash(gh release list:*),Bash(git log:*),Bash(curl:*),WebFetch,WebSearch"
           prompt: |
             You research dependency upgrades in Renovate pull requests and submit a GitHub PR review
