@@ -244,7 +244,21 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
      'for c in /sys/devices/system/cpu/cpu[0-9]*; do echo "$(basename $c) $(cat $c/cpuidle/state2/disable)$(cat $c/cpuidle/state3/disable) $(cat $c/cpuidle/state2/usage) $(cat $c/cpuidle/state3/usage)"; done'
    ```
 
-   Revert: the same loop, writing `0`. Cost: an estimated 5–10 W more at idle (not measured; compare the smart plug's power reading if it has one), and none under load.
+   Revert: the same loop, writing `0`.
+
+   **Effect on power: it went *down*, from about 60 W to about 30 W at the smart plug.** The workload did not change. Averages over the 12 h before the change, compared with the 12 h ending 2026-11-09 00:00:
+
+   | | Before (deep C-states) | After (C1 only) |
+   |---|---|---|
+   | CPU busy (cores) | 1.06 | 1.17 |
+   | Interrupts/s | 16,178 | 16,166 |
+   | Average CPU frequency | 3.48 GHz | 2.90 GHz |
+   | Average max temperature | 69.3 °C | 56.9 °C |
+   | CPU package power (RAPL) | not recorded | 20.9 W (one 10 s sample) |
+
+   The likely reason is turbo. Intel counts a core in C1 as *active* and a core in C6 or deeper as *inactive*. With the idle cores in deep states, the few busy ones could use the 1–2-core turbo bins (up to 4.6 GHz on the i5-11500), which need the highest voltage. With C1 only, all cores count as active, so the lower all-core turbo limit applies. Power scales with frequency × voltage², and Rocket Lake is very inefficient at its top bins. The energy spent on about 700 deep-state exits a second per thread adds a little more. The cost is a little single-thread peak speed, which this workload does not need.
+
+   **This affects how to read the test.** It removes two things at once: deep C-states, and high-voltage single-core turbo. If the freezes stop, either could have been the cause. To tell them apart later, re-enable the C-states with turbo capped (for example `echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo`) and see whether freezes return.
 
    **Permanently (if the test passes).** Add `processor.max_cstate=1` to the schematic (`acpi_idle` honours it; `intel_idle.max_cstate=1` only helps if `intel_idle` drives this CPU, which is unconfirmed for Rocket Lake), then `just talos upgrade-node k8s-04`. After it boots, check that `state2` and `state3` are gone from `/sys/devices/system/cpu/cpu0/cpuidle/`, or that their `usage` stays at 0. If it passes, it can be loosened later one state at a time, to win power back.
 3. **NVMe power saving off:** `nvme_core.default_ps_max_latency_us=0` (also row C).
@@ -293,6 +307,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-07 | Freeze (dark 09:32:24); HA power-cycled at about 09:42 | Evidence captured: whole-machine hard lock at idle (§2) |
 | 2026-11-08 | `kube-state-metrics` kept off k8s-04 | Removes the ~6 min delay in the HA trigger |
 | 2026-11-08 02:02 | **§7 B2 at runtime:** `state2` and `state3` disabled on all 12 CPUs (C1 is now the deepest state). Lost on reboot | Testing. Pass = no freeze before 2026-11-22 |
+| 2026-11-09 | Measured the effect of the C-state limit | Wall power about 60 W → about 30 W; average frequency 3.48 → 2.90 GHz; −12 °C at the same load. Also removes high single-core turbo (see §7 B2) |
 
 ---
 
