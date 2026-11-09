@@ -15,4 +15,4 @@ spec:
     grafanaDashboard:
       enabled: true
     serviceMonitor:
-      enable: true
+      enabled: true
