@@ -31,6 +31,44 @@ Trace the dependency chain to its origin. Changelogs live at the source, not alw
 the wrapper. A Docker image bump from v1.2 to v1.3 might re-wrap an upstream tool that
 jumped from 4.0 to 5.0; the meaningful changelog is the upstream one.
 
+#### Your tools
+
+You work through read-only tools; use their exact names:
+
+- `read_file` / `find_files` / `grep` — this repository's checked-out files.
+- `gh_api` — GitHub REST reads (`repos/…`, `releases/…`, `git/…`, `search/…`) on any
+  repo. Releases: `repos/<owner>/<repo>/releases/tags/<tag>` or
+  `repos/<owner>/<repo>/releases?per_page=30`. Compare / commits between versions:
+  `repos/<owner>/<repo>/compare/<old>...<new>`.
+- `repo_contents` — files or directory listings in another GitHub repo (e.g.
+  `CHANGELOG.md`, `UPGRADING.md`, `docs/`, a chart's `Chart.yaml`).
+- `web_search` — a search engine. Use it to find release notes, migration guides, or
+  "what's new" pages you don't have a URL for, then open the best hit with `web_fetch`.
+- `web_fetch` — opens a URL on the host allowlist stated in your first turn. A search
+  result on an unlisted host cannot be fetched; pick a listed host's result instead
+  (a GitHub copy of the doc, the vendor's docs site) rather than retrying.
+- `mcp__konflate__*` — rendered cluster impact (see below).
+
+There is no shell and no `git`; use `gh_api` compare/commits for history.
+
+#### Budget your calls
+
+You have a fixed tool-call budget (the remaining count is stated each turn). Spend it in
+this order, and stop exploring once each package has authoritative notes:
+
+1. Anything already in the corpus — the **Evidence Providers** section and the PR body —
+   costs nothing. Read it first and do not re-fetch what it already contains.
+2. Konflate: `get_pr_summary` (one call), then `get_pr_diff` only for resources a
+   caution names.
+3. Upstream release notes for every version in the range, via `gh_api` releases.
+4. Wrapper vs. inner component, CHANGELOG/UPGRADING files, `compare` commit scans.
+5. `web_search` + `web_fetch` for vendor docs or migration guides the above didn't cover.
+6. `grep` / `read_file` this repo for each key, flag, or default the notes say changed.
+
+Prefer one call that returns a list (e.g. `releases?per_page=30`) over one call per tag.
+
+#### Where to look
+
 Follow breadcrumbs systematically. When one source is a dead end, try the next:
 
 - **PR body**: Check for linked release notes; start there.
@@ -42,13 +80,17 @@ Follow breadcrumbs systematically. When one source is a dead end, try the next:
 - **Wrapper changelogs**: For wrapper upgrades (charts, images, meta-packages), check
   changelogs for both the wrapper AND the underlying component separately. These are
   independent version streams with independent breaking changes.
-- **Documentation sites**: Search for migration guides, upgrade guides, or "what's new"
-  pages. These often contain deprecation notices not mentioned in changelogs.
-- **Commit history**: If no changelog exists, scan commit messages between the two
-  tags/versions for keywords: breaking, deprecat, remov, renam, migrat, drop, require.
+- **Documentation sites**: Use `web_search` for migration guides, upgrade guides, or
+  "what's new" pages. These often contain deprecation notices not mentioned in changelogs.
+- **Commit history**: If no changelog exists, scan the `compare` commit messages between
+  the two tags/versions for keywords: breaking, deprecat, remov, renam, migrat, drop,
+  require.
 - **Registry metadata**: When a repo has no releases or changelog, check the README or
   container registry (Docker Hub, GHCR, quay.io) for links to the upstream project.
-- **Web search**: Last resort for hard-to-find changelogs or community migration reports.
+- **Release not published yet**: If the new tag exists but its release/notes do not
+  (images sometimes ship hours before the notes), say so explicitly, summarize the
+  `compare` commits instead, and raise it as a `major` finding rather than a `blocker`
+  unless those commits show a real breaking change.
 
 **Dead ends**: If the repo has no releases, no CHANGELOG, and no useful commit messages,
 check the project README for links to an external documentation site, the registry page
@@ -77,10 +119,11 @@ render failures — signals a raw `git diff` cannot show. Use the following tool
 PR that touches Kubernetes manifests, HelmReleases, OCIRepositories, Kustomizations, or
 Flux resources:
 
-- `mcp__konflate__list_pull_requests` — confirm the PR is registered with Konflate; if
-  it isn't, surface that as an `unresolved` required check rather than guessing.
-- `mcp__konflate__get_pr_summary` — fetch the cluster-impact summary, caution lint
-  list, image changes, and render status for the current PR number.
+- `mcp__konflate__get_pr_summary` — call this first: the cluster-impact summary, caution
+  lint list, image changes, and render status for the current PR number.
+- `mcp__konflate__list_pull_requests` — only if `get_pr_summary` errors or reports the
+  PR unknown: confirm whether the PR is registered with Konflate; if it isn't, surface
+  that as an `unresolved` required check rather than guessing.
 - `mcp__konflate__get_pr_diff` — fetch one resource's rendered diff; pass the
   `resource` argument (a resource id like `r0` or a title substring) to keep the
   response bounded. Use this when the summary's caution lints reference specific
@@ -148,7 +191,9 @@ This body must be returned as your `review_markdown` JSON key.
   "internal gateway", "private endpoint", or "redacted").
 - Do not paste raw command output, logs, or full diffs into the review body; summarize
   findings using sanitized, high-level wording only.
-- Check git history for context: `git log --oneline --grep="<package>" -n 10`
+- For this repo's history of the package (earlier bumps, reverts, pinned workarounds),
+  use `gh_api` `search/commits?q=repo:<this repo>+<package>` or
+  `search/issues?q=repo:<this repo>+is:pr+<package>` — there is no `git` CLI
 - If unclear, research more rather than guess
 - When stuck (private repo, ambiguous package, no changelog anywhere), report what you
   found and what you could not find rather than fabricating information

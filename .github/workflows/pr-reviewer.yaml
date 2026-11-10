@@ -14,7 +14,9 @@ jobs:
     if: github.event.pull_request.user.login == 'robot-rosey[bot]'
     name: AI PR Reviewer
     runs-on: arc-home-ops-runner
-    timeout-minutes: 15
+    # Primary loop (up to 900s wall clock) + optional smart re-review loop
+    # (inherits the same 900s) + evidence providers and publish.
+    timeout-minutes: 40
 
     permissions:
       contents: read
@@ -45,6 +47,25 @@ jobs:
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
             http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
           grep -qF '"minimax-m3.1-flash"' /tmp/litellm-models.json
+          # Smart lane (review-routing-mode: auto). Quoted match so it does
+          # not pass on the "minimax-m3.1-flash" substring.
+          grep -qF '"minimax-m3"' /tmp/litellm-models.json
+
+      - name: Verify SearXNG Reachability
+        run: |
+          set -euo pipefail
+          # The action reports a failed web_search in-band and carries on,
+          # so a dead endpoint (or JSON format disabled) would silently drop
+          # search. Fail on HTTP/JSON errors; only warn on zero results,
+          # since upstream engines can be transiently empty or rate-limited.
+          curl -fsS --max-time 20 \
+            'http://searxng.ai.svc.cluster.local:8080/search?q=kubernetes&format=json' \
+            > /tmp/searxng-probe.json
+          python3 -c "
+          import json
+          r = json.load(open('/tmp/searxng-probe.json')).get('results') or []
+          print(f'OK: SearXNG returned {len(r)} results') if r else print('::warning::SearXNG returned no results; web_search may be degraded')
+          "
 
       - name: Log LiteLLM session id
         run: |
@@ -124,6 +145,12 @@ jobs:
           ai-base-url: "http://litellm.ai.svc:4000/v1"
           ai-model: "minimax-m3.1-flash"
           ai-api-key: ${{ secrets.LITELLM_API_KEY }}
+          # Primary-first routing: flash runs every review; when it sets the
+          # structured smart_review_requested field, full MiniMax-M3 (what the
+          # old claude-code-action workflow used) re-reviews. Smart lane
+          # inherits ai-base-url / ai-api-format / ai-api-key.
+          review-routing-mode: auto
+          ai-smart-model: "minimax-m3"
           # Stable per-run LiteLLM session id (misospace/pr-reviewer-action#1037).
           ai-extra-headers: |
             x-litellm-session-id: AI_PR-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -148,9 +175,30 @@ jobs:
           evidence-providers-file: .github/pr-review-providers.json
           evidence-provider-timeout-sec: "60"
           evidence-provider-max-output-bytes: "80000"
-          # Allow direct fetches of URLs Renovate embeds in PR bodies for
-          # registries beyond github.com.
-          allowed-source-hosts: "github.com,api.github.com,quay.io,docker.io,ghcr.io,gitlab.com,registry.terraform.io,artifacthub.io"
+          # Hosts web_fetch may open — Renovate-embedded links AND web_search
+          # results. Matching is exact-hostname only (no wildcards), and a
+          # search hit on an unlisted host cannot be fetched, so list the
+          # vendor doc sites for the apps this repo actually runs.
+          allowed-source-hosts: >-
+            github.com,api.github.com,raw.githubusercontent.com,gist.githubusercontent.com,
+            quay.io,docker.io,hub.docker.com,ghcr.io,gitlab.com,
+            registry.terraform.io,artifacthub.io,
+            kubernetes.io,gateway-api.sigs.k8s.io,fluxcd.io,
+            www.talos.dev,talos.dev,docs.cilium.io,
+            cert-manager.io,external-secrets.io,cloudnative-pg.io,
+            longhorn.io,openebs.io,volsync.readthedocs.io,
+            prometheus.io,grafana.com,docs.victoriametrics.com,docs.fluentbit.io,
+            docs.goauthentik.io,docs.litellm.ai,docs.renovatebot.com,
+            docs.openwebui.com,docs.searxng.org,
+            wiki.servarr.com,trash-guides.info,docs.paperless-ngx.com,
+            docs.mealie.io,docs.karakeep.app,gatus.io,
+            developer.1password.com,developers.cloudflare.com
+          # Turns on the native-loop web_search tool via the in-cluster
+          # SearXNG (JSON format enabled; its limiter passes 10.0.0.0/8, so
+          # runner pods are not bot-blocked). web_search uses a plain fetch,
+          # not web_fetch's public-address guard, so a cluster URL works.
+          search-url: "http://searxng.ai.svc.cluster.local:8080/search"
+          tool-max-search-results: '8'
           # Let v3.2.0+ derive tool-loop evidence budgets from the model's
           # declared 512k window (otherwise v2's ~50KB / ~12KB defaults apply).
           model-context-tokens: '524288'
@@ -162,6 +210,14 @@ jobs:
           # resource quota / limit changes) against the actual HelmRelease
           # diff instead of returning them unresolved.
           tool-allowed-gh-api-repos: '*'
+          # v3.8.0's tier default is ~24 calls on the primary route, and every
+          # review was ending on tool_stop_reason=tool-call-budget-exhausted
+          # at ~25-30k of a 131k context budget. 50 is the action's hard
+          # ceiling; the round cap scales with it (bounded at 32) as long as
+          # tool-max-rounds stays unset. Applies to the smart route too.
+          tool-max-requests: '50'
+          # Default 600s; 50 calls (plus search + fetch latency) need room.
+          tool-loop-wall-clock-sec: '900'
           # Surface tool-loop failures and provider shortfalls as required-
           # check `unresolved` so verdict-policy's strict completeness check
           # has a real signal to grade — matches renovate-review-local.yaml.
