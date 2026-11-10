@@ -10,6 +10,11 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.32.1
-    digest: sha256:39caa565eaac9388bf5d86b9853e7535ae41703b4068475ea553c3e97754c06f
-  url: oci://ghcr.io/aquasecurity/helm-charts/trivy-operator
+    tag: 0.38.1
+    digest: sha256:1f4f7e03528d1751892d03058df1403879d90d3f79988d3e67aedcedce77f981
+  url: oci://ghcr.io/home-operations/charts-mirror/trivy-operator
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/home-operations/charts-mirror/\.github/workflows/app-builder\.yaml@refs/heads/main$'
