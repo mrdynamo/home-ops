@@ -14,8 +14,9 @@ jobs:
     if: github.event.pull_request.user.login == 'robot-rosey[bot]'
     name: AI PR Reviewer
     runs-on: arc-home-ops-runner
-    # Primary loop (up to 900s wall clock) + optional smart re-review loop
-    # (inherits the same 900s) + evidence providers and publish.
+    # Worst case: CI-status wait (ci-timeout-sec, 300s) + tool loop
+    # (tool-loop-wall-clock-sec, 900s) + evidence provider (60s) + final
+    # review call (up to 131k output tokens) + setup/publish. 30 was tight.
     timeout-minutes: 40
 
     permissions:
@@ -47,9 +48,6 @@ jobs:
             -H "Authorization: Bearer ${LITELLM_API_KEY}" \
             http://litellm.ai.svc:4000/v1/models > /tmp/litellm-models.json
           grep -qF '"minimax-m3.1-flash"' /tmp/litellm-models.json
-          # Smart lane (review-routing-mode: auto). Quoted match so it does
-          # not pass on the "minimax-m3.1-flash" substring.
-          grep -qF '"minimax-m3"' /tmp/litellm-models.json
 
       - name: Verify SearXNG Reachability
         run: |
@@ -143,14 +141,11 @@ jobs:
           github-token: ${{ steps.claude-token.outputs.token }}
           ai-api-format: anthropic
           ai-base-url: "http://litellm.ai.svc:4000/v1"
+          # M3.1-Flash benchmarks level with or ahead of M3 on agentic/tool
+          # use; review depth comes from the tool budget, search and fetch
+          # allowlist below, not from the model swap.
           ai-model: "minimax-m3.1-flash"
           ai-api-key: ${{ secrets.LITELLM_API_KEY }}
-          # Primary-first routing: flash runs every review; when it sets the
-          # structured smart_review_requested field, full MiniMax-M3 (what the
-          # old claude-code-action workflow used) re-reviews. Smart lane
-          # inherits ai-base-url / ai-api-format / ai-api-key.
-          review-routing-mode: auto
-          ai-smart-model: "minimax-m3"
           # Stable per-run LiteLLM session id (misospace/pr-reviewer-action#1037).
           ai-extra-headers: |
             x-litellm-session-id: AI_PR-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -167,7 +162,10 @@ jobs:
           allow-approve: "true"
           upstream-link-mode: togithub
           system-prompt-file: .github/pr-review-prompt.md
-          # standards-file: .github/pr-review-rules.md
+          # Repo conventions + how this cluster actually uses each component,
+          # so the reviewer can dismiss upstream changes to features we don't
+          # use and flag the ones we do.
+          standards-file: .github/ai-review-rules.md
           # Pull release notes for any container/chart upgrade the PR touches.
           # Runs even when the PR body has no upstream URLs (the case Renovate
           # bumps fall into most often), so the model always has the upstream
@@ -214,10 +212,27 @@ jobs:
           # review was ending on tool_stop_reason=tool-call-budget-exhausted
           # at ~25-30k of a 131k context budget. 50 is the action's hard
           # ceiling; the round cap scales with it (bounded at 32) as long as
-          # tool-max-rounds stays unset. Applies to the smart route too.
+          # tool-max-rounds stays unset.
           tool-max-requests: '50'
           # Default 600s; 50 calls (plus search + fetch latency) need room.
           tool-loop-wall-clock-sec: '900'
+          # Per-result cap. The derived value from a 512k window is ~2% of it;
+          # 64000 is the action's documented ceiling and keeps long release
+          # notes / CHANGELOG sections from being cut mid-entry. (web_fetch
+          # has its own fixed ~10KB decoded-text cap that this does not lift.)
+          tool-max-response-bytes: '64000'
+          # Default 16384. More room per turn for a reasoning model to plan
+          # the next call without hitting finish_reason=length.
+          tool-max-tokens-per-turn: '32768'
+          # With 50 calls the conversation can outgrow its compaction budget;
+          # fold the oldest results into a model-written digest (versions,
+          # paths, URLs, findings) instead of truncating them.
+          tool-loop-summarize: 'true'
+          tool-loop-summarize-max-tokens: '2048'
+          # Discover .agents/skills/*/SKILL.md from the trusted base ref; the
+          # model reads a relevant skill on demand (e.g. the CNPG/TimescaleDB
+          # upgrade procedure). Grants no tools.
+          repository-skills: 'true'
           # Surface tool-loop failures and provider shortfalls as required-
           # check `unresolved` so verdict-policy's strict completeness check
           # has a real signal to grade — matches renovate-review-local.yaml.

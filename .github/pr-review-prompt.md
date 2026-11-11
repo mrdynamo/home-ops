@@ -48,6 +48,10 @@ You work through read-only tools; use their exact names:
   result on an unlisted host cannot be fetched; pick a listed host's result instead
   (a GitHub copy of the doc, the vendor's docs site) rather than retrying.
 - `mcp__konflate__*` — rendered cluster impact (see below).
+- `read_skill` — loads a repository skill from the catalog in your first turn. Read
+  the matching one before judging a change it covers (e.g.
+  `timescaledb-cnpg-extension-upgrade` for CNPG Postgres or TimescaleDB extension
+  image bumps).
 
 There is no shell and no `git`; use `gh_api` compare/commits for history.
 
@@ -56,10 +60,12 @@ There is no shell and no `git`; use `gh_api` compare/commits for history.
 You have a fixed tool-call budget (the remaining count is stated each turn). Spend it in
 this order, and stop exploring once each package has authoritative notes:
 
-1. Anything already in the corpus — the **Evidence Providers** section and the PR body —
-   costs nothing. Read it first and do not re-fetch what it already contains.
-2. Konflate: `get_pr_summary` (one call), then `get_pr_diff` only for resources a
-   caution names.
+1. Anything already in the corpus — the **Evidence Providers** section (upstream release
+   notes), the repository standards, and the PR body — costs nothing. Read it first and
+   do not re-fetch what it already contains.
+2. Konflate: `get_pr_summary` (one call), then `get_pr_diff` for resources a caution
+   names and, on a Helm chart bump, for the app's workload resources (Deployment,
+   StatefulSet, DaemonSet, ConfigMap) — skip CRD-only diffs unless a caution names one.
 3. Upstream release notes for every version in the range, via `gh_api` releases.
 4. Wrapper vs. inner component, CHANGELOG/UPGRADING files, `compare` commit scans.
 5. `web_search` + `web_fetch` for vendor docs or migration guides the above didn't cover.
@@ -220,6 +226,21 @@ In particular:
   it returns content under `# Evidence Providers`, cite its `source` link, not
   the upstream homepage, and use its content for breaking-change/deprecation
   claims.
+- **For Helm chart bumps, Konflate's rendered diff is the source of truth for
+  what reaches the cluster**, including chart default changes this repo never
+  touched (the summary lists image changes; `get_pr_diff` on a resource shows the
+  rest). Judge each changed default: a new CPU limit, a security context, a
+  storage/persistence default, an image registry/repository swap, or a changed
+  update/replace strategy is at least `minor`; a routine subchart image tag bump
+  is `info` or nothing. A resource or setting that disappears from the render is
+  usually a renamed or removed values key this repo sets: find the key in the
+  HelmRelease and the chart's values.yaml at both tags, and report it as `major`.
+  If the chart's `kubeVersion` changes, compare it against `kubernetesVersion` in
+  `talos/topf.yaml`; an unsatisfied constraint is a `blocker`.
+- **Repository standards** (`.github/ai-review-rules.md`, in the corpus) list which
+  upstream features this cluster uses and which it doesn't. Use them to dismiss
+  breaking changes in unused features — say which feature and why — and to flag
+  changes in used ones against the file they name.
 - **Linked Sources** content is auxiliary. If it contradicts an Evidence
   Provider finding (e.g. reports a doc-fetch failure while the evidence
   provider already has the content), defer to the evidence provider.
