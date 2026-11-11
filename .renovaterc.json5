@@ -1,53 +1,51 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  //
-  // Disable status check due to failures
-  // https: //github.com/renovatebot/renovate/issues/44119
-  //
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   statusCheckNames: {
     minimumReleaseAge: null,
   },
   extends: [
-    "config:recommended",
-    "docker:enableMajor",
-    "helpers:pinGitHubActionDigests",
-    "github>mrdynamo/home-ops//.renovate/autoMerge.json5",
-    "github>mrdynamo/home-ops//.renovate/changelogs.json5",
-    "github>mrdynamo/home-ops//.renovate/customManagers.json5",
-    "github>mrdynamo/home-ops//.renovate/grafanaDashboards.json5",
-    "github>mrdynamo/home-ops//.renovate/groups.json5",
-    "github>mrdynamo/home-ops//.renovate/labels.json5",
-    "github>mrdynamo/home-ops//.renovate/overrides.json5",
-    "github>mrdynamo/home-ops//.renovate/semanticCommits.json5",
-    "github>mrdynamo/home-ops//.renovate/talosFactory.json5",
-    ":automergeBranch",
-    ":disableRateLimiting",
-    ":dependencyDashboard",
-    ":semanticCommits",
-    ":timezone(America/Chicago)",
+    'config:recommended',
+    'docker:enableMajor',
+    'helpers:pinGitHubActionDigests',
+    'github>mrdynamo/home-ops//.renovate/autoMerge.json5',
+    'github>mrdynamo/home-ops//.renovate/changelogs.json5',
+    'github>mrdynamo/home-ops//.renovate/customManagers.json5',
+    'github>mrdynamo/home-ops//.renovate/grafanaDashboards.json5',
+    'github>mrdynamo/home-ops//.renovate/groups.json5',
+    'github>mrdynamo/home-ops//.renovate/labels.json5',
+    'github>mrdynamo/home-ops//.renovate/overrides.json5',
+    'github>mrdynamo/home-ops//.renovate/semanticCommits.json5',
+    'github>mrdynamo/home-ops//.renovate/talosFactory.json5',
+    ':automergeBranch',
+    ':disableRateLimiting',
+    ':dependencyDashboard',
+    ':semanticCommits',
+    ':timezone(America/Chicago)',
   ],
-  dependencyDashboardTitle: "Renovate Dashboard 🤖",
+  dependencyDashboard: {
+    title: 'Renovate Dashboard 🤖',
+  },
   suppressNotifications: [
-    "prEditedNotification",
-    "prIgnoreNotification",
+    'prEditedNotification',
+    'prIgnoreNotification',
   ],
   ignorePaths: [
-    "**/resources/**",
-    "**/*.sops.*"
+    '**/resources/**',
+    '**/*.sops.*',
   ],
   flux: {
     managerFilePatterns: [
-      "/\\.yaml(?:\\.j2)?$/"
+      '/\\.yaml(?:\\.j2)?$/',
     ],
   },
-  "helm-values": {
+  'helm-values': {
     managerFilePatterns: [
-      "/\\.yaml(?:\\.j2)?$/"
+      '/\\.yaml(?:\\.j2)?$/',
     ],
   },
   kubernetes: {
     managerFilePatterns: [
-      "/\\.yaml(?:\\.j2)?$/"
+      '/\\.yaml(?:\\.j2)?$/',
     ],
   },
 }
