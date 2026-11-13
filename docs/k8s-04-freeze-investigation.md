@@ -7,7 +7,7 @@ description: Why k8s-04 freezes and never recovers, what was put in place to cap
 
 > **Status (2026-11-08):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe.
 >
-> **Test in progress (since 2026-11-08 02:02 UTC):** C-states C2 and C3 are disabled at runtime (§7 B2). This **does not survive a reboot**: re-apply it after every power-cycle, or the test is void. **Pass condition:** no freeze before 2026-11-22. **Next:** test the watchdog (§6) when convenient.
+> **Test in progress (since 2026-11-08 02:02 UTC):** C-states C2 and C3 are disabled at runtime (§7 B2). Until the next upgrade this **does not survive a reboot**: re-apply it after every power-cycle, or the test is void. `processor.max_cstate=1` is now in the schematic, so it becomes permanent with the combined upgrade and BIOS change in §2a ("Steps"). **Pass condition:** no freeze before 2026-11-22. **Next:** test the watchdog (§6) when convenient.
 >
 > **Workaround in place:** Home Assistant power-cycles k8s-04's smart outlet when `HomeAssistantPowercycleK8s04Trigger` fires. Leave it as is: the node never recovers by itself.
 >
@@ -168,15 +168,31 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
 
    **The setting:** `Advanced → Intel(R) DPTF Support → Disabled`. It sits directly on the Advanced page, below "Dust Shield Alert", not in the "CPU Setup" submenu. Its WMI name is `IntelDPTFSupport`; the default is Enabled. Confirmed for this machine: `IntelDPTFSupport` is in the BIOS-settings table in k8s-04's DSDT (ThinkCentre M90q Gen 2, BIOS `M3JKT44A`), listed between `DustShieldAlert` and the Power page's `AfterPowerLoss`. Lenovo documents it in its [ThinkCentre BIOS settings dictionary, Advanced page](https://docs.lenovocdrt.com/ref/bios/settings/thinkcentre/advanced/). If a supervisor password is set, it's needed to change this setting.
 
-   Steps:
-   1. Pause the Home Assistant power-cycle automation, then run `kubectl drain k8s-04 --ignore-daemonsets --delete-emptydir-data`.
-   2. Reboot, and press **F1** repeatedly at the Lenovo logo to open Setup Utility. A monitor and USB keyboard on the node are required.
-   3. Go to the **Advanced** tab and set **Intel(R) DPTF Support** to **Disabled**.
-   4. Press **F10** and choose Yes to save and exit.
-   5. When it's back: `kubectl uncordon k8s-04`, re-enable the automation, and re-apply the runtime C-state limit (§7 B2).
-   6. Check: `cat /sys/bus/acpi/devices/INTC1040:00/status` should read `0`, or the device is gone.
+   **Steps: BIOS change and permanent C-state limit, in one reboot.** The schematic now carries `processor.max_cstate=1` (§7 B2), which gives k8s-04 a new schematic ID (`eae5a814…`, replacing `2d15e475…`; no other node changes). `just talos upgrade-node k8s-04` installs that image and then power-cycles the node. Catch that power-cycle in the BIOS:
 
-   The same CPU Setup submenu also has `C-State Support` (`CStateSupport`), a possible permanent BIOS alternative to the §7 B2 runtime C-state limit. Don't change it in the same session: one change at a time.
+   1. Have a monitor and USB keyboard on k8s-04, and the BIOS supervisor password if one is set.
+   2. **Pause the Home Assistant power-cycle automation.** Otherwise it can cut power while you're in the BIOS.
+   3. `kubectl drain k8s-04 --ignore-daemonsets --delete-emptydir-data`
+   4. `just talos upgrade-node k8s-04`. It installs the new image, then power-cycles.
+   5. At the Lenovo logo, press **F1** repeatedly to open Setup Utility. Go to **Advanced**, set **Intel(R) DPTF Support** to **Disabled**, then press **F10** and choose **Yes**. The firmware resets once more and boots the new image. If you miss the F1 window, let it boot, finish the checks below, and do the BIOS change on a second reboot (`just talos reboot-node k8s-04`). `topf upgrade` may report a timeout if you stay in the BIOS a while; check the node with `talosctl -n 192.168.30.24 version`.
+   6. Verify:
+
+      ```bash
+      talosctl -n 192.168.30.24 get extensions | grep schematic          # eae5a814…
+      talosctl -n 192.168.30.24 read /proc/cmdline | tr ' ' '\n' | grep -E 'cstate'   # processor.max_cstate=1
+      kubectl -n observability exec ds/node-forensics -- sh -c '
+        echo "max_cstate=$(cat /sys/module/processor/parameters/max_cstate)"           # 1
+        ls /sys/devices/system/cpu/cpu0/cpuidle/                                       # state0 state1 only
+        echo "IETM status=$(cat /sys/bus/acpi/devices/INTC1040:00/status 2>/dev/null || echo absent)"  # 0 or absent
+        cat /sys/firmware/acpi/interrupts/gpe24
+        grep SUnreclaim /proc/meminfo'
+      ```
+
+      Then run the load test below and confirm `gpe24` stays flat. **Don't re-run the runtime C-state loop**; it's no longer needed, and `state2`/`state3` won't exist.
+   7. `kubectl uncordon k8s-04`, and re-enable the Home Assistant automation.
+   8. Log both changes in §9 with the date and time. From then on, a freeze-free run tests both changes together (see "Is it connected to the hard freezes?").
+
+   The CPU Setup submenu also has `C-State Support` (`CStateSupport`), a BIOS alternative to `processor.max_cstate=1`. Leave it as it is: the kernel argument already covers this.
 
    With DPTF off, the BIOS applies its fixed CPU power limits instead of DPTF-managed ones, and the EC's Intelligent Cooling fan curve (`Power → Intelligent Cooling`) keeps control of the fan.
 
@@ -202,7 +218,7 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
    ```
 
    Fan control stays with the EC; watch temperatures for a day. This is also a BIOS change, so log it in §9 and note that it confounds the C-state test.
-2. **Until then, reboot on a schedule.** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). Re-apply the runtime C-state limit after each reboot.
+2. **Until then, reboot on a schedule.** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). Until the upgrade above, re-apply the runtime C-state limit after each reboot.
 3. **Make the OS answer the keep-alive:** this needs a kernel with `CONFIG_INT340X_THERMAL` and a `thermald` that writes `imok`. Neither is available on Talos today. A kernel-config request to Sidero is the long-term path if the BIOS route doesn't work.
 4. **Override `_L24`:** the kernel has `CONFIG_ACPI_TABLE_UPGRADE=y`, so a patched SSDT1 could be loaded from an early initramfs. Talos doesn't support adding one, so this is a last resort.
 5. **Masking the GPE (tested, doesn't work):** see "Validation" above.
@@ -375,7 +391,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 
    **This affects how to read the test.** It removes two things at once: deep C-states, and high-voltage single-core turbo. If the freezes stop, either could have been the cause. To tell them apart later, re-enable the C-states with turbo capped (for example `echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo`) and see whether freezes return.
 
-   **Permanently (if the test passes).** Add `processor.max_cstate=1` to the schematic (`acpi_idle` honours it; `intel_idle.max_cstate=1` only helps if `intel_idle` drives this CPU, which is unconfirmed for Rocket Lake), then `just talos upgrade-node k8s-04`. After it boots, check that `state2` and `state3` are gone from `/sys/devices/system/cpu/cpu0/cpuidle/`, or that their `usage` stays at 0. If it passes, it can be loosened later one state at a time, to win power back.
+   **Permanently (in the schematic since 2026-11-13; takes effect with the next upgrade).** `processor.max_cstate=1` is in `talos/schematics/worker-intel-gpu.yaml.j2`. It was checked on the node first: the idle driver is `acpi_idle`, whose built-in `processor` module has a `max_cstate` parameter (currently `8`). With it set to `1`, `acpi_idle` registers only `state0` (POLL) and `state1` (C1), the same limit as the runtime test. `intel_idle.max_cstate=0` stays, so that `acpi_idle` remains the driver. Apply it with the combined procedure in §2a ("Steps"). After it boots, `/sys/module/processor/parameters/max_cstate` reads `1`, and `cpu0/cpuidle/` has no `state2` or `state3`. It can be loosened later, one state at a time, to win power back.
 3. **NVMe power saving off:** `nvme_core.default_ps_max_latency_us=0` (also row C).
 4. **Hardware checks:** run memtest86+ for a full pass, overnight, from USB. Check Lenovo support for a BIOS newer than `M3JKT44A`.
 
@@ -436,6 +452,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-13 15:57–16:47 | Out-of-memory stalls (NotReady, up to 3.6 min), **not a freeze**: runaway paperless-gpt plus 4.9 GiB of leaked kernel memory (§2, "Event of 2026-11-13") | No reboot; the C-state test continues |
 | 2026-11-13 | Leak traced to ACPI GPE 0x24 (DPTF keep-alive, no `int3400` driver) (§2a). Broken `talos.logging.kernel=` argument removed from the schematic | Cause confirmed |
 | 2026-11-13 17:18–17:21 | Validation: load test unmasked vs. GPE masked at runtime | Leak reproduced 1:1 both times (72,800 / 183,313 firings). **Masking ineffective**; GPE unmasked again. Next: BIOS DPTF off |
+| 2026-11-13 | `processor.max_cstate=1` added to the schematic (permanent form of §7 B2); thermal and kernel-memory alerts added (`prometheusrule-node-thermal.yaml`) | Pending: one upgrade plus BIOS DPTF off, per §2a "Steps" |
 
 ---
 

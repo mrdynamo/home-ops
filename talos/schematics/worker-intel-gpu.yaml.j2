@@ -9,14 +9,14 @@ customization:
     - i915.enable_guc=3 # Rocket Lake CPU & Intel iGPU
     - init_on_alloc=0 # Less security, faster puter
     - init_on_free=0 # Less security, faster puter
-    - intel_idle.max_cstate=0
+    - intel_idle.max_cstate=0 # Disables intel_idle; acpi_idle drives C-states (see processor.max_cstate)
     - intel_iommu=on # PCI Passthrough
     - iommu=pt # PCI Passthrough
     - mitigations=off # Less security, faster puter
+    - processor.max_cstate=1 # acpi_idle: C1 only (k8s-04 freeze test, docs/k8s-04-freeze-investigation.md §7 B2)
     - security=none # Less security, faster puter
     - sysctl.kernel.kexec_load_disabled=1 # Meteor Lake CPU & Intel iGPU
     - talos.auditd.disabled=1 # Less security, faster puter
-    - talos.logging.kernel=udp://fluent-bit.observability.svc.cluster.local:10002/ # Kernel logging
     - initcall_blacklist=algif_aead_init # Patch https://copy.fail/ CVE-2026-31431
   systemExtensions:
     officialExtensions:
