@@ -40,6 +40,17 @@ spec:
         type: Recreate
       template:
         spec:
+          # Keep dashboards off k8s-04 so they stay up while that node is
+          # frozen or stalled (docs/k8s-04-freeze-investigation.md).
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: NotIn
+                        values:
+                          - k8s-04
           containers:
             - name: grafana
               env:
