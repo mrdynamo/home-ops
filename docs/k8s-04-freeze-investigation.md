@@ -202,7 +202,7 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
    |---|---|---|---|
    | `NodeCPUTemperatureHigh` | CPU above 88 °C for 10 min | Hottest 10-minute stretch 80 °C; brief peaks 88 °C | warning (Discord) |
    | `NodeCPUTemperatureCritical` | Within 5 °C of TjMax (95 °C) for 2 min | Never | critical (Discord and Pushover) |
-   | `NodeCPUThermalThrottling` | Any CPU package throttle event in the last hour | 0 per hour under real workload | warning |
+   | `NodeCPUThermalThrottling` | More than 20 CPU package throttle events in an hour | 0 per hour with C1 only, apart from rare bursts (+8 during SABnzbd post-processing on 2026-11-13); about 250/h before the C-state limit | warning |
    | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
    | `NodeUnreclaimableKernelMemoryHigh` | SUnreclaim above 3.5 GiB | k8s-04 at 4.9 GiB on 2026-11-13 | warning |
 
@@ -386,6 +386,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
    | Average CPU frequency | 3.48 GHz | 2.90 GHz |
    | Average max temperature | 69.3 °C | 56.9 °C |
    | CPU package power (RAPL) | not recorded | 20.9 W (one 10 s sample) |
+   | CPU package thermal-throttle events | about 1,400–1,900 per 6 h, constantly | 0 from 2026-11-08 02:05 to 2026-11-13 17:27 (5.6 days), then one burst of 8 during SABnzbd post-processing |
 
    The likely reason is turbo. Intel counts a core in C1 as *active* and a core in C6 or deeper as *inactive*. With the idle cores in deep states, the few busy ones could use the 1–2-core turbo bins (up to 4.6 GHz on the i5-11500), which need the highest voltage. With C1 only, all cores count as active, so the lower all-core turbo limit applies. Power scales with frequency × voltage², and Rocket Lake is very inefficient at its top bins. The energy spent on about 700 deep-state exits a second per thread adds a little more. The cost is a little single-thread peak speed, which this workload does not need.
 

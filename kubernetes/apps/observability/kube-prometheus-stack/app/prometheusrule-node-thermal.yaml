@@ -41,16 +41,18 @@ spec:
           for: 2m
           labels:
             severity: critical
-        # Baseline: zero package throttle events per hour under real workload (including OOM thrash).
+        # k8s-04 baseline: ~250/h with deep C-states (until 2026-11-08), 0/h with C1 only, apart from
+        # one-off bursts (+8 during SABnzbd post-processing, 2026-11-13). Fires on sustained throttling.
         - alert: NodeCPUThermalThrottling
           annotations:
             summary: >-
               CPU on {{ $labels.kubernetes_node }} is thermally throttling.
             description: >-
               {{ $labels.kubernetes_node }} recorded {{ $value | printf "%.0f" }} CPU package
-              thermal-throttle events in the last hour; the baseline under normal workload is 0.
+              thermal-throttle events in the last hour. With C1-only C-states the baseline is 0,
+              apart from occasional bursts under 10; before the C-state limit it was about 250/h.
           expr: >-
-            sum by (kubernetes_node, instance) (increase(node_cpu_package_throttles_total[1h])) > 0
+            max by (kubernetes_node, instance) (increase(node_cpu_package_throttles_total[1h])) > 20
           labels:
             severity: warning
 
