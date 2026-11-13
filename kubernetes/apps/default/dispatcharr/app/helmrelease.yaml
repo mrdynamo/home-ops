@@ -88,7 +88,7 @@ spec:
                 memory: 3376Mi
               limits:
                 memory: 3376Mi
-                # gpu.intel.com/i915: 1 # Request portion of shared iGPU
+                gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
               # claims:
               #   - name: gpu
