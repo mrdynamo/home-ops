@@ -8,6 +8,10 @@ controller := shell('yq -e "[.nodes[] | select(.role == \"control-plane\")][0].i
 kubernetes_version := shell('yq -e ".kubernetesVersion" "$1"', topf_config)
 
 export TOPFCONFIG := topf_config
+# Register every schematic with the Image Factory instead of only computing its ID locally,
+# so the installer image (factory.talos.dev/metal-installer/<id>) always exists before
+# apply-node or upgrade-node points a node at it.
+export TOPF_SUBMIT_TO_FACTORY := "true"
 
 # Recipes take the node's host name from topf.yaml (k8s-01), not its IP.
 
