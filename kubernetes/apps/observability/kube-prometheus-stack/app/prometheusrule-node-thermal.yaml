@@ -1,0 +1,87 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas-eov.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+# Thermal and kernel-memory alerts for bare-metal nodes (in practice k8s-04: the VMs expose no coretemp).
+# Context and baselines: docs/k8s-04-freeze-investigation.md §2a (BIOS "Intel(R) DPTF Support" change).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kube-prometheus-stack-node-thermal
+spec:
+  groups:
+    - name: node-thermal
+      rules:
+        # Baseline 2026-11-10..13: hottest 10-minute stretch 80 °C, brief peaks 88 °C.
+        - alert: NodeCPUTemperatureHigh
+          annotations:
+            summary: >-
+              CPU on {{ $labels.kubernetes_node }} has been above 88 °C for 10 minutes
+              (now {{ $value | printf "%.0f" }} °C).
+            description: >-
+              {{ $labels.kubernetes_node }} CPU has stayed above 88 °C for 10 minutes;
+              the hottest 10-minute stretch before the DPTF BIOS change was 80 °C.
+              Check fan and airflow, and BIOS Power → Intelligent Cooling.
+          expr: >-
+            max by (kubernetes_node, instance) (node_hwmon_temp_celsius{chip=~"platform_coretemp.*"}) > 88
+          for: 10m
+          labels:
+            severity: warning
+        # Within 5 °C of the sensor's critical point (TjMax, 100 °C on the i5-11500).
+        - alert: NodeCPUTemperatureCritical
+          annotations:
+            summary: >-
+              CPU on {{ $labels.kubernetes_node }} is within 5 °C of its critical temperature.
+            description: >-
+              {{ $labels.kubernetes_node }} {{ $labels.sensor }} has been within 5 °C of its
+              critical limit for 2 minutes. The CPU throttles hard at the limit and the ACPI
+              thermal zone shuts the node down at 105 °C.
+          expr: >-
+            max by (kubernetes_node, instance, chip, sensor) (node_hwmon_temp_celsius{chip=~"platform_coretemp.*"})
+            >= on (kubernetes_node, instance, chip, sensor)
+            (max by (kubernetes_node, instance, chip, sensor) (node_hwmon_temp_crit_celsius{chip=~"platform_coretemp.*"}) - 5)
+          for: 2m
+          labels:
+            severity: critical
+        # Baseline: zero package throttle events per hour under real workload (including OOM thrash).
+        - alert: NodeCPUThermalThrottling
+          annotations:
+            summary: >-
+              CPU on {{ $labels.kubernetes_node }} is thermally throttling.
+            description: >-
+              {{ $labels.kubernetes_node }} recorded {{ $value | printf "%.0f" }} CPU package
+              thermal-throttle events in the last hour; the baseline under normal workload is 0.
+          expr: >-
+            sum by (kubernetes_node, instance) (increase(node_cpu_package_throttles_total[1h])) > 0
+          labels:
+            severity: warning
+
+    - name: node-kernel-memory
+      rules:
+        # k8s-04 leaked 0.3-1.1 GiB/day through ACPI GPE 0x24; other nodes stay under 100 MiB/day.
+        - alert: NodeUnreclaimableKernelMemoryGrowing
+          annotations:
+            summary: >-
+              Unreclaimable kernel memory on {{ $labels.kubernetes_node }} grew
+              {{ $value | humanize1024 }}B in 24 hours.
+            description: >-
+              SUnreclaim on {{ $labels.kubernetes_node }} grew by more than 256 MiB in a day.
+              On k8s-04 this means the ACPI GPE 0x24 leak is back (check
+              /sys/firmware/acpi/interrupts/gpe24 and the BIOS "Intel(R) DPTF Support" setting).
+          expr: >-
+            max by (kubernetes_node, instance) (delta(node_memory_SUnreclaim_bytes[24h])) > 256 * 1024 * 1024
+          for: 1h
+          labels:
+            severity: warning
+        - alert: NodeUnreclaimableKernelMemoryHigh
+          annotations:
+            summary: >-
+              Unreclaimable kernel memory on {{ $labels.kubernetes_node }} is
+              {{ $value | humanize1024 }}B.
+            description: >-
+              SUnreclaim on {{ $labels.kubernetes_node }} is above 3.5 GiB. This memory is
+              invisible to pod limits and kubelet eviction; only a reboot frees it. Plan a
+              reboot before the node hits out-of-memory stalls.
+          expr: >-
+            max by (kubernetes_node, instance) (node_memory_SUnreclaim_bytes) > 3.5 * 1024 * 1024 * 1024
+          for: 15m
+          labels:
+            severity: warning

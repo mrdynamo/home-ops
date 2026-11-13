@@ -10,6 +10,8 @@ description: Why k8s-04 freezes and never recovers, what was put in place to cap
 > **Test in progress (since 2026-11-08 02:02 UTC):** C-states C2 and C3 are disabled at runtime (§7 B2). This **does not survive a reboot**: re-apply it after every power-cycle, or the test is void. **Pass condition:** no freeze before 2026-11-22. **Next:** test the watchdog (§6) when convenient.
 >
 > **Workaround in place:** Home Assistant power-cycles k8s-04's smart outlet when `HomeAssistantPowercycleK8s04Trigger` fires. Leave it as is: the node never recovers by itself.
+>
+> **Separate problem found (2026-11-13): a kernel memory leak on k8s-04, caused by ACPI GPE 0x24** (§2a). About 5 GiB of kernel memory that can never be reclaimed builds up over a week. It caused the out-of-memory stalls of 2026-11-13 (§2, "Event of 2026-11-13"), which were not a freeze. The cause is confirmed by a controlled test. **Masking the GPE does not work on this machine** (tested at runtime; the GPE keeps firing). **Next step:** turn DPTF off in the BIOS (§2a, "Resolution"). Until then, reboot before `SUnreclaim` passes about 4 GiB. Only a reboot returns the memory already lost.
 
 ---
 
@@ -95,6 +97,119 @@ With a 5 min hardware watchdog, a real kernel hang should reset the machine afte
 The second is plausible: `/sys/class/watchdog/watchdog0/timeleft` reads a constant `300s` in every heartbeat (all 4,113 of them in the boot that froze), although Talos feeds it only every 1m40s. A running TCO timer should count down between feeds. §6 tests it.
 
 The 2026-11-07 freeze makes the second explanation more likely, but does not prove it. The machine was dead (no disk writes, no network), so nothing could feed the watchdog, yet it had not reset 9.5 min later, when Home Assistant cut the power. That is well past the 5 min timeout. But on TCO v2 and later, the hardware resets only on the *second* expiry, which could mean up to about 10 min, so §6 still needs to wait past 12 min.
+
+### Event of 2026-11-13: out-of-memory stalls, not a freeze
+
+k8s-04 went NotReady several times between 15:57 and 16:47 UTC. **It did not freeze and did not reboot**: uptime ran on from the 2026-11-07 09:43 boot, the local heartbeat kept writing, and the runtime C-state limit (§7 B2) is still in effect. Each time, the node ran out of memory and stalled until the kernel's OOM killer acted:
+
+| Stall (heartbeat gap) | Peak load | Available memory | Killed |
+|---|---|---|---|
+| 15:57:15 – 15:58:08 (53 s) | 492 | 118 MB | Renovate (global OOM) |
+| 16:14:37 – 16:15:23 (46 s) | 315 | — | paperless-gpt (global OOM) |
+| 16:15:53 – 16:19:30 (217 s) | 1,155 | — | paperless-gpt (global OOM) |
+| 16:37:21 – 16:38:09 | 142 | 100 MB | paperless-gpt |
+| 16:41:50 – 16:46:15 (3 gaps, up to 125 s) | 805 | — | paperless-gpt (16:42, 16:43, 16:46) |
+
+Two things combined:
+
+1. **paperless-gpt ran away.** It normally uses about 50 MiB. It was stuck OCR-ing document 1479, rendering 50 pages at 600 DPI (5100×6601 px each), restarting after every kill and picking the same document up again. Three krr commits that day (15:46, 15:54, 16:13) raised its limit 1727Mi → 2527Mi → 3027Mi, which only let it take more.
+2. **About 4.9 GiB of the node's 16 GiB was already gone to a kernel leak** (§2a). With no swap, little room was left.
+
+**Why the whole node drops out, not just the pod.** The kernel runs the global OOM killer only as a last resort, once reclaim has failed completely. Before that, with no swap, the only memory it can reclaim is file pages, including the executable code of kubelet, containerd, Cilium and every other process. These pages are evicted and immediately read back from disk, over and over. Memory pressure reached `full` 99% and load reached 1,155, almost all tasks blocked on I/O. Kubelet couldn't post node status within the 40 s grace period, so the node went NotReady, and the heartbeat script stopped writing for up to 3.6 min. Then the OOM killer removed paperless-gpt (the highest `oom_score_adj` among the large processes) and the node recovered by itself. Kubelet and the API server were never killed; the API server doesn't run on k8s-04 at all. Kubelet's own eviction threshold (`memory.available: 100Mi`) is far too low to act before the stall, and kubelet is stalled too. Its allocatable memory (14.8 GiB) doesn't account for the leaked kernel memory, so the scheduler places pods as if about 5 GiB more existed than really does.
+
+`HomeAssistantPowercycleK8s04Trigger` fired once at 16:20:00, after the 16:16–16:19 stall, but the node was back by then and no power-cycle happened. The control-plane disruption that afternoon (etcd leader changes, `KubeAggregatedAPIDown` 16:22–16:28) followed the manual reboot of k8s-01 (16:21) and the reboot of k8s-03 (16:31). It did not come from k8s-04.
+
+The investigation itself made it worse once: a tracing buffer accidentally sized at 64 MiB per CPU (768 MiB in total) was in place from about 16:38 to 16:49 and added pressure during the 16:42–16:46 stalls.
+
+## 2a. Kernel memory leak: ACPI GPE 0x24 (DPTF keep-alive)
+
+### What leaks
+
+```text
+/proc/meminfo           SUnreclaim: 5,092,384 kB      (control-plane VMs: ~0.1 GiB; k8s-05/06: ~0.8 GiB)
+/proc/slabinfo          kmalloc-rnd-01-64: 75,072,704 objects × 64 B = 4.5 GiB
+/sys/firmware/acpi/interrupts/gpe24:      75,594,242   EN enabled unmasked
+```
+
+Every firing of GPE 0x24 leaves one 64-byte object behind. Measured live: in 5 s, GPE24 fired 27,361 times and the cache grew by 27,392 objects. Over the boot: 75.6 M firings, 75.5 M objects. The `-rnd-NN-` part of the name is random per boot (`CONFIG_RANDOM_KMALLOC_CACHES`), so look for the largest `kmalloc-*-64` cache rather than a fixed name.
+
+### Mechanism
+
+1. GPE 0x24 is wired to `\_SB.IETM` (`INTC1040`), Intel's DPTF (Dynamic Platform and Thermal Framework) device. Its handler, `\_GPE._L24` in SSDT1 (`LENOVO TC-M3J`), reads a DPTF event bit through an EC mailbox (`IETM.GEMC`). If the bit is set it sends `Notify(\_SB.IETM, 0xA0)`, a *keep-alive*, and waits up to 3 × `Sleep(50)` for the OS to answer by calling `IETM.IMOK` ("I'm OK"). Then it falls back to `IETM.FANC()` and notifies the `SEN3`–`SEN5` temperature sensors.
+2. **No one answers.** `INTC1040` has no driver bound: Talos ships no `int3400_thermal`, and there's no `thermald` to write the `imok` attribute. So `IOKV` stays at `0xFF`, and every `_L24` run spends at least 150 ms sleeping.
+3. **The firmware raises the event in bursts of 1,600–4,800/s while the CPU temperature is moving** (seen at 66–84 °C). Each one is dispatched from `irq/9-acpi` through `acpi_os_execute()`, which allocates a 48-byte `struct acpi_os_dpc` (`GFP_ATOMIC`, so it lands in a 64-byte `kmalloc` cache) and queues it on `kacpid`, pinned to CPU 0.
+4. `kacpid` runs **one work item at a time** (max_active 1), and each takes at least 150 ms, so it drains about 6 items/s. A 3 s trace during a burst showed **4,839 items queued, 0 activated, 0 executed**. The worker (`kworker/0:7+kacpid`, stack `acpi_os_execute_deferred → acpi_ev_asynch_execute_gpe_method → … → acpi_ex_opcode_1A_0T_0R`, i.e. AML `Sleep`) has been running these handlers continuously for over 4 days and has used about 9.5 h of CPU 0 time.
+5. The `dpc` is freed only after its handler runs (`acpi_os_execute_deferred()` → `kfree(dpc)`). A backlog of 75 M items at about 6/s would take about 4 months to drain, so in practice the memory is never returned.
+
+### Why it can't be reclaimed
+
+These are ordinary `kmalloc` objects still owned by queued work. To the kernel they're live data: there's no shrinker for them, `drop_caches` doesn't touch them, and they aren't charged to any cgroup, so no pod limit or eviction counts them. Kubelet's allocatable figure doesn't know about them either. They're freed only when the work runs, which at this rate is never, or when the node reboots. Masking the GPE stops new growth but does not give back what is already queued.
+
+### Why it looked like NFS
+
+The leak grows mainly 08:30–11:00 UTC every night (150–400 MiB per night), when Plex's scheduled tasks put about 1 core of steady load on the node and its NFS request rate peaks. NFS reads, NFS metadata walks, page-cache reclaim and cgroup reclaim were each tested in isolation and leaked nothing. The real trigger is **temperature movement**: Plex's nightly work, and the CPU spikes during OOM thrashing, swing the package temperature, and the firmware raises DPTF events as it crosses its thresholds.
+
+### Validation (2026-11-13, 17:18–17:21 UTC)
+
+The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s of cooldown. The node started at about 57–60 °C both times.
+
+| Run | GPE 0x24 state | Temperature | GPE24 firings | Leaked objects |
+|---|---|---|---|---|
+| A, positive control | unmasked | 59–89 °C | +72,800 | +72,799 |
+| B, the fix | `echo mask > …/gpe24` | 61–86 °C | +183,313 | +183,296 |
+
+- **Cause confirmed.** The leak reproduces on demand from a temperature swing, 1:1 with GPE 0x24, and stops within seconds once the temperature settles.
+- **Masking doesn't stop it.** `acpi_ev_mask_gpe()` clears the GPE's hardware enable bit and blocks the kernel from setting it again (`mask_for_run`). Yet sysfs kept reading `EN` (hardware enable bit set) and dispatch continued. Dispatch (`acpi_ev_detect_gpe()`) depends only on the hardware status and enable bits, so something outside the kernel, most likely platform firmware, re-enables it. That part is inferred: `CONFIG_DEVPORT` is off, so the register can't be read directly. The boot-time `acpi_mask_gpe=` uses the same function, so it isn't expected to work either and was not added. The GPE was unmasked again after the test.
+- No runtime way to call `IMOK` or patch `_L24` exists on this kernel: no `custom_method`, no AML debugger, no `CONFIG_INT340X_THERMAL`.
+
+### Resolution
+
+1. **Turn DPTF off in the BIOS (recommended next step; needs console access).** `\_SB.IETM._STA` returns present only when the firmware variables `\DPTF == 1 && \IN34 == 1`, and `DPTF` comes from BIOS setup. With it off, the device disappears and the firmware should stop raising the keep-alive.
+
+   **The setting:** `Advanced → Intel(R) DPTF Support → Disabled`. It sits directly on the Advanced page, below "Dust Shield Alert", not in the "CPU Setup" submenu. Its WMI name is `IntelDPTFSupport`; the default is Enabled. Confirmed for this machine: `IntelDPTFSupport` is in the BIOS-settings table in k8s-04's DSDT (ThinkCentre M90q Gen 2, BIOS `M3JKT44A`), listed between `DustShieldAlert` and the Power page's `AfterPowerLoss`. Lenovo documents it in its [ThinkCentre BIOS settings dictionary, Advanced page](https://docs.lenovocdrt.com/ref/bios/settings/thinkcentre/advanced/). If a supervisor password is set, it's needed to change this setting.
+
+   Steps:
+   1. Pause the Home Assistant power-cycle automation, then run `kubectl drain k8s-04 --ignore-daemonsets --delete-emptydir-data`.
+   2. Reboot, and press **F1** repeatedly at the Lenovo logo to open Setup Utility. A monitor and USB keyboard on the node are required.
+   3. Go to the **Advanced** tab and set **Intel(R) DPTF Support** to **Disabled**.
+   4. Press **F10** and choose Yes to save and exit.
+   5. When it's back: `kubectl uncordon k8s-04`, re-enable the automation, and re-apply the runtime C-state limit (§7 B2).
+   6. Check: `cat /sys/bus/acpi/devices/INTC1040:00/status` should read `0`, or the device is gone.
+
+   The same CPU Setup submenu also has `C-State Support` (`CStateSupport`), a possible permanent BIOS alternative to the §7 B2 runtime C-state limit. Don't change it in the same session: one change at a time.
+
+   With DPTF off, the BIOS applies its fixed CPU power limits instead of DPTF-managed ones, and the EC's Intelligent Cooling fan curve (`Power → Intelligent Cooling`) keeps control of the fan.
+
+   **Alerts that watch this change** (`kubernetes/apps/observability/kube-prometheus-stack/app/prometheusrule-node-thermal.yaml`). Thresholds come from the baseline before the change:
+
+   | Alert | Fires when | Baseline before the change | Severity |
+   |---|---|---|---|
+   | `NodeCPUTemperatureHigh` | CPU above 88 °C for 10 min | Hottest 10-minute stretch 80 °C; brief peaks 88 °C | warning (Discord) |
+   | `NodeCPUTemperatureCritical` | Within 5 °C of TjMax (95 °C) for 2 min | Never | critical (Discord and Pushover) |
+   | `NodeCPUThermalThrottling` | Any CPU package throttle event in the last hour | 0 per hour under real workload | warning |
+   | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
+   | `NodeUnreclaimableKernelMemoryHigh` | SUnreclaim above 3.5 GiB | k8s-04 at 4.9 GiB on 2026-11-13 | warning |
+
+   The two kernel-memory alerts fire on k8s-04 until the reboot that comes with the BIOS change. After it, `NodeUnreclaimableKernelMemoryGrowing` staying quiet for a few days confirms the fix. NVMe temperature is already covered by `SmartDeviceHighTemperature` (above 65 °C). **Verify** with a load test: `gpe24` and the leaking cache should stay flat while the temperature swings. Before the change, this exact test gave +72,800 firings:
+
+   ```bash
+   kubectl -n observability exec ds/node-forensics -- sh -c '
+     g(){ awk "{print \$1}" /sys/firmware/acpi/interrupts/gpe24; }
+     c(){ awk "\$1 ~ /^kmalloc-.*-64\$/ {s+=\$2} END{print s}" /proc/slabinfo; }
+     g0=$(g); c0=$(c)
+     for i in $(seq 12); do timeout 45 sh -c "while :; do :; done" & done; sleep 90
+     echo "gpe24 +$(( $(g)-g0 ))  kmalloc-64 objects +$(( $(c)-c0 ))  temp $(cat /sys/class/thermal/thermal_zone0/temp)"'
+   ```
+
+   Fan control stays with the EC; watch temperatures for a day. This is also a BIOS change, so log it in §9 and note that it confounds the C-state test.
+2. **Until then, reboot on a schedule.** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). Re-apply the runtime C-state limit after each reboot.
+3. **Make the OS answer the keep-alive:** this needs a kernel with `CONFIG_INT340X_THERMAL` and a `thermald` that writes `imok`. Neither is available on Talos today. A kernel-config request to Sidero is the long-term path if the BIOS route doesn't work.
+4. **Override `_L24`:** the kernel has `CONFIG_ACPI_TABLE_UPGRADE=y`, so a patched SSDT1 could be loaded from an early initramfs. Talos doesn't support adding one, so this is a last resort.
+5. **Masking the GPE (tested, doesn't work):** see "Validation" above.
+
+### Is it connected to the hard freezes?
+
+This isn't established. The leak was present before every freeze with metrics available (3.5 GiB before 2026-11-06, about 0.7 GiB at 2026-11-07), but memory was fine at both. However, it does mean CPU 0 handles bursts of thousands of ACPI interrupts per second and runs an AML interpreter loop full time, sending EC mailbox commands. Firmware interaction at that rate is a plausible platform-level trigger. Turning DPTF off would also remove that activity, so a freeze-free run afterwards can't be credited to the C-state change alone. Record the two changes separately in §9.
 
 ---
 
@@ -294,6 +409,16 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | Power-cycle trigger history | `ALERTS{alertname="HomeAssistantPowercycleK8s04Trigger"}` |
 | iGPU activity | `igpu_engines_video_0_busy`, `igpu_engines_render_3d_0_busy` |
 | NVMe health | `smartctl_device_media_errors{device="nvme0"}` |
+| Unreclaimable kernel memory (the §2a leak) | `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"}` |
+| Leak rate, MiB/h | `deriv(node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"}[1h]) * 3600 / 2^20` |
+
+### On the node
+
+| What | Command |
+|---|---|
+| GPE 0x24 count and state | `kubectl -n observability exec ds/node-forensics -- cat /sys/firmware/acpi/interrupts/gpe24` |
+| Largest slab caches | `talosctl -n 192.168.30.24 read /proc/slabinfo \| awk 'NR>2{printf "%8.1f MiB %s\n",$3*$4/1048576,$1}' \| sort -rn \| head` |
+| Unreclaimable kernel memory | `talosctl -n 192.168.30.24 read /proc/meminfo \| grep SUnreclaim` |
 
 ---
 
@@ -308,6 +433,9 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-08 | `kube-state-metrics` kept off k8s-04 | Removes the ~6 min delay in the HA trigger |
 | 2026-11-08 02:02 | **§7 B2 at runtime:** `state2` and `state3` disabled on all 12 CPUs (C1 is now the deepest state). Lost on reboot | Testing. Pass = no freeze before 2026-11-22 |
 | 2026-11-09 | Measured the effect of the C-state limit | Wall power about 60 W → about 30 W; average frequency 3.48 → 2.90 GHz; −12 °C at the same load. Also removes high single-core turbo (see §7 B2) |
+| 2026-11-13 15:57–16:47 | Out-of-memory stalls (NotReady, up to 3.6 min), **not a freeze**: runaway paperless-gpt plus 4.9 GiB of leaked kernel memory (§2, "Event of 2026-11-13") | No reboot; the C-state test continues |
+| 2026-11-13 | Leak traced to ACPI GPE 0x24 (DPTF keep-alive, no `int3400` driver) (§2a). Broken `talos.logging.kernel=` argument removed from the schematic | Cause confirmed |
+| 2026-11-13 17:18–17:21 | Validation: load test unmasked vs. GPE masked at runtime | Leak reproduced 1:1 both times (72,800 / 183,313 firings). **Masking ineffective**; GPE unmasked again. Next: BIOS DPTF off |
 
 ---
 
