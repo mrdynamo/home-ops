@@ -43,6 +43,11 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
+    defaultRules:
+      disabled:
+        # Prom++ >= 0.8.19 adds an `alertmanager` label to the notifier queue metrics, so the
+        # stock one-to-one match never fires; replaced by prometheus-notifier-rules below.
+        PrometheusNotificationQueueRunningFull: true
     kubeEtcd:
       service:
         selector:
@@ -74,7 +79,7 @@ spec:
         image:
           registry: ghcr.io
           repository: deckhouse/prompp
-          tag: 0.8.18@sha256:35ca3405bb0344c12d3f208e91c1006efe2e8c43ab69938ed6ff34c6ab239b6f
+          tag: 0.8.19@sha256:b164358afd060ce3bd8a115acac121abd2b1e5f7c296cf657f433d967770ccfa
         securityContext:
           runAsNonRoot: true
           runAsUser: 64535
@@ -199,3 +204,24 @@ spec:
                 expr: node_zfs_zpool_state{state!="online"} > 0
                 labels:
                   severity: critical
+      prometheus-notifier-rules:
+        groups:
+          - name: prometheus-notifier
+            rules:
+              # Stock chart rule aggregated over the per-Alertmanager `alertmanager` label (deckhouse/prompp#572).
+              - alert: PrometheusNotificationQueueRunningFull
+                annotations:
+                  description: Alert notification queue of Prometheus {{$labels.namespace}}/{{$labels.pod}} is running full.
+                  runbook_url: https://runbooks.prometheus-operator.dev/runbooks/prometheus/prometheusnotificationqueuerunningfull
+                  summary: Prometheus alert notification queue predicted to run full in less than 30m.
+                expr: |-
+                  (
+                    max without (alertmanager) (
+                      predict_linear(prometheus_notifications_queue_length{job="kube-prometheus-stack-prometheus",namespace="observability"}[5m], 60 * 30)
+                    )
+                  >
+                    min_over_time(prometheus_notifications_queue_capacity{job="kube-prometheus-stack-prometheus",namespace="observability"}[5m])
+                  )
+                for: 15m
+                labels:
+                  severity: warning
