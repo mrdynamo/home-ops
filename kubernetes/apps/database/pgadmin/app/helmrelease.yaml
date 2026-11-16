@@ -23,9 +23,12 @@ spec:
               TZ: America/Chicago
               PGADMIN_DISABLE_POSTFIX: "True"
               PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
-              PGSSLROOTCERT: /var/run/secrets/root-ca/ca.crt
-              PGSSLCERT: /var/run/secrets/postgresql/tls.crt
-              PGSSLKEY: /var/run/secrets/postgresql/tls.key
+              # pgAdmin >= 9.19 confines connection file paths (and ignores PGSSL* env for
+              # cert/key) to the user's storage dir or a SHARED_STORAGE entry; expose the
+              # cert mounts as shared storage and reference them as "<name>:/<file>"
+              PGADMIN_CONFIG_SHARED_STORAGE: >-
+                [{'name': 'root-ca', 'path': '/var/run/secrets/root-ca', 'restricted_access': True},
+                {'name': 'postgresql', 'path': '/var/run/secrets/postgresql', 'restricted_access': True}]
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
