@@ -93,6 +93,15 @@ spec:
         type: nfs
         server: 192.168.20.21
         path: /mnt/tank/media/books/ingest
+      # SABnzbd mounts this share at /media and reports completed paths under it,
+      # so Shelfmark must see the same path to pick up usenet downloads.
+      media:
+        type: nfs
+        server: 192.168.20.21
+        path: /mnt/tank/media/plex
+        globalMounts:
+          - path: /media/downloads/complete/Books
+            subPath: downloads/complete/Books
       tmp:
         type: emptyDir
         globalMounts:
