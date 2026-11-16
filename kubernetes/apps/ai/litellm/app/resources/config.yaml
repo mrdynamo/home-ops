@@ -537,6 +537,7 @@ general_settings:
   use_redis_transaction_buffer: true # HA
   enable_mcp_registry: true
   require_key_mcp_access_defined: true
+  disable_env_credential_login: true
 
 router_settings:
   routing_strategy: simple-shuffle
