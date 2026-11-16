@@ -47,9 +47,9 @@ spec:
             resources:
               requests:
                 cpu: 65m
-                memory: 2150Mi
+                memory: 2473Mi
               limits:
-                memory: 2150Mi
+                memory: 2473Mi
                 gpu.intel.com/i915: 1 # Request portion of shared iGPU
                 # nvidia.com/gpu.shared: 1 # Request portion of shared GPU
     defaultPodOptions:
