@@ -25,6 +25,19 @@
       "separateMultipleMinor": true
     },
     {
+      description: [
+        "TimescaleDB extension: skip the releases that break background jobs on PostgreSQL 18.7",
+        "(timescale/timescaledb#11038); the containers repo still builds them. See docs/cnpg-timescaledb-extension-upgrade.md.",
+      ],
+      matchDatasources: [
+        "docker"
+      ],
+      matchPackageNames: [
+        "ghcr.io/mrdynamo/timescaledb-bridge"
+      ],
+      allowedVersions: "!/^2\\.3[01]\\.\\d+$|^2\\.32\\.0$/",
+    },
+    {
       description: "Ignore Rancher shell images >= 7.0.0",
       matchDatasources: [
         "docker"
