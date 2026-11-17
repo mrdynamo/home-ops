@@ -27,6 +27,7 @@ spec:
               PAPERLESS_TIME_ZONE: America/Chicago
               PAPERLESS_APP_TITLE: 'Document Archive'
               PAPERLESS_URL: 'https://{{ .Release.Name }}.${INTERNAL_SECRET_DOMAIN}'
+              PAPERLESS_ALLOWED_HOSTS: '{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local'
               PAPERLESS_PORT: &port 8000
               PAPERLESS_DATE_PARSER_LANGUAGES: en
               # Tika/Gotenberg Settings
