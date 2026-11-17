@@ -80,6 +80,11 @@ spec:
       timescaledb.max_tuples_decompressed_per_dml_transaction: "0" # For TimescaleDB (Tracearr)
       max_locks_per_transaction: "4096" # For TimescaleDB (Tracearr) DEFAULT: 128
       max_connections: "150" # Increase maximum connections DEFAULT: 100
+      # Cap the WAL the HA replication slot can hold for a down replica, so it
+      # can't fill the primary's PVC (archive_timeout alone adds ~4.6 GB/day).
+      # Past the cap the slot is invalidated and the replica catches up from
+      # R2; drop the slot on the primary and CNPG recreates it. DEFAULT: -1
+      max_slot_wal_keep_size: "2GB"
 
     extensions:
 

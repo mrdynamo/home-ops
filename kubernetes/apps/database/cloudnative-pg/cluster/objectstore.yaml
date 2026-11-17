@@ -20,6 +20,9 @@ spec:
         key: REGION
     wal:
       compression: zstd
+      # Archive/restore up to 4 WAL files at once instead of one (~6 MB/s to
+      # R2), so a write burst can't outrun archiving and pile up in pg_wal.
+      maxParallel: 4
     data:
       compression: gzip
   retentionPolicy: "30d"
