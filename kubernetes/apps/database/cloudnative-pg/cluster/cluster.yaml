@@ -123,6 +123,8 @@ spec:
         login: true
         superuser: false
         disablePassword: true
+        inRoles:
+          - pg_monitor # prune-prompts job reads pg_wal size to pace itself
 
       - name: paperless
         ensure: present
