@@ -90,7 +90,7 @@ spec:
 
       - name: timescaledb
         image:
-          reference: ghcr.io/mrdynamo/timescaledb-bridge:2.29.2@sha256:9d540efa45cb60542b6c6b674e88a23dec654fb25046fe1d5b4c031cbabdd0e1
+          reference: ghcr.io/mrdynamo/timescaledb-bridge:2.29.2@sha256:12fbfb59705ad614739589c9152b8f0b5ca9ea6203cab0f2beda6e34b844346b
 
       - name: timescaledb_toolkit
         image:
