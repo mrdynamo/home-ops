@@ -117,7 +117,7 @@ spec:
               - /app/prune-prompts.sh
             env:
               PROMPT_RETENTION_DAYS: "60"
-              DRY_RUN: true
+              DRY_RUN: false
               PGAPPNAME: litellm-prune-prompts
               DATABASE_URL:
                 valueFrom:
