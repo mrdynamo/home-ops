@@ -94,7 +94,7 @@ spec:
 
       - name: timescaledb_toolkit
         image:
-          reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.25.0@sha256:ed18523de90b39f4939472a0a8d113c93f360004f5de42815b6933ffd1b8eaf4
+          reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.25.0@sha256:c48a8cd09e2cf12253c71e71e158b21a558c41eb59c6a0142cd3c18da43c5b97
 
   managed:
     roles:
