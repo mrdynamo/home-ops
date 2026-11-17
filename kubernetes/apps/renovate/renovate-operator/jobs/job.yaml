@@ -9,6 +9,7 @@ spec:
   discoveryFilters:
     - "mrdynamo/home-ops"
     - "mrdynamo/dotfiles"
+    - "mrdynamo/containers"
   extraEnv:
     - name: RENOVATE_LOG_LEVEL
       value: debug
