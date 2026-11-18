@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ghcr.io/kpirnie/kptv-fast
-              tag: latest@sha256:6d7e4e0675b2d3b49e4e628cb30123f9183b1a70c2832dabfe971dceb5e7e015
+              tag: latest@sha256:725ad79a319cb4d332454e069a28555c3e2c877ed52b7c1697d0c8964335242a
             resources:
               requests:
                 cpu: 10m
