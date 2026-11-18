@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: docker.io/clusterzx/paperless-ai
-              tag: 4.2.0@sha256:52893315bb6ba0bc57d89a7b206a6a4ced6d000f5c9e478f603031e8dbedc260
+              tag: 4.3.0@sha256:a80f17d24f974bb56a95353f05ec421c94ca082f4f69393d78c1a6a978a443ca
             # securityContext:
             #   allowPrivilegeEscalation: false
             #   readOnlyRootFilesystem: true
