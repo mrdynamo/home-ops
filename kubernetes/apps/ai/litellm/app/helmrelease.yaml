@@ -63,6 +63,8 @@ spec:
               ## Redis Settings
               REDIS_HOST: "{{ .Release.Name }}-dragonfly.ai.svc"
               REDIS_PORT: "6379"
+              ## GitHub Copilot (shared login)
+              GITHUB_COPILOT_TOKEN_DIR: /var/run/secrets/github-copilot
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
@@ -190,3 +192,12 @@ spec:
               - path: /var/run/secrets/prisma
             app:
               - path: /var/run/secrets/prisma
+      github-copilot:
+        type: secret
+        name: "{{ .Release.Name }}-secret"
+        advancedMounts:
+          *app :
+            app:
+              - path: /var/run/secrets/github-copilot/access-token
+                subPath: GITHUB_COPILOT_ACCESS_TOKEN
+                readOnly: true

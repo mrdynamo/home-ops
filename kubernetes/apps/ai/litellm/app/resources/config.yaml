@@ -35,6 +35,12 @@ _minimax_model_info: &minimax_model_info
 
 _anthropic_litellm_params: &anthropic_litellm_params
   api_base: https://api.anthropic.com
+  # Deployment priority: where a GitHub Copilot deployment shares the model
+  # name (`order: 2`), the Claude subscription is always tried first and
+  # Copilot only serves the request after this deployment errors. Must be set
+  # explicitly — once any deployment in a group has an `order`, deployments
+  # without one are never picked.
+  order: 1
   # No `api_key` here on purpose: the docs say a deployment without one "serves
   # only subscription users" — with one, a request without a subscription
   # token silently falls back to that PAYG key and bypasses the OAuth path.
@@ -492,6 +498,66 @@ model_list:
       max_tokens: 65536
 
 #########################
+# GitHub Copilot Models #
+#########################
+# Shared device login: no `litellm_credential_name`, so every deployment uses
+# the token at $GITHUB_COPILOT_TOKEN_DIR/access-token (personal Copilot Pro).
+# Pricing is intentionally NOT set here: LiteLLM's remote cost map carries
+# `github_copilot/*` entries that match GitHub's per-token AI-credit rates,
+# including long-context tiers. A static copy here would override it and go
+# stale. Only add `model_info` pricing for a model missing from that map.
+# https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+# Model set mirrors what the Pro plan offers (Gemini 3.8 Flash and Kimi K3 are
+# retiring and left out). The `mode: responses` models in the cost map
+# (GPT, MAI Code) are served from Copilot's /responses endpoint; LiteLLM
+# bridges /v1/chat/completions to it automatically, so either API works.
+#
+# Claude models share their name with the Anthropic Plan deployments above
+# and carry `order: 2`: the Claude subscription (`order: 1`) is always tried
+# first, and LiteLLM's order-based fallback re-sends the request here only
+# after it errors: 429 usage limit, 529/5xx, 401 expired sk-ant-oat (each
+# retried on Anthropic first), and 400s. A request with no sk-ant-oat skips
+# Anthropic entirely. Context-window and content-policy errors do not fall
+# over. Copilot uses its own token, never the client's sk-ant-oat. Note the
+# Copilot Claude window is 200k vs 1M on the subscription.
+# Every other model here has no twin, so it is Copilot-only and needs no order.
+
+  - model_name: claude-sonnet-5-5
+    litellm_params:
+      model: github_copilot/claude-sonnet-5.5
+      order: 2
+
+  - model_name: claude-haiku-5-5
+    litellm_params:
+      model: github_copilot/claude-haiku-5.5
+      order: 2
+
+  - model_name: gpt-6.1-terra
+    litellm_params:
+      model: github_copilot/gpt-6.1-terra
+
+  - model_name: gpt-6-luna
+    litellm_params:
+      model: github_copilot/gpt-6-luna
+
+  - model_name: gemini-4-hydrogen
+    litellm_params:
+      model: github_copilot/gemini-4-hydrogen
+
+  - model_name: grok-4.7
+    litellm_params:
+      model: github_copilot/grok-4.7
+
+  # MAI Code 2 / 2 Flash are on promotional pricing until 2027-05-17.
+  - model_name: mai-code-2
+    litellm_params:
+      model: github_copilot/mai-code-2
+
+  - model_name: mai-code-2-flash
+    litellm_params:
+      model: github_copilot/mai-code-2-flash
+
+#########################
 #      MCP Servers      #
 #########################
 mcp_servers:
@@ -555,6 +621,14 @@ router_settings:
   model_group_alias:
     claude-sonnet-5: claude-sonnet-5-5
     claude-sonnet-5[1m]: claude-sonnet-5-5
+  # One monthly cap across every github_copilot deployment, set to Copilot
+  # Pro's included AI credits ($15) so usage never spills into overage. Once
+  # crossed, requests fail with 429. LiteLLM's window may not align with
+  # GitHub's reset (1st of the month, 00:00 UTC), so this is approximate.
+  provider_budget_config:
+    github_copilot:
+      budget_limit: 15
+      time_period: 1mo
 
 litellm_settings:
   success_callback: ["prometheus"]
