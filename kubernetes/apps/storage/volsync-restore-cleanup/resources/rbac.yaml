@@ -1,0 +1,46 @@
+---
+# ServiceAccount + ClusterRole for the volsync-restore-cleanup CronJob.
+# Cluster-wide because ReplicationDestinations live in every app namespace. cleanup.sh only
+# deletes objects whose names derive from a ReplicationDestination (its latestImage snapshot,
+# volsync-<rd>-dest, volsync-dst-<rd>-cache) and, for orphans, the RD itself.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: volsync-restore-cleanup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: volsync-restore-cleanup
+rules:
+  - apiGroups: ["volsync.backube"]
+    resources: ["replicationdestinations"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["volsync.backube"]
+    resources: ["replicationsources"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get"]
+  - apiGroups: ["longhorn.io"]
+    resources: ["volumes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: volsync-restore-cleanup
+subjects:
+  - kind: ServiceAccount
+    name: volsync-restore-cleanup
+    namespace: storage
+roleRef:
+  kind: ClusterRole
+  name: volsync-restore-cleanup
+  apiGroup: rbac.authorization.k8s.io

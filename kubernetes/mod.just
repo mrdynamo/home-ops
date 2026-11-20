@@ -79,6 +79,14 @@ reconcile:
 view-secret namespace secret:
     kubectl view-secret -n {{ namespace }} {{ secret }}
 
+[doc('Clean up VolSync restore leftovers (dry run unless apply=true; optional namespace)')]
+volsync-cleanup apply="false" namespace="":
+    # Runs the same script as the volsync-restore-cleanup CronJob, from this machine.
+    tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT; \
+    DRY_RUN={{ if apply == "true" { "false" } else { "true" } }} \
+    DELETE_ORPHANS=true MIN_AGE_SECONDS=900 ONLY_NAMESPACE="{{ namespace }}" TMPDIR="$tmp" \
+        sh "{{ kubernetes_dir }}/apps/storage/volsync-restore-cleanup/resources/cleanup.sh"
+
 [private]
 render-local-ks dir ks="*":
     # flate resolves dependsOn across the tree, so it renders from apps/ and narrows by namespace (dir).

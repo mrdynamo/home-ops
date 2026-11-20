@@ -1,0 +1,16 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./rbac.yaml
+  - ./cronjob.yaml
+configMapGenerator:
+  - name: volsync-restore-cleanup
+    files:
+      # Single source: also run locally by `just kube volsync-cleanup`
+      - cleanup.sh=./cleanup.sh
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

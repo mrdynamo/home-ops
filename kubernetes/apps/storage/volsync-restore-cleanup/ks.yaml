@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://fluxcd-community.github.io/flux2-schemas/kustomization-kustomize-v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app volsync-restore-cleanup
+  namespace: &namespace storage
+  labels:
+    app.kubernetes.io/name: *app
+spec:
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  dependsOn:
+    - name: longhorn
+    - name: volsync
+  interval: 1h
+  path: ./kubernetes/apps/storage/volsync-restore-cleanup/resources
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: *namespace
+  wait: true

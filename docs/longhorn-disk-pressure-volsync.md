@@ -5,7 +5,16 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 
 # Longhorn Disk Pressure and VolSync Leftover PVCs
 
-> **Status (2026-11-20, re-validated 21:24 UTC):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves. **Steps 1 and 2 are done** (21:45 and 21:58 UTC). They freed about 61 GB on k8s-05 and 44 GB on k8s-06 (§4a). Step 3 (the Longhorn HelmRelease change) is next, then §6a. Log progress in §10.
+> **Status (2026-11-20):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves.
+>
+> **Done:**
+>
+> - Steps 1–3 (21:45–22:04 UTC). They freed about 61 GB on k8s-05 and 44 GB on k8s-06, and Longhorn now keeps 20% free (§4a). Step 3b was skipped.
+> - Step 4: `cleanupCachePVC: true` in the component, with the 41 live RDs patched in place.
+> - The 5 orphaned RDs were deleted.
+> - The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe were added in Git, starting with `DRY_RUN=true`.
+>
+> **Next:** after pushing, review a dry run and then set `DRY_RUN` to `"false"` (§6a, "Operating it"). Log progress in §10.
 >
 > **Talos v1.14.6 rollout completed at 21:17 UTC** (tuppr, started about 20:30 UTC). Afterwards Longhorn was still rebuilding replicas that were stopped by the reboots: 69 volumes were degraded at 21:20 UTC and 53 at 21:24 UTC. Step 1 is safe now. Wait until the §4 checks show no degraded volumes before steps 2 and 3.
 
@@ -520,7 +529,7 @@ There are two levers:
   - *How:* it's a per-volume setting (`kubectl -n storage patch volumes.longhorn.io <pv> --type merge -p '{"spec":{"dataLocality":"disabled"}}'`). The StorageClass parameter only applies to new volumes. StorageClass parameters are immutable, so changing [storageclass-fast.yaml](../kubernetes/apps/storage/longhorn/app/storageclass-fast.yaml) means deleting the StorageClass and letting Flux recreate it; existing PVs are unaffected.
   - Try it on one heavy volume first and compare app responsiveness.
 
-### Step 4: Turn on `cleanupCachePVC` (optional; test on one app)
+### Step 4: Turn on `cleanupCachePVC` (done 2026-11-20)
 
 So that future restores delete their own `-dst-cache` and step 1 doesn't need repeating. The cache class is openebs-hostpath, so the Longhorn problem shouldn't apply. The upstream comment saying both cleanup flags must be `false` came from someone whose cache was on Longhorn. Still, the comment in the component ties both flags to #1504, so prove it first.
 
@@ -537,6 +546,23 @@ Leave `cleanupTempPVC: false` as it is. Turning it on breaks restores (§3).
 - the app PVC was restored byte-identical from Kopia.
 
 Changing the component default is safe on that evidence, but it is optional if the §6a job is deployed, because the job also removes `-dst-cache`.
+
+**Applied 2026-11-20:**
+
+- **Component:** [replicationdestination.yaml](../kubernetes/components/volsync/replicationdestination.yaml) now has `cleanupCachePVC: true`; `cleanupTempPVC` stays `false`. Every app uses openebs-hostpath for the cache, and none overrides `VOLSYNC_CACHE_STORAGECLASS`.
+- **Existing RDs:** Flux never updates them (`ssa: IfNotPresent`), so all 41 live RDs were patched in place:
+
+  ```bash
+  kubectl get replicationdestinations -A -o json \
+    | jq -r '.items[] | select(.spec.kopia.cleanupCachePVC != true) | "\(.metadata.namespace) \(.metadata.name)"' \
+    | while read -r ns rd; do
+        kubectl -n "$ns" get replicationsource "${rd%-dst}" >/dev/null 2>&1 || { echo "skip orphan $ns/$rd"; continue; }
+        kubectl -n "$ns" patch replicationdestination "$rd" --type merge -p '{"spec":{"kopia":{"cleanupCachePVC":true}}}'
+      done
+  ```
+
+  A spec change doesn't start a restore: `shouldSync` only compares the manual trigger tag. Afterwards all RDs were still `WaitingForManual`, with no restore jobs and no PVCs recreated.
+- **Don't** delete and recreate RDs to pick up the default. Each recreated RD immediately runs a fresh restore.
 
 ### Step 5: Give Longhorn its own disk (later)
 
@@ -574,7 +600,7 @@ kubectl -n $ns get pvc $app -w                      # wait for Bound
 flux -n $ns resume hr $app
 ```
 
-The new restore creates a new `volsync-<app>-dst-dest` and snapshot, plus a `-dst-cache` unless step 4 is done. Once the app is up, delete them as in steps 1 and 2, or let the cleanup job in §6a do it.
+The new restore creates a new `volsync-<app>-dst-dest` and snapshot. VolSync deletes the `-dst-cache` itself (step 4). The §6a CronJob removes `-dst-dest` and the snapshot within one run (≤ 15 min) once the app PVC is 15 minutes old and its Longhorn clone has `completed`. To do it right away, run `just kube volsync-cleanup true <namespace>`; it skips the app if the clone isn't finished yet.
 
 ## 6a. Keeping it from building up again: bootstrap capacity and an automated cleanup
 
@@ -624,12 +650,12 @@ It runs every 15 minutes. For each ReplicationDestination it deletes, in this or
    - no `vs-prime-*` PVC exists in the namespace (`volumepopulator_controller.go`: `populatorPvcPrefix = "vs-prime"`);
    - the snapshot carries no `volsync.backube/volpop-pvc-<uid>` label, which the populator sets while it uses a snapshot;
    - the snapshot carries no `volsync.backube/do-not-delete` label.
-3. **Every app PVC with `dataSourceRef` → this RD** is `Bound`, older than `MIN_AGE_SECONDS` (default 1 h), and its Longhorn volume shows `cloneStatus.state: completed`. The clone check is essential: Longhorn binds a cloned PVC *before* the copy finishes ([longhorn#14599](https://github.com/longhorn/longhorn/issues/14599)), and deleting the source mid-copy fails the clone (`VolumeCloneFailed`).
+3. **Every app PVC with `dataSourceRef` → this RD** is `Bound`, older than `MIN_AGE_SECONDS` (900 s in the CronJob and the recipe; the script's own default is 3600 s), and its Longhorn volume shows `cloneStatus.state: completed`. The clone check is essential: Longhorn binds a cloned PVC *before* the copy finishes ([longhorn#14599](https://github.com/longhorn/longhorn/issues/14599)), and deleting the source mid-copy fails the clone (`VolumeCloneFailed`).
 4. **Orphans** (no app PVC, no ReplicationSource for the app, RD older than `MIN_AGE_SECONDS`) are only reported. With `DELETE_ORPHANS=true`, the job also deletes any leftovers and the RD. Guards 1 and 2 still apply to orphans.
 
-It ships with `DRY_RUN=true`, so it only logs what it would do. `ONLY_NAMESPACE=<ns>` limits it to one namespace; it was used for the §6b test and isn't needed in the CronJob.
+It ships with `DRY_RUN=true`, so it only logs what it would do. `ONLY_NAMESPACE=<ns>` limits it to one namespace; it was used for the §6b test and is the recipe's optional second argument.
 
-**Fixed 2026-11-20 22:08 UTC:** the first version checked "nothing left to clean" *before* the orphan check. Once step 2 had removed the orphans' PVCs and snapshots, it skipped them silently, and `DELETE_ORPHANS=true` would never remove their RDs. The script below evaluates orphans first. It was re-verified cluster-wide in dry-run mode: the 5 orphans are reported, 0 live RDs need cleaning, and `DELETE_ORPHANS=true` would delete exactly the 5 orphan RDs.
+**Fixed 2026-11-20 22:08 UTC:** the first version checked "nothing left to clean" *before* the orphan check. Once step 2 had removed the orphans' PVCs and snapshots, it skipped them silently, and `DELETE_ORPHANS=true` would never remove their RDs. The committed `cleanup.sh` evaluates orphans first. It was re-verified cluster-wide in dry-run mode: the 5 orphans are reported, 0 live RDs need cleaning, and `DELETE_ORPHANS=true` would delete exactly the 5 orphan RDs.
 
 **Why Flux and VolSync don't undo it** (checked 2026-11-20):
 
@@ -637,276 +663,69 @@ It ships with `DRY_RUN=true`, so it only logs what it would do. `ONLY_NAMESPACE=
 |---|---|---|
 | Live app's ReplicationDestination (41) | Flux: each app's Kustomization inventory lists its PVC, RD and RS | **Never deleted by the job.** Deleting one would make Flux recreate it, and the new RD would immediately run a fresh restore. That is the §6 restore mechanism. |
 | Snapshot, `volsync-<rd>-dest`, `volsync-dst-<rd>-cache` | VolSync; not in any Flux inventory | Stay gone. An idle RD only syncs again when `spec.trigger.manual` changes (`shouldSync`: `ManualTag() != LastManualTag()`, both `restore-once` here). Until then the controller only runs its cleanup state and never re-provisions these PVCs. Step 2a verifies this on one app. |
-| Orphaned RD (5) | None: not in any inventory (41 RD entries across all Kustomizations, one per live app) | Stays gone. |
+| Orphaned RD | None: not in any inventory (41 RD entries across all Kustomizations, one per live app) | Stays gone. The 5 found on 2026-11-20 were checked (no owned objects, app PVC, RS or inventory entry) and deleted by hand. |
 
 The leftovers come back whenever an RD is created fresh: on bootstrap, during a §6 restore, or whenever an app's Kustomization or RD is recreated. The job exists to clean up after exactly those cases.
 
-**Dry run against the live cluster (2026-11-20):** 41 RDs to clean, the same 41 completed full-copy clones counted in §3, and the 5 orphans above reported. With `DELETE_ORPHANS=true`: 46 to clean and 0 skipped.
+**Dry runs against the live cluster (2026-11-20):**
 
-**Restores stay safe.** During a §6 restore, the new app PVC is `Pending` and then mid-clone, so guards 2 and 3 skip that app until the clone completes. Bootstrap behaves the same way, and each app's `-dst-dest` is freed within about 15 minutes of its clone finishing plus `MIN_AGE_SECONDS`.
+- Before step 2: 41 RDs to clean (the same 41 completed full-copy clones counted in §3) and the 5 orphans reported.
+- After step 2 and the orphan removal: nothing to clean (`just kube volsync-cleanup` prints nothing).
 
-### Proposed manifests
+**Restores stay safe.** During a §6 restore, the new app PVC is `Pending` and then mid-clone, so guards 2 and 3 skip that app until the clone completes (shown in §6b). Bootstrap behaves the same way. Each app's `-dst-dest` is freed in the first run after its PVC is `MIN_AGE_SECONDS` (15 min) old and its clone has completed.
 
-`kubernetes/apps/storage/volsync-restore-cleanup/ks.yaml`:
+### Implementation (2026-11-20)
 
-```yaml
----
-# yaml-language-server: $schema=https://fluxcd-community.github.io/flux2-schemas/kustomization-kustomize-v1.json
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: &app volsync-restore-cleanup
-  namespace: &namespace storage
-spec:
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: *app
-  dependsOn:
-    - name: volsync
-    - name: longhorn
-  interval: 1h
-  path: ./kubernetes/apps/storage/volsync-restore-cleanup/resources
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
-  targetNamespace: *namespace
-  wait: true
+The job is the Flux app [kubernetes/apps/storage/volsync-restore-cleanup/](../kubernetes/apps/storage/volsync-restore-cleanup/), listed in [kubernetes/apps/storage/kustomization.yaml](../kubernetes/apps/storage/kustomization.yaml). It follows the same pattern as `longhorn-pdb-pruner`.
+
+| File | What it is |
+|---|---|
+| [ks.yaml](../kubernetes/apps/storage/volsync-restore-cleanup/ks.yaml) | Flux Kustomization in `storage`; `dependsOn` longhorn and volsync |
+| [resources/cronjob.yaml](../kubernetes/apps/storage/volsync-restore-cleanup/resources/cronjob.yaml) | CronJob `*/15 * * * *`, `concurrencyPolicy: Forbid`, `alpine/k8s` (kubectl + jq), non-root, read-only root filesystem, `/tmp` emptyDir |
+| [resources/rbac.yaml](../kubernetes/apps/storage/volsync-restore-cleanup/resources/rbac.yaml) | ServiceAccount + ClusterRole: read and delete RDs, PVCs and VolumeSnapshots; read RSs, Jobs and Longhorn volumes |
+| [resources/cleanup.sh](../kubernetes/apps/storage/volsync-restore-cleanup/resources/cleanup.sh) | **The script, single source.** Mounted into the CronJob through a generated ConfigMap (Flux substitution disabled) and run locally by the `just` recipe. It is the version tested in §6b |
+
+**CronJob settings:**
+
+| Variable | Value | Why |
+|---|---|---|
+| `DRY_RUN` | `"true"` at first | Only logs `CLEAN` / `SKIP` / `ORPHAN` lines. Flip to `"false"` after reviewing a few runs |
+| `DELETE_ORPHANS` | `"true"` | Removes an app's leftover RD once its RS and app PVC are gone (only while `DRY_RUN` is `"false"`) |
+| `MIN_AGE_SECONDS` | `"900"` | The script default is 3600. The real safety check is the clone-completed check (guard 3); a shorter age drains the bootstrap peak sooner |
+
+The storage namespace's NetworkPolicies are all ingress-only and select Longhorn components, so they don't affect this pod. Validated before commit:
+
+- every object passes `kubectl apply --dry-run=server`;
+- the ConfigMap carries the script unchanged;
+- the script parses under `dash` (strict POSIX).
+
+The first scheduled dry run confirms it under BusyBox `ash` in the image.
+
+**`just kube volsync-cleanup [apply] [namespace]`** ([kubernetes/mod.just](../kubernetes/mod.just)) runs the same `cleanup.sh` from your workstation with the same settings:
+
+```bash
+just kube volsync-cleanup                  # dry run, all namespaces
+just kube volsync-cleanup false default    # dry run, one namespace
+just kube volsync-cleanup true default     # live, one namespace (e.g. right after a §6 restore)
+just kube volsync-cleanup true             # live, all namespaces
 ```
 
-Then add `- ./volsync-restore-cleanup/ks.yaml` to [kubernetes/apps/storage/kustomization.yaml](../kubernetes/apps/storage/kustomization.yaml).
+### Operating it
 
-`resources/kustomization.yaml`:
-
-```yaml
----
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - ./rbac.yaml
-  - ./cronjob.yaml
-configMapGenerator:
-  - name: volsync-restore-cleanup
-    files:
-      - cleanup.sh=./cleanup.sh
-generatorOptions:
-  disableNameSuffixHash: true
-  annotations:
-    kustomize.toolkit.fluxcd.io/substitute: disabled
-```
-
-`resources/rbac.yaml`:
-
-```yaml
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: volsync-restore-cleanup
----
-# Cluster-wide because RDs live in every app namespace. The script only deletes
-# objects whose names derive from an RD (see cleanup.sh).
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: volsync-restore-cleanup
-rules:
-  - apiGroups: ["volsync.backube"]
-    resources: ["replicationdestinations"]
-    verbs: ["get", "list", "delete"]
-  - apiGroups: ["volsync.backube"]
-    resources: ["replicationsources"]
-    verbs: ["get"]
-  - apiGroups: [""]
-    resources: ["persistentvolumeclaims"]
-    verbs: ["get", "list", "delete"]
-  - apiGroups: ["snapshot.storage.k8s.io"]
-    resources: ["volumesnapshots"]
-    verbs: ["get", "list", "delete"]
-  - apiGroups: ["batch"]
-    resources: ["jobs"]
-    verbs: ["get"]
-  - apiGroups: ["longhorn.io"]
-    resources: ["volumes"]
-    verbs: ["get", "list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: volsync-restore-cleanup
-subjects:
-  - kind: ServiceAccount
-    name: volsync-restore-cleanup
-    namespace: storage
-roleRef:
-  kind: ClusterRole
-  name: volsync-restore-cleanup
-  apiGroup: rbac.authorization.k8s.io
-```
-
-`resources/cronjob.yaml`:
-
-```yaml
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: &app volsync-restore-cleanup
-spec:
-  schedule: "*/15 * * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
-  jobTemplate:
-    spec:
-      backoffLimit: 0
-      activeDeadlineSeconds: 3600
-      template:
-        metadata:
-          labels:
-            app.kubernetes.io/name: *app
-        spec:
-          serviceAccountName: *app
-          restartPolicy: Never
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 65534
-            seccompProfile:
-              type: RuntimeDefault
-          containers:
-            - name: cleanup
-              # renovate: datasource=docker depName=docker.io/alpine/k8s
-              image: docker.io/alpine/k8s:1.36.2@sha256:44ef4942e171939b9c665a4a84beb80e2dcdb9a24330d4651cfdfd2e9deecc47
-              command: ["sh", "/scripts/cleanup.sh"]
-              env:
-                - { name: DRY_RUN, value: "true" }          # flip to "false" after reviewing a few runs
-                - { name: DELETE_ORPHANS, value: "false" }
-                - { name: MIN_AGE_SECONDS, value: "3600" }
-                - { name: TMPDIR, value: /tmp }
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: ["ALL"]
-                readOnlyRootFilesystem: true
-              resources:
-                requests:
-                  cpu: 10m
-                  memory: 64Mi
-                limits:
-                  memory: 128Mi
-              volumeMounts:
-                - { name: scripts, mountPath: /scripts, readOnly: true }
-                - { name: tmp, mountPath: /tmp }
-          volumes:
-            - name: scripts
-              configMap:
-                name: *app
-            - name: tmp
-              emptyDir: {}
-```
-
-`resources/cleanup.sh` (this is the script that was dry-run against the cluster):
-
-```sh
-#!/bin/sh
-# Deletes the VolSync restore leftovers (latestImage VolumeSnapshot, volsync-<rd>-dest, volsync-dst-<rd>-cache)
-# once the app PVC populated from that ReplicationDestination no longer needs them.
-# Orphaned RDs (app removed: no app PVC, no ReplicationSource) are reported, or removed with DELETE_ORPHANS=true.
-set -eu
-DRY_RUN="${DRY_RUN:-true}"
-MIN_AGE_SECONDS="${MIN_AGE_SECONDS:-3600}"
-DELETE_ORPHANS="${DELETE_ORPHANS:-false}"
-ONLY_NAMESPACE="${ONLY_NAMESPACE:-}"   # optional: restrict to one namespace (testing)
-TMP="${TMPDIR:-/tmp}"
-now=$(date +%s)
-
-run() { if [ "$DRY_RUN" = "true" ]; then echo "  DRY-RUN: $*"; else "$@"; fi; }
-
-kubectl -n storage get volumes.longhorn.io -o json > "$TMP/lh.json"
-if [ -n "$ONLY_NAMESPACE" ]; then
-  kubectl -n "$ONLY_NAMESPACE" get replicationdestinations -o json > "$TMP/rd.json"
-else
-  kubectl get replicationdestinations -A -o json > "$TMP/rd.json"
-fi
-
-jq -r '.items[] | [.metadata.namespace, .metadata.name, (.status.latestImage.name // "-"),
-  ([.status.conditions[]? | select(.type=="Synchronizing") | .status][0] // "Unknown"),
-  (.metadata.creationTimestamp | fromdateiso8601)] | @tsv' "$TMP/rd.json" |
-while IFS="$(printf '\t')" read -r ns rd snap syncing created; do
-  dest="volsync-${rd}-dest"
-  cache="volsync-dst-${rd}-cache"
-  app="${rd%-dst}"
-  kubectl -n "$ns" get pvc -o json > "$TMP/pvc.json"
-
-  # What is left to clean?
-  have=$(jq -r --arg d "$dest" --arg c "$cache" '[.items[] | select(.metadata.name==$d or .metadata.name==$c)] | length' "$TMP/pvc.json")
-  if [ "$snap" != "-" ] && ! kubectl -n "$ns" get volumesnapshot "$snap" >/dev/null 2>&1; then snap="-"; fi
-
-  # Every app PVC that points at this RD must be Bound, old enough, and its Longhorn full-copy clone completed
-  verdict=$(jq -r --arg rd "$rd" --argjson now "$now" --argjson min "$MIN_AGE_SECONDS" --slurpfile lh "$TMP/lh.json" '
-    [.items[] | select(.spec.dataSourceRef.kind? == "ReplicationDestination" and .spec.dataSourceRef.name == $rd)] as $apps
-    | if ($apps | length) == 0 then "no-app-pvc"
-      else ($apps | map(
-              .spec.volumeName as $pv
-              | ([$lh[0].items[] | select(.metadata.name == $pv)][0]) as $v
-              | if .status.phase != "Bound" then "\(.metadata.name) not Bound"
-                elif ($now - (.metadata.creationTimestamp | fromdateiso8601)) < $min then "\(.metadata.name) younger than \($min)s"
-                elif $v == null then "\(.metadata.name) has no Longhorn volume"
-                elif (($v.spec.dataSource // "") != "") and ($v.status.cloneStatus.state != "completed") then "\(.metadata.name) clone state=\($v.status.cloneStatus.state)"
-                else "ok" end) | map(select(. != "ok")) | if length == 0 then "ok" else join("; ") end)
-      end' "$TMP/pvc.json")
-
-  # Orphan: the app's VolSync component is gone (Flux does not prune ssa: IfNotPresent objects)
-  orphan=false
-  if [ "$verdict" = "no-app-pvc" ] && ! kubectl -n "$ns" get replicationsource "$app" >/dev/null 2>&1 \
-     && [ $((now - created)) -gt "$MIN_AGE_SECONDS" ]; then
-    orphan=true
-  fi
-
-  if [ "$orphan" != "true" ] && [ "$snap" = "-" ] && [ "$have" = "0" ]; then continue; fi
-
-  # Guard 1: the restore itself is idle
-  if [ "$syncing" != "False" ] || kubectl -n "$ns" get job "volsync-dst-${rd}" >/dev/null 2>&1; then
-    echo "SKIP $ns/$rd: restore mover running or RD not idle (Synchronizing=$syncing)"; continue
-  fi
-  # Guard 2: the volume populator is not mid-way (it creates vs-prime-<uid> and labels the snapshot volpop-pvc-<uid>)
-  if jq -e '.items[] | select(.metadata.name | startswith("vs-prime-"))' "$TMP/pvc.json" >/dev/null; then
-    echo "SKIP $ns/$rd: volume populator PVC (vs-prime-*) present in namespace"; continue
-  fi
-  if [ "$snap" != "-" ] && kubectl -n "$ns" get volumesnapshot "$snap" -o json \
-      | jq -e '.metadata.labels // {} | keys | map(select(startswith("volsync.backube/volpop-pvc-") or . == "volsync.backube/do-not-delete")) | length > 0' >/dev/null; then
-    echo "SKIP $ns/$rd: snapshot $snap in use by the populator or marked do-not-delete"; continue
-  fi
-
-  if [ "$orphan" = "true" ]; then
-    if [ "$DELETE_ORPHANS" != "true" ]; then
-      echo "ORPHAN $ns/$rd: no app PVC and no ReplicationSource '$app' (set DELETE_ORPHANS=true to remove)"; continue
-    fi
-  elif [ "$verdict" != "ok" ]; then
-    # Guard 3 failed (a non-orphan RD with no app PVC lands here too, e.g. mid-restore)
-    echo "SKIP $ns/$rd: $verdict"; continue
-  fi
-
-  echo "CLEAN $ns/$rd: snapshot=$snap dest=$dest cache=$cache orphan=$orphan"
-  # Snapshot first (its data lives inside the dest volume), then the dest PVC, then the cache.
-  if [ "$snap" != "-" ]; then
-    run kubectl -n "$ns" delete volumesnapshot "$snap" --wait=true --timeout=10m || { echo "  snapshot delete failed; leaving dest PVC"; continue; }
-  fi
-  run kubectl -n "$ns" delete pvc "$dest" --ignore-not-found --wait=true --timeout=10m
-  run kubectl -n "$ns" delete pvc "$cache" --ignore-not-found --wait=false
-  if [ "$orphan" = "true" ]; then run kubectl -n "$ns" delete replicationdestination "$rd" --wait=false; fi
-done
-```
-
-### Rolling it out
-
-1. **Deploy with `DRY_RUN=true`.** Check a run: `kubectl -n storage logs job/$(kubectl -n storage get jobs -l app.kubernetes.io/name=volsync-restore-cleanup --sort-by=.metadata.creationTimestamp -o name | tail -1 | cut -d/ -f2)`.
-2. **Test on one app:** run steps 2a and 2b by hand on homepage (or let the job do it), and confirm the pass condition in step 2a.
-3. **Turn it on:** set `DRY_RUN` to `"false"`. Do a §6 restore of a small app once with the job active, to confirm it waits for the clone and then cleans up.
-4. **Orphans:** review the `ORPHAN` lines, then set `DELETE_ORPHANS` to `"true"`, or delete those five by hand once.
-5. Step 4 (`cleanupCachePVC: true`) becomes unnecessary; the job already removes `-dst-cache`.
+1. **After the commit is pushed and Flux has reconciled:**
+   ```bash
+   flux -n storage get ks volsync-restore-cleanup
+   kubectl -n storage get cronjob volsync-restore-cleanup
+   ```
+2. **Review a dry run.** Trigger one instead of waiting up to 15 minutes, then read its log:
+   ```bash
+   kubectl -n storage create job --from=cronjob/volsync-restore-cleanup volsync-restore-cleanup-manual-$(date +%s)
+   kubectl -n storage logs -l app.kubernetes.io/name=volsync-restore-cleanup --tail=-1
+   ```
+   On 2026-11-20 after steps 1–2 and the orphan removal, there is nothing to clean, so the expected output is empty and the job `Complete`. A failed job, an error or any `CLEAN` line is unexpected.
+3. **Turn it on:** set `DRY_RUN` to `"false"` in `cronjob.yaml` and commit.
+4. **After any restore** (§6 or a bootstrap), check that the leftovers drain. Expect `SKIP … clone state=…` while the copy runs, then `CLEAN` within one run (≤ 15 min) after the app PVC is 15 minutes old with its clone `completed`. To see what's left at any time, run `just kube volsync-cleanup`.
+5. **Pause it** without removing anything: `kubectl -n storage patch cronjob volsync-restore-cleanup -p '{"spec":{"suspend":true}}'`. Flux reverts this on its next reconcile, so for a longer pause, set `spec.suspend: true` in Git.
 
 ### Other levers for the bootstrap peak
 
@@ -937,7 +756,9 @@ kubectl apply -f "$E/rendered.yaml"                       # = bootstrapping a br
 #   seed:  dd 50 MB of /dev/urandom + date into /data/e2e, save sha256sum output locally
 #   check: sha256sum /data/e2e/* and diff against the saved sums
 # Backups:  kubectl -n volsync-e2e patch replicationsource volsync-e2e --type merge -p '{"spec":{"trigger":{"manual":"<new tag>"}}}'
-# Script:   ONLY_NAMESPACE=volsync-e2e MIN_AGE_SECONDS=60 DRY_RUN=true|false sh cleanup.sh
+# Script:   ONLY_NAMESPACE=volsync-e2e MIN_AGE_SECONDS=60 DRY_RUN=true|false TMPDIR=$(mktemp -d) \
+#             sh kubernetes/apps/storage/volsync-restore-cleanup/resources/cleanup.sh
+#           (the recipe hardcodes MIN_AGE_SECONDS=900, so call the script directly for a quick test)
 
 kubectl delete namespace volsync-e2e                      # teardown
 ```
@@ -1013,6 +834,7 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 - VolSync operator (perfectra1n fork v0.17.11, chart 0.18.5): [kubernetes/apps/storage/volsync/app/helmrelease.yaml](../kubernetes/apps/storage/volsync/app/helmrelease.yaml)
 - Longhorn v1.13.0: [kubernetes/apps/storage/longhorn/app/helmrelease.yaml](../kubernetes/apps/storage/longhorn/app/helmrelease.yaml)
 - Talos EPHEMERAL volume: [talos/all/05-ephemeral-volume.yaml](../talos/all/05-ephemeral-volume.yaml)
+- Restore-leftover cleanup (§6a): [kubernetes/apps/storage/volsync-restore-cleanup/](../kubernetes/apps/storage/volsync-restore-cleanup/), script [resources/cleanup.sh](../kubernetes/apps/storage/volsync-restore-cleanup/resources/cleanup.sh), recipe `volsync-cleanup` in [kubernetes/mod.just](../kubernetes/mod.just)
 
 ## 10. Log
 
@@ -1034,3 +856,6 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 22:27 | §6b end-to-end test in namespace `volsync-e2e`: all phases passed, including step 4 (`cleanupCachePVC: true`) and the §6a script live; namespace removed, no leftovers, no real app touched |
 | 2026-11-20 | Step 4: component default changed to `cleanupCachePVC: true` (`cleanupTempPVC` stays `false`). All 46 RDs use openebs-hostpath caches; no app overrides `VOLSYNC_CACHE_STORAGECLASS`. Existing RDs keep `false` until recreated (`ssa: IfNotPresent`) |
 | 2026-11-20 | Existing RDs patched in place (`kubectl patch … {"spec":{"kopia":{"cleanupCachePVC":true}}}`): homepage first as a test, then the other 40; the 5 orphans skipped. Flux leaves the patch alone (`IfNotPresent`), and no restore was triggered (all 46 `WaitingForManual`, `lastManualSync` unchanged, 0 restore jobs, 0 controller errors, no PVCs recreated) |
+| 2026-11-20 | 5 orphaned RDs deleted (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr; each checked first: no owned objects, app PVC, RS or Flux inventory entry). Now 41 RDs = 41 RSs |
+| 2026-11-20 | §6a implemented in Git: Flux app `storage/volsync-restore-cleanup` (CronJob `*/15`, `DRY_RUN=true`, `DELETE_ORPHANS=true`, `MIN_AGE_SECONDS=900`) and recipe `just kube volsync-cleanup`, sharing one `cleanup.sh`. Server-side dry run passed; recipe dry run printed nothing (nothing to clean) |
+| | Review a CronJob dry run after Flux deploys it, then set `DRY_RUN: "false"` |
