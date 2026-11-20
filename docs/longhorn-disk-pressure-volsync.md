@@ -5,19 +5,30 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 
 # Longhorn Disk Pressure and VolSync Leftover PVCs
 
-> **Status (2026-11-20):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves.
+> **Status (2026-11-20 23:15 UTC):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves. A Talos v1.14.6 rollout (tuppr) ran 20:30–21:17 UTC, and Longhorn had finished rebuilding by 21:37.
 >
 > **Done:**
 >
-> - Steps 1–3 (21:45–22:04 UTC). They freed about 61 GB on k8s-05 and 44 GB on k8s-06, and Longhorn now keeps 20% free (§4a). Step 3b was skipped.
-> - Step 4: `cleanupCachePVC: true` in the component, with the 41 live RDs patched in place.
-> - The 5 orphaned RDs were deleted.
-> - The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe are deployed. The first dry run completed under BusyBox `ash`, and every run now logs a `START` and a `SUMMARY` line.
-> - Step 6 (22:59–23:01 UTC): over-provisioning 120%, default-disk reserved 30%, and 100 GiB Storage Reserved on every disk. Limits are 482 / 280 / 280 GB and the bootstrap worst case is 82% (§4a).
+> - **Steps 1–3** (21:45–22:04 UTC): restore caches and `-dst-dest` copies deleted; Longhorn keeps 20% free. Step 3b was skipped.
+> - **Step 4:** `cleanupCachePVC: true` in the component, with the 41 live RDs patched in place.
+> - **The 5 orphaned RDs** were deleted.
+> - **The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe** are deployed, still in `DRY_RUN=true`. A run at 23:06 logged `SUMMARY checked=41 … nothing-to-clean=41 failed=0`.
+> - **Step 6** (22:59–23:01 UTC): over-provisioning 120%, default-disk reserved 30%, and 100 GiB Storage Reserved on every disk.
 >
-> **Next:** once a few scheduled runs show the expected `SUMMARY`, set `DRY_RUN` to `"false"` (§6a, "Operating it"). Log progress in §10.
+> **Result** (§4a): k8s-05 `/var` free went from 99 to 156 GB and k8s-06 from 107 to 149 GB. Longhorn's provisioning limits are 482 / 280 / 280 GB with 16 / 54 / 59% used, the bootstrap worst case is 82% (was 87%), and 49 volumes are healthy.
 >
-> **Talos v1.14.6 rollout completed at 21:17 UTC** (tuppr, started about 20:30 UTC). Afterwards Longhorn was still rebuilding replicas that were stopped by the reboots: 69 volumes were degraded at 21:20 UTC and 53 at 21:24 UTC. Step 1 is safe now. Wait until the §4 checks show no degraded volumes before steps 2 and 3.
+> **Outstanding:**
+>
+> 1. Once a few scheduled runs show the expected `SUMMARY`, set `DRY_RUN` to `"false"` in `cronjob.yaml` (§6a, "Operating it").
+> 2. Optional tidy-ups:
+>    - Remove the commented-out `afterSnapshot` finalizer hack from `kubernetes/components/volsync/replicationsource.yaml` (§3).
+>    - Decide on the three Kopia test snapshots (§6b).
+>    - Check the fill ratio occasionally (54%; act near 60%, §5 step 6).
+> 3. Longer term:
+>    - Give Longhorn its own disk (§5 step 5).
+>    - Watch the upstream issues in §8, and consider filing the data-locality deletion gap (§5 step 3b).
+>
+> Log progress in §10.
 
 ---
 
@@ -35,11 +46,11 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 
 No VolSync job ran during the event; the last ReplicationSource before it finished at 17:03 UTC. The trigger was replica rebuild traffic landing on a node that was already close to full. Evictions then bounced the problem to the next node: the evicted pods moved to k8s-06, and `best-effort` data locality made Longhorn build full local replicas there (§2).
 
-**Why 51 GB is the limit:** kubelet's `evictionHard` contains `imagefs.available: 15%` and `nodefs.available: 10%`. On Talos, images, kubelet data, Longhorn (`/var/lib/longhorn`) and openebs-hostpath (`/var/mnt/local-hostpath`) all share the one EPHEMERAL partition (`/dev/sda4`, 341 GB on k8s-05 and k8s-06). 15% of 341 GB is 51 GB. Longhorn is configured to keep only 5% free (`storageMinimalAvailablePercentage: "5"`), so it will place replicas well past the point where kubelet starts evicting.
+**Why 51 GB is the limit:** kubelet's `evictionHard` contains `imagefs.available: 15%` and `nodefs.available: 10%`. On Talos, images, kubelet data, Longhorn (`/var/lib/longhorn`) and openebs-hostpath (`/var/mnt/local-hostpath`) all share the one EPHEMERAL partition (`/dev/sda4`, 341 GB on k8s-05 and k8s-06). 15% of 341 GB is 51 GB. Longhorn was configured to keep only 5% free (`storageMinimalAvailablePercentage: "5"`), so it would place replicas well past the point where kubelet starts evicting. It now keeps 20% free (§5 step 3).
 
-## 2. Where the space goes (k8s-05, 2026-11-20)
+## 2. Where the space goes (k8s-05, 2026-11-20, before the cleanup)
 
-These are real on-disk numbers, not apparent sizes. `talosctl usage` reports sparse Longhorn files at their full size, for example 774 GB of "usage" on a 341 GB disk.
+This section records the state that was investigated. For the current numbers, see the latest "Recorded snapshots" entry in §4a. These are real on-disk numbers, not apparent sizes. `talosctl usage` reports sparse Longhorn files at their full size, for example 774 GB of "usage" on a 341 GB disk.
 
 | Item | Size on k8s-05 | Needed? |
 |---|---|---|
@@ -55,13 +66,13 @@ Checked and found clean:
 - No hostpath directories without a PV, apart from one empty folder on k8s-04 (`pvc-1d97ac22…`, 6 bytes, from May 2026).
 - No PVCs stuck in Terminating.
 
-Longhorn has 97 snapshots marked removed (~89 GB logical), but they hold the base data of their volumes. Purging them would free almost nothing.
+Longhorn had 97 snapshots marked removed (~89 GB logical), but they hold the base data of their volumes. Purging them would free almost nothing.
 
 Replica placement is uneven. k8s-04 (509 GB) held 30 replicas, while k8s-05 and k8s-06 (341 GB each) held about 92 each. After the rollout and its rebuilds (21:37 UTC) it was 26 / 82 / 82.
 
 **The cause is where the pods run, not `replicaAutoBalance`.** All 95 volumes use `dataLocality: best-effort`, so Longhorn keeps one replica on whichever node the pod runs on. At 20:30 UTC on 2026-11-20, 38 of the 46 attached volumes were attached on k8s-05 (5 on k8s-04, 3 on k8s-06), so k8s-05 held a replica of nearly everything in use. It also means every drain or Talos upgrade that moves a pod makes Longhorn rebuild a full local replica on the new node. That is the kind of burst that filled k8s-05 at 19:58–20:08, and then k8s-06 at 20:10–20:15.
 
-The rollout reshuffled pods. Once the rebuilds finished (21:37 UTC), the 46 attached volumes were spread 16 on k8s-04, 16 on k8s-05 and 14 on k8s-06, so new local replicas no longer pile onto k8s-05. The existing replicas stay where they are (26 / 82 / 82), and every `-dst-dest` replica sits on k8s-05 or k8s-06 (46 each). A count taken at 21:24, during the rebuilds, showed 49 volumes "attached" on k8s-04. That included volumes Longhorn attaches only to rebuild them offline, so count attached volumes only when nothing is degraded.
+The rollout reshuffled pods. Once the rebuilds finished (21:37 UTC), the 46 attached volumes were spread 16 on k8s-04, 16 on k8s-05 and 14 on k8s-06, so new local replicas no longer pile onto k8s-05. The existing replicas stayed where they were (26 / 82 / 82), and every `-dst-dest` replica sat on k8s-05 or k8s-06 (46 each). Step 2 removed those, leaving 26 / 36 / 36; at 23:01 UTC it was 25 / 37 / 36, with 15 / 17 / 14 attached volumes. A count taken at 21:24, during the rebuilds, showed 49 volumes "attached" on k8s-04. That included volumes Longhorn attaches only to rebuild them offline, so count attached volumes only when nothing is degraded.
 
 `replicaAutoBalance` can't fix this. Both `least-effort` and `best-effort` balance *each volume's* replicas across nodes. A 2-replica volume on k8s-05 and k8s-06 already counts as balanced, and neither mode moves it to k8s-04 to even out totals. The related disk-pressure threshold (`replica-auto-balance-disk-pressure-percentage`) only moves replicas between disks *on the same node*, so it does nothing with one disk per node. Leave `replicaAutoBalance` as `least-effort`. See [Longhorn: Auto Balance Replicas](https://longhorn.io/docs/1.10.0/high-availability/auto-balance-replicas/).
 
@@ -73,7 +84,7 @@ The `longhorn` VolumeSnapshotClass uses `type: snap`. A `snap` VolumeSnapshot is
 
 On a restore, the ReplicationDestination (RD) restores into a temp PVC `volsync-<app>-dst-dest`. It takes a VolumeSnapshot of that PVC and then deletes the PVC if `cleanupTempPVC: true`. With Longhorn, that leaves a broken snapshot. Upstream tracks this as [backube/volsync#1504](https://github.com/backube/volsync/issues/1504), which is still open. The maintainers treat it as a Longhorn problem and rejected the proposed fix (PR #1520).
 
-The repo works around it with `cleanupTempPVC: false` in [replicationdestination.yaml](../kubernetes/components/volsync/replicationdestination.yaml). The side effect is that every app keeps a full Longhorn copy of its first restore, on `longhorn-fast` with 2 replicas, forever.
+The repo works around it with `cleanupTempPVC: false` in [replicationdestination.yaml](../kubernetes/components/volsync/replicationdestination.yaml). The side effect was that every app kept a full Longhorn copy of its first restore, on `longhorn-fast` with 2 replicas, forever. Step 2 removed those copies. The §6a CronJob now removes them after each future restore, once the app PVC's clone has completed.
 
 ### The leftover PVCs aren't a useful restore point
 
@@ -86,14 +97,14 @@ The repo works around it with `cleanupTempPVC: false` in [replicationdestination
 | PVC | Used by | Effect of deleting it |
 |---|---|---|
 | `volsync-src-<app>-cache` | Every scheduled backup (Kopia index/metadata; Plex's is sized for ~12.9 GB metadata and 3.7 GB content) | Every backup starts cold and re-reads indexes from the NAS. **Keep.** |
-| `volsync-dst-<app>-dst-cache` | Only RD restores, which ran once | The next restore starts cold. A restore reads all data from the NAS anyway, so it's slightly slower at most. Safe to delete. |
+| `volsync-dst-<app>-dst-cache` | Only RD restores, which ran once | The next restore starts cold. A restore reads all data from the NAS anyway, so it's slightly slower at most. Safe to delete. Since step 4 (`cleanupCachePVC: true`), VolSync deletes it itself when a restore finishes |
 
 The caches are on openebs-hostpath, not Longhorn, so the snapshot problem above doesn't affect them.
 
 ### What has been tried and doesn't work
 
 - **Single-replica Longhorn for temp/cache PVCs** (`longhorn-single-local`, commits `1a4ca9f7` to `a96db2ed`, 2025-10-17 to 2025-10-19). Pods and replicas landed on different nodes and clone copies failed; the commits ended in "revert everything to working spec". The Longhorn issue closest to this ([longhorn#13335](https://github.com/longhorn/longhorn/issues/13335)) was closed after adding `--retry-interval-max=1m` to `csi-attacher`, and this cluster already has that change. The failure where a copy is cut off mid-way and restarts from 0% was never fixed, so **don't retry this**.
-- **Removing finalizers from `volsync-<app>-src` after the snapshot** (the commented-out `actions.afterSnapshot` in [replicationsource.yaml](../kubernetes/components/volsync/replicationsource.yaml)). It isn't needed now (nothing is stuck) and can delete data that is still in use. Delete the comment.
+- **Removing finalizers from `volsync-<app>-src` after the snapshot** (the commented-out `actions.afterSnapshot` in [replicationsource.yaml](../kubernetes/components/volsync/replicationsource.yaml)). It isn't needed now (nothing is stuck) and can delete data that is still in use. Delete the comment; as of 2026-11-20 it is still there (line 13).
 
 ## 4. Before you start
 
@@ -206,7 +217,7 @@ jq -n -r --slurpfile v "$T/v.json" --slurpfile n "$T/n.json" --slurpfile s "$T/s
 
 - **/var free:** kubelet's view of the EPHEMERAL partition. kubelet evicts pods below 15% free (51 GB on k8s-05 and k8s-06).
 - **Longhorn provisioned / limit:** the sum of the provisioned sizes of the replicas on that disk, against (disk − reserved) × over-provisioning %. New replicas fail to schedule when they would push it past 100%.
-- **Bootstrap worst case:** the §6a estimate. It only changes with the over-provisioning setting or PVC sizes, not with cleanup.
+- **Bootstrap worst case:** the §6a estimate. It only changes with the over-provisioning setting, per-disk Storage Reserved or PVC sizes, not with cleanup.
 - **dst-cache / src-cache:** real hostpath usage. `src-cache` must not drop; those are the backup caches.
 
 ### Expected values
@@ -246,7 +257,7 @@ Baseline taken 2026-11-20 21:37 UTC, after the Talos rollout and with all rebuil
 | What | PromQL |
 |---|---|
 | `/var` free % per worker | `100 * node_filesystem_avail_bytes{mountpoint="/var",instance=~".*30.2[456].*"} / node_filesystem_size_bytes{mountpoint="/var",instance=~".*30.2[456].*"}` |
-| Longhorn provisioned % of (disk − reserved), per node | `100 * max by (node) (longhorn_node_storage_scheduled_bytes) / max by (node) (longhorn_node_storage_capacity_bytes - longhorn_node_storage_reservation_bytes)` (assumes 100% over-provisioning) |
+| Longhorn provisioned % of its limit, per node | `100 * max by (node) (longhorn_node_storage_scheduled_bytes) / (max by (node) (longhorn_node_storage_capacity_bytes - longhorn_node_storage_reservation_bytes) * 1.2)` (the `1.2` is the 120% over-provisioning from step 6; change it if that setting changes) |
 | Longhorn used GB per node | `max by (node) (longhorn_node_storage_usage_bytes) / 1e9` |
 | `-dst-dest` data, one copy | `sum(max by (volume) (longhorn_volume_actual_size_bytes{pvc=~"volsync-.*-dst-dest"})) / 1e9` |
 | Degraded volumes (robustness 2 = degraded, 1 = healthy) | `count(max by (volume) (longhorn_volume_robustness) == 2) or vector(0)` |
@@ -311,7 +322,7 @@ If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still de
 - **Freed:** about 43 GB on each of k8s-05 and k8s-06 (`/var` 117 → 160 GB and 108 → 151 GB). Provisioned space on those two nodes dropped by 103 GB each, and they lost 46 replicas each.
 - **Nothing left behind:** no VolumeSnapshotContents, Longhorn volumes or Longhorn orphans remain for `-dst-dest`, and no PVC is stuck terminating.
 - **No side effects:** all 41 backups `Successful`, all 46 RDs `WaitingForManual`, no DiskPressure.
-- **Unrelated, found during the check:** `karakeep-meilisearch` was Pending on CPU/memory plus pod affinity to karakeep's node since the Talos rollout, and 42 old `cilium-operator` pods sat in `ContainerStatusUnknown`.
+- **Unrelated, found during the check:** `karakeep-meilisearch` was Pending on CPU/memory plus pod affinity to karakeep's node since the Talos rollout, and 42 old `cilium-operator` pods sat in `ContainerStatusUnknown`. Both are resolved: meilisearch has been Running since karakeep was restarted at 22:09, and the stale pods were gone by 23:11.
 
 | Node | /var free | Longhorn provisioned / limit | Replicas | Attached vols | dst-cache | src-cache |
 |---|---|---|---|---|---|---|
@@ -390,7 +401,7 @@ If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still de
 
 ## 5. The plan
 
-### Step 1: Delete the restore caches (do now; safe)
+### Step 1: Delete the restore caches (done 2026-11-20 21:45 UTC)
 
 Frees about 20.8 GB: 18.5 GB on k8s-05, 1.7 GB on k8s-06 and 0.6 GB on k8s-04. All 46 RDs are idle (`WaitingForManual`, re-checked after the rollout), so nothing recreates the caches until the next restore.
 
@@ -411,7 +422,7 @@ kubectl get pvc -A --no-headers | grep -c 'dst-cache$'          # expect 0
 talosctl -n 192.168.30.25 mounts | grep -E ' /var$'              # free space up
 ```
 
-### Step 2: Delete the `-dst-dest` PVCs and their snapshots (optional; read §3 first)
+### Step 2: Delete the `-dst-dest` PVCs and their snapshots (done 2026-11-20 21:58 UTC)
 
 Frees 42 GB on k8s-05 and 85 GB of replica space cluster-wide. Afterwards, restores must follow §6, which they already should.
 
@@ -456,7 +467,7 @@ kubectl -n storage get volumes.longhorn.io --no-headers | wc -l                #
 
 If a VolumeSnapshot hangs in deletion, check `kubectl -n <ns> describe volumesnapshot <name>` and the `csi-snapshotter` logs before removing finalizers by hand.
 
-### Step 3: Stop Longhorn from filling nodes into DiskPressure (do after steps 1 and 2)
+### Step 3: Stop Longhorn from filling nodes into DiskPressure (done 2026-11-20 22:04 UTC)
 
 Edit [kubernetes/apps/storage/longhorn/app/helmrelease.yaml](../kubernetes/apps/storage/longhorn/app/helmrelease.yaml):
 
@@ -475,11 +486,11 @@ Edit [kubernetes/apps/storage/longhorn/app/helmrelease.yaml](../kubernetes/apps/
 **What it doesn't change:**
 
 - Existing PVC sizes, and how much existing volumes can write.
-- How much you can provision. That limit comes from `storageReservedPercentageForDefaultDisk: "15"` and `storage-over-provisioning-percentage: 100`. Together they allow about 290 GB of *provisioned* size per 341 GB disk; k8s-05 had 266 GB scheduled on 2026-11-20.
+- How much you can provision. That limit is (disk − the disk's own Storage Reserved) × over-provisioning %; `storageReservedPercentageForDefaultDisk` only applies to newly created disks. At the time it was (341 − 34) × 100% = 306 GB per 341 GB disk, with 266 GB scheduled on k8s-05. Since step 6 it's (341 − 107) × 120% = 280 GB.
 
 **The real cost:** Longhorn can fill a disk to 80% used instead of 95%. Usage between 85% and 95% already triggers kubelet evictions, so only the 80–85% band is lost: about 17 GB per 341 GB node. `"17"` keeps more of that band with a smaller margin; `"20"` leaves room for a large replica (Prometheus is 21 GB) landing at the edge.
 
-**Caveat:** `replica-soft-anti-affinity` is `false` and there are only three storage nodes. While a node is below 20% free, 3-replica volumes (`longhorn` class) can't rebuild a replica there, and new 3-replica volumes run degraded. 2-replica volumes, including the VolSync temp `-src` clones, still schedule on the other two nodes. That is the intended trade (a degraded volume instead of evictions), but it's why steps 1 and 2 come first. After the 2026-11-20 rollout (21:24 UTC), free space was k8s-04 76%, k8s-05 29%, k8s-06 32%.
+**Caveat:** `replica-soft-anti-affinity` is `false` and there are only three storage nodes. While a node is below 20% free, 3-replica volumes (`longhorn` class) can't rebuild a replica there, and new 3-replica volumes run degraded. 2-replica volumes, including the VolSync temp `-src` clones, still schedule on the other two nodes. That is the intended trade (a degraded volume instead of evictions), but it's why steps 1 and 2 come first. After the 2026-11-20 rollout (21:24 UTC), free space was k8s-04 76%, k8s-05 29%, k8s-06 32%; after steps 1–6 (23:01 UTC) it is 73% / 45% / 43%.
 
 Commit and push, let Flux reconcile, then verify:
 
@@ -491,9 +502,9 @@ kubectl -n storage get nodes.longhorn.io -o json | jq -r '.items[] | .metadata.n
   | .status.diskStatus[] | [$n, (.storageAvailable/1e9|floor), (.conditions[]|select(.type=="Schedulable")|.status)] | @tsv'
 ```
 
-### Step 3b: Spread the load off k8s-05 (optional; decide after watching it)
+### Step 3b: Spread the load off k8s-05 (skipped by decision 2026-11-20; kept for reference)
 
-> **After the 2026-11-20 rollout:** pods are now spread evenly (§2), but replicas aren't (26 / 82 / 82). Step 2 alone takes 46 replicas off each of k8s-05 and k8s-06 (§4a). Re-check the per-node numbers in §4a after step 2, and only rebalance by hand if k8s-05 or k8s-06 is still much fuller than k8s-04.
+> **Decision (2026-11-20): skipped.** Step 2 took 46 replicas off each of k8s-05 and k8s-06 (now 25 / 37 / 36). Since step 6, the scheduler sends new and rebuilt replicas to k8s-04 (see "Upstream status" below), so the imbalance shrinks as replicas churn. Use the manual procedure below only if k8s-05 or k8s-06 becomes much fuller than k8s-04 again.
 
 #### What Longhorn v1.13.0 can and can't do (checked against the live settings API and the longhorn-manager source)
 
@@ -534,7 +545,7 @@ To move a replica now, delete it as described below; it's rebuilt on k8s-04.
 
 #### Manual rebalance (after the Talos rollout and step 2)
 
-After step 2, roughly 25 GB of replicas could move off k8s-05 and about 40 GB off k8s-06 (estimated 2026-11-20; the numbers shift as pods move). The largest are the Prometheus DB (21.8 GB on k8s-06), postgres-1 and postgres-2 (about 10.5 GB each), radarr (4.3 GB) and victoria-logs (4.3 GB).
+Right after step 2, roughly 25 GB of replicas could have moved off k8s-05 and about 40 GB off k8s-06 (estimated 2026-11-20; the numbers shift as pods move, so re-run the list below before acting). The largest are the Prometheus DB (21.8 GB on k8s-06), postgres-1 and postgres-2 (about 10.5 GB each), radarr (4.3 GB) and victoria-logs (4.3 GB).
 
 List the candidates: healthy 2-replica volumes with no replica on k8s-04, showing the replica that can move.
 
@@ -575,7 +586,7 @@ Move them **one volume at a time**, and wait for `healthy` before starting the n
 
 There are two levers:
 
-- **Spread the pods.** With `best-effort` locality, replicas follow the pods. Find out why 38 of 46 attached volumes run on k8s-05: k8s-04's freezes, node affinity, GPU placement, or just where pods landed after the last drain. Spreading those pods spreads the replicas with them.
+- **Spread the pods.** With `best-effort` locality, replicas follow the pods. Before the incident, 38 of 46 attached volumes ran on k8s-05. After the Talos rollout they spread out to 15 / 17 / 14 (k8s-04 / 05 / 06, 23:01 UTC), so this has largely happened on its own. Watch for pods piling onto one node again after future drains.
 - **Turn locality off** (`dataLocality: disabled`).
   - *Gain:* replicas stay wherever Longhorn first placed them, and drains and upgrades stop triggering full local rebuilds.
   - *Cost:* reads always go over the network. Expect slower I/O for SQLite-heavy apps such as the *arr apps.
@@ -627,7 +638,7 @@ This is the permanent fix: if Longhorn isn't on EPHEMERAL, it can't cause kubele
 
 If you do this, lower each disk's Storage Reserved (step 6) to a few percent first, since nothing else would use the new disk.
 
-### Step 6: Make Longhorn's scheduling limits match reality (over-provisioning 120%, reserved 100 GiB)
+### Step 6: Make Longhorn's scheduling limits match reality (done 2026-11-20 23:01 UTC: over-provisioning 120%, reserved 100 GiB)
 
 #### How Longhorn decides whether a replica fits
 
@@ -752,7 +763,7 @@ Every restore recreates the leftovers, and a bootstrap restores every app at onc
 | App PVCs restored by VolSync (41) | 229 | 113 |
 | `-dst-dest` leftovers | 206 | 85 |
 | All other Longhorn volumes | 169 | 101 |
-| **Schedulable capacity** (disk − reserved, × 100% over-provisioning) | **984** (k8s-04 372, k8s-05 306, k8s-06 306) | |
+| **Schedulable capacity** (disk − reserved, × 100% over-provisioning) | **984** (k8s-04 372, k8s-05 306, k8s-06 306). Since step 6: **1,043** (482 / 280 / 280; 100 GiB reserved × 120%) | |
 
 **Bootstrap worst case.** Per app, three full copies can coexist:
 - the restore's `-dst-dest`
@@ -761,15 +772,18 @@ Every restore recreates the leftovers, and a bootstrap restores every app at onc
 
 The third one is there because VolSync starts a backup *immediately* for a ReplicationSource that has never synced (`statemachine/machine.go`: `initialState` → `transitionToSynchronizing`). The mover jitter only spreads job starts over 0–150 s.
 
-That is about 3 × 229 + 169 ≈ **856 GB of 984 (87%)** provisioned. Physically it's about 440 GB on Longhorn, plus up to 251 Gi of hostpath caches requested. The provisioned limit is the one that binds.
+That is about 3 × 229 + 169 ≈ **856 GB of 984 (87%)** provisioned; since step 6 it's 858 of 1,043 GB (82%). Physically it's about 440 GB on Longhorn, plus up to 251 Gi of hostpath caches requested. The provisioned limit is the one that binds.
 
-**After the bootstrap**, `cleanupTempPVC: false` keeps the `-dst-dest` copies, so the steady state stays about 2× the app data. That is where things stood before step 2.
+**After a bootstrap**, `cleanupTempPVC: false` keeps the `-dst-dest` copies; that's how the steady state reached about 2× the app data before step 2. Now:
+
+- VolSync deletes `-dst-cache` itself (step 4);
+- the CronJob removes each `-dst-dest` and its snapshot once the app's clone has completed (once `DRY_RUN` is `"false"`).
 
 **The failure mode** is a stalled bootstrap, not data loss. Replicas that don't fit wait in "replica scheduling failed" until something frees space. Physical DiskPressure becomes a risk again only if the data itself grows.
 
 There's not enough history to project growth: Prometheus keeps 30 days and only 9 had data. Live Longhorn data held at 95–110 GB from 2026-11-12 to 2026-11-20.
 
-**Orphans add up silently, too.** Flux does not prune the ReplicationDestination, which carries `kustomize.toolkit.fluxcd.io/ssa: IfNotPresent`. Apps that were removed left their RD, `-dst-dest`, snapshot and `-dst-cache` behind: calibre-web-downloader (renamed to shelfmark), paperless-ai, scriberr and streamflow. So did tracearr, whose Kustomization still exists but no longer includes the VolSync component.
+**Orphans add up silently, too.** Flux does not prune the ReplicationDestination, which carries `kustomize.toolkit.fluxcd.io/ssa: IfNotPresent`. Apps that were removed left their RD, `-dst-dest`, snapshot and `-dst-cache` behind: calibre-web-downloader (renamed to shelfmark), paperless-ai, scriberr and streamflow. So did tracearr, whose Kustomization still exists but no longer includes the VolSync component. Their leftovers were removed in steps 1–2, and the RDs were deleted on 2026-11-20. The CronJob (`DELETE_ORPHANS=true`) handles future ones.
 
 ### Options considered
 
@@ -778,7 +792,7 @@ There's not enough history to project growth: Prometheus keeps 30 days and only 
 | `cleanupTempPVC: true` (VolSync's own cleanup) | Breaks restores with Longhorn `type: snap` snapshots ([volsync#1504](https://github.com/backube/volsync/issues/1504); no fix planned) |
 | Longhorn backup target + `type: bak` VolumeSnapshotClass | No backup target configured. VolSync only waits for the snapshot to be *bound*, not *ready* (the reason PR #1520 was proposed and rejected), so deleting the temp PVC mid-upload is a race |
 | Kyverno `ClusterCleanupPolicy` | Kyverno isn't installed, and the safety check needs cross-object state (the Longhorn clone status) |
-| **CronJob running a guarded kubectl/jq script** | **Recommended.** Same pattern as [longhorn-pdb-pruner](../kubernetes/apps/storage/longhorn-pdb-pruner/), and it can check every safety condition |
+| **CronJob running a guarded kubectl/jq script** | **Chosen and implemented** (see "Implementation" below). Same pattern as [longhorn-pdb-pruner](../kubernetes/apps/storage/longhorn-pdb-pruner/), and it can check every safety condition |
 
 ### What the job does
 
@@ -809,7 +823,7 @@ The leftovers come back whenever an RD is created fresh: on bootstrap, during a 
 **Dry runs against the live cluster (2026-11-20):**
 
 - Before step 2: 41 RDs to clean (the same 41 completed full-copy clones counted in §3) and the 5 orphans reported.
-- After step 2 and the orphan removal: nothing to clean (`just kube volsync-cleanup` prints nothing).
+- After step 2 and the orphan removal: nothing to clean (`SUMMARY checked=41 … nothing-to-clean=41 failed=0`).
 
 **Restores stay safe.** During a §6 restore, the new app PVC is `Pending` and then mid-clone, so guards 2 and 3 skip that app until the clone completes (shown in §6b). Bootstrap behaves the same way. Each app's `-dst-dest` is freed in the first run after its PVC is `MIN_AGE_SECONDS` (15 min) old and its clone has completed.
 
@@ -838,7 +852,7 @@ The storage namespace's NetworkPolicies are all ingress-only and select Longhorn
 - the ConfigMap carries the script unchanged;
 - the script parses under `dash` (strict POSIX).
 
-The first scheduled dry run confirms it under BusyBox `ash` in the image.
+Confirmed in the image under BusyBox `ash`: manual dry-run Jobs completed at 22:56 and 23:06 UTC (11 s each). The 23:06 run, with the `START`/`SUMMARY` logging, reported `checked=41 … nothing-to-clean=41 failed=0`.
 
 **`just kube volsync-cleanup [apply] [namespace]`** ([kubernetes/mod.just](../kubernetes/mod.just)) runs the same `cleanup.sh` from your workstation with the same settings:
 
@@ -918,7 +932,7 @@ kubectl delete namespace volsync-e2e                      # teardown
 
 **What remains:** three small Kopia snapshots for source `volsync-e2e@volsync-e2e` (about 48 MB of unique data) in the shared repository. They don't affect real apps' snapshots. Remove them with `kopia snapshot delete` from a pod that mounts the repository, or leave them; nothing applies retention to that source any more.
 
-**Unrelated change during the test window:** karakeep's Deployment was modified at 22:09:41 by a client identifying as `node-fetch` (not kubectl). karakeep rolled to k8s-05, which let the Pending `karakeep-meilisearch` (pod affinity, shared RWO volume) run. Separately, a GitHub Actions runner on k8s-04 (started 22:12) used about 10 GB of `/var`.
+**Unrelated change during the test window:** karakeep's Deployment was modified at 22:09:41 by a client identifying as `node-fetch`. That was the owner deliberately restarting karakeep so the Pending `karakeep-meilisearch` (pod affinity, shared RWO volume) could schedule. karakeep rolled to k8s-05, and meilisearch has been Running since. Separately, a GitHub Actions runner on k8s-04 (started 22:12) used about 10 GB of `/var`.
 
 ## 7. Useful queries
 
@@ -990,7 +1004,7 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 21:17 | Talos v1.14.6 rollout completed on all six nodes; Longhorn rebuilding replicas stopped by the reboots (69 degraded at 21:20, 53 at 21:24) |
 | 2026-11-20 21:24 | Doc re-validated after the rollout (corrected §1 timeline and §2 placement; restore caches now 20.8 GB cluster-wide; §6a dry run unchanged: 41 to clean, 5 orphans) |
 | 2026-11-20 21:37 | Longhorn rebuilds complete (95 volumes, 0 degraded); §4a baseline recorded |
-| 2026-11-20 | Step 3 edited in the Longhorn HelmRelease: `storageMinimalAvailablePercentage` 5 → 20 (not yet committed) |
+| 2026-11-20 | Step 3 edited in the Longhorn HelmRelease: `storageMinimalAvailablePercentage` 5 → 20 (committed as `6562b6b8`, live 22:04) |
 | 2026-11-20 | §6a cleanup script dry-run against the cluster: 41 to clean, 5 orphans (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr) |
 | 2026-11-20 21:45 | Step 1: all 46 restore caches deleted; k8s-05 /var free 99 → 118 GB; src-caches and all 41 backups unaffected (§4a) |
 | 2026-11-20 21:53 | Step 2a passed: homepage snapshot, `-dst-dest` PVC, PV and Longhorn volume gone and not recreated after a Flux reconcile (21:50); RD `WaitingForManual`; manual backup succeeded (2m40s); 94 volumes, 0 degraded; `-dst-dest` 45 / 45 |
@@ -1006,4 +1020,6 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 | Step 6 prepared: HelmRelease `storageOverProvisioningPercentage` 100 → 120 and `storageReservedPercentageForDefaultDisk` 15 → 30 (server dry run passed). Chosen from measured fill (53%) and non-Longhorn usage (91–99 GB per node); 150% rejected (break-even below today's fill) |
 | 2026-11-20 23:01 | Step 6 applied: commit `0a3914b9` live at 23:00 (settings 120 / 30 / 20); Storage Reserved 100 GiB on all three disks via the UI; all `Schedulable=True`; §4a "After step 6" snapshot matches |
 | 2026-11-20 23:01 | `cleanup.sh` now always logs `START` and `SUMMARY` (checked / clean / skipped / orphans-reported / nothing-to-clean / failed) and exits non-zero if a snapshot delete fails. Decision logic unchanged; tested via the recipe, for one namespace, and under `dash` |
+| 2026-11-20 23:06 | New `cleanup.sh` live (commit `d53e5440`); manual dry-run Job logged `SUMMARY checked=41 clean=0 skipped=0 orphans-reported=0 nothing-to-clean=41 failed=0` |
+| 2026-11-20 23:15 | Upstream research on space-aware replica balancing added to §5 step 3b and §8 (longhorn#10512 shipped for new replicas only; #2977, #11135 open). Doc brought up to date: completed steps marked, figures refreshed, status and outstanding items consolidated at the top. The karakeep `node-fetch` change was the owner restarting the Deployment so meilisearch could schedule. The 42 stale `cilium-operator` pods have been cleared |
 | | After a few scheduled runs show the expected `SUMMARY`, set `DRY_RUN: "false"` in `cronjob.yaml` |
