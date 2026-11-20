@@ -530,6 +530,14 @@ So that future restores delete their own `-dst-cache` and step 1 doesn't need re
 
 Leave `cleanupTempPVC: false` as it is. Turning it on breaks restores (§3).
 
+**Tested 2026-11-20 in an isolated namespace (§6b, phase 4): passed.** With `cleanupCachePVC: true`:
+
+- VolSync deleted `-dst-cache` as soon as the restore mover finished (within 20 s);
+- `-dst-dest` and its snapshot stayed intact;
+- the app PVC was restored byte-identical from Kopia.
+
+Changing the component default is safe on that evidence, but it is optional if the §6a job is deployed, because the job also removes `-dst-cache`.
+
 ### Step 5: Give Longhorn its own disk (later)
 
 This is the permanent fix: if Longhorn isn't on EPHEMERAL, it can't cause kubelet DiskPressure. Outline:
@@ -617,9 +625,11 @@ It runs every 15 minutes. For each ReplicationDestination it deletes, in this or
    - the snapshot carries no `volsync.backube/volpop-pvc-<uid>` label, which the populator sets while it uses a snapshot;
    - the snapshot carries no `volsync.backube/do-not-delete` label.
 3. **Every app PVC with `dataSourceRef` → this RD** is `Bound`, older than `MIN_AGE_SECONDS` (default 1 h), and its Longhorn volume shows `cloneStatus.state: completed`. The clone check is essential: Longhorn binds a cloned PVC *before* the copy finishes ([longhorn#14599](https://github.com/longhorn/longhorn/issues/14599)), and deleting the source mid-copy fails the clone (`VolumeCloneFailed`).
-4. **Orphans** (no app PVC, no ReplicationSource for the app, RD older than `MIN_AGE_SECONDS`) are only reported. With `DELETE_ORPHANS=true`, the job also deletes the leftovers and the RD.
+4. **Orphans** (no app PVC, no ReplicationSource for the app, RD older than `MIN_AGE_SECONDS`) are only reported. With `DELETE_ORPHANS=true`, the job also deletes any leftovers and the RD. Guards 1 and 2 still apply to orphans.
 
-It ships with `DRY_RUN=true`, so it only logs what it would do.
+It ships with `DRY_RUN=true`, so it only logs what it would do. `ONLY_NAMESPACE=<ns>` limits it to one namespace; it was used for the §6b test and isn't needed in the CronJob.
+
+**Fixed 2026-11-20 22:08 UTC:** the first version checked "nothing left to clean" *before* the orphan check. Once step 2 had removed the orphans' PVCs and snapshots, it skipped them silently, and `DELETE_ORPHANS=true` would never remove their RDs. The script below evaluates orphans first. It was re-verified cluster-wide in dry-run mode: the 5 orphans are reported, 0 live RDs need cleaning, and `DELETE_ORPHANS=true` would delete exactly the 5 orphan RDs.
 
 **Why Flux and VolSync don't undo it** (checked 2026-11-20):
 
@@ -803,30 +813,59 @@ spec:
 #!/bin/sh
 # Deletes the VolSync restore leftovers (latestImage VolumeSnapshot, volsync-<rd>-dest, volsync-dst-<rd>-cache)
 # once the app PVC populated from that ReplicationDestination no longer needs them.
+# Orphaned RDs (app removed: no app PVC, no ReplicationSource) are reported, or removed with DELETE_ORPHANS=true.
 set -eu
 DRY_RUN="${DRY_RUN:-true}"
 MIN_AGE_SECONDS="${MIN_AGE_SECONDS:-3600}"
 DELETE_ORPHANS="${DELETE_ORPHANS:-false}"
+ONLY_NAMESPACE="${ONLY_NAMESPACE:-}"   # optional: restrict to one namespace (testing)
 TMP="${TMPDIR:-/tmp}"
 now=$(date +%s)
 
 run() { if [ "$DRY_RUN" = "true" ]; then echo "  DRY-RUN: $*"; else "$@"; fi; }
 
 kubectl -n storage get volumes.longhorn.io -o json > "$TMP/lh.json"
-kubectl get replicationdestinations -A -o json > "$TMP/rd.json"
+if [ -n "$ONLY_NAMESPACE" ]; then
+  kubectl -n "$ONLY_NAMESPACE" get replicationdestinations -o json > "$TMP/rd.json"
+else
+  kubectl get replicationdestinations -A -o json > "$TMP/rd.json"
+fi
 
 jq -r '.items[] | [.metadata.namespace, .metadata.name, (.status.latestImage.name // "-"),
-  ([.status.conditions[]? | select(.type=="Synchronizing") | .status][0] // "Unknown")] | @tsv' "$TMP/rd.json" |
-while IFS="$(printf '\t')" read -r ns rd snap syncing; do
+  ([.status.conditions[]? | select(.type=="Synchronizing") | .status][0] // "Unknown"),
+  (.metadata.creationTimestamp | fromdateiso8601)] | @tsv' "$TMP/rd.json" |
+while IFS="$(printf '\t')" read -r ns rd snap syncing created; do
   dest="volsync-${rd}-dest"
   cache="volsync-dst-${rd}-cache"
+  app="${rd%-dst}"
   kubectl -n "$ns" get pvc -o json > "$TMP/pvc.json"
 
-  # Nothing left to clean?
+  # What is left to clean?
   have=$(jq -r --arg d "$dest" --arg c "$cache" '[.items[] | select(.metadata.name==$d or .metadata.name==$c)] | length' "$TMP/pvc.json")
-  if [ "$snap" = "-" ] && [ "$have" = "0" ]; then continue; fi
   if [ "$snap" != "-" ] && ! kubectl -n "$ns" get volumesnapshot "$snap" >/dev/null 2>&1; then snap="-"; fi
-  if [ "$snap" = "-" ] && [ "$have" = "0" ]; then continue; fi
+
+  # Every app PVC that points at this RD must be Bound, old enough, and its Longhorn full-copy clone completed
+  verdict=$(jq -r --arg rd "$rd" --argjson now "$now" --argjson min "$MIN_AGE_SECONDS" --slurpfile lh "$TMP/lh.json" '
+    [.items[] | select(.spec.dataSourceRef.kind? == "ReplicationDestination" and .spec.dataSourceRef.name == $rd)] as $apps
+    | if ($apps | length) == 0 then "no-app-pvc"
+      else ($apps | map(
+              .spec.volumeName as $pv
+              | ([$lh[0].items[] | select(.metadata.name == $pv)][0]) as $v
+              | if .status.phase != "Bound" then "\(.metadata.name) not Bound"
+                elif ($now - (.metadata.creationTimestamp | fromdateiso8601)) < $min then "\(.metadata.name) younger than \($min)s"
+                elif $v == null then "\(.metadata.name) has no Longhorn volume"
+                elif (($v.spec.dataSource // "") != "") and ($v.status.cloneStatus.state != "completed") then "\(.metadata.name) clone state=\($v.status.cloneStatus.state)"
+                else "ok" end) | map(select(. != "ok")) | if length == 0 then "ok" else join("; ") end)
+      end' "$TMP/pvc.json")
+
+  # Orphan: the app's VolSync component is gone (Flux does not prune ssa: IfNotPresent objects)
+  orphan=false
+  if [ "$verdict" = "no-app-pvc" ] && ! kubectl -n "$ns" get replicationsource "$app" >/dev/null 2>&1 \
+     && [ $((now - created)) -gt "$MIN_AGE_SECONDS" ]; then
+    orphan=true
+  fi
+
+  if [ "$orphan" != "true" ] && [ "$snap" = "-" ] && [ "$have" = "0" ]; then continue; fi
 
   # Guard 1: the restore itself is idle
   if [ "$syncing" != "False" ] || kubectl -n "$ns" get job "volsync-dst-${rd}" >/dev/null 2>&1; then
@@ -840,31 +879,15 @@ while IFS="$(printf '\t')" read -r ns rd snap syncing; do
       | jq -e '.metadata.labels // {} | keys | map(select(startswith("volsync.backube/volpop-pvc-") or . == "volsync.backube/do-not-delete")) | length > 0' >/dev/null; then
     echo "SKIP $ns/$rd: snapshot $snap in use by the populator or marked do-not-delete"; continue
   fi
-  # Guard 3: every app PVC that points at this RD is Bound, old enough, and its Longhorn full-copy clone has completed
-  verdict=$(jq -r --arg rd "$rd" --argjson now "$now" --argjson min "$MIN_AGE_SECONDS" --slurpfile lh "$TMP/lh.json" '
-    [.items[] | select(.spec.dataSourceRef.kind? == "ReplicationDestination" and .spec.dataSourceRef.name == $rd)] as $apps
-    | if ($apps | length) == 0 then "no app PVC references this RD"
-      else ($apps | map(
-              .spec.volumeName as $pv
-              | ([$lh[0].items[] | select(.metadata.name == $pv)][0]) as $v
-              | if .status.phase != "Bound" then "\(.metadata.name) not Bound"
-                elif ($now - (.metadata.creationTimestamp | fromdateiso8601)) < $min then "\(.metadata.name) younger than \($min)s"
-                elif $v == null then "\(.metadata.name) has no Longhorn volume"
-                elif (($v.spec.dataSource // "") != "") and ($v.status.cloneStatus.state != "completed") then "\(.metadata.name) clone state=\($v.status.cloneStatus.state)"
-                else "ok" end) | map(select(. != "ok")) | if length == 0 then "ok" else join("; ") end)
-      end' "$TMP/pvc.json")
-  orphan=false
-  if [ "$verdict" = "no app PVC references this RD" ]; then
-    # Orphan: the app's VolSync component is gone (Flux does not prune ssa: IfNotPresent objects),
-    # i.e. no ReplicationSource for the app and the RD is older than MIN_AGE_SECONDS.
-    app="${rd%-dst}"
-    created=$(jq -r --arg ns "$ns" --arg rd "$rd" '.items[] | select(.metadata.namespace==$ns and .metadata.name==$rd) | .metadata.creationTimestamp | fromdateiso8601' "$TMP/rd.json")
-    if ! kubectl -n "$ns" get replicationsource "$app" >/dev/null 2>&1 && [ $((now - created)) -gt "$MIN_AGE_SECONDS" ]; then
-      if [ "$DELETE_ORPHANS" != "true" ]; then echo "ORPHAN $ns/$rd: no app PVC and no ReplicationSource '$app' (set DELETE_ORPHANS=true to remove)"; continue; fi
-      orphan=true
+
+  if [ "$orphan" = "true" ]; then
+    if [ "$DELETE_ORPHANS" != "true" ]; then
+      echo "ORPHAN $ns/$rd: no app PVC and no ReplicationSource '$app' (set DELETE_ORPHANS=true to remove)"; continue
     fi
+  elif [ "$verdict" != "ok" ]; then
+    # Guard 3 failed (a non-orphan RD with no app PVC lands here too, e.g. mid-restore)
+    echo "SKIP $ns/$rd: $verdict"; continue
   fi
-  if [ "$verdict" != "ok" ] && [ "$orphan" != "true" ]; then echo "SKIP $ns/$rd: $verdict"; continue; fi
 
   echo "CLEAN $ns/$rd: snapshot=$snap dest=$dest cache=$cache orphan=$orphan"
   # Snapshot first (its data lives inside the dest volume), then the dest PVC, then the cache.
@@ -893,6 +916,48 @@ done
   - *Risk:* thin volumes filling at the same time. The floor stops *new* replicas, not growth of existing ones, so watch actual usage.
 - **k8s-04's reserved space:** its disk reserves 137 GB (27%), while k8s-05 and k8s-06 reserve 34 GB (10%). If that isn't deliberate, lowering it in the Longhorn node's disk settings (UI or `nodes.longhorn.io` `spec.disks.*.storageReserved`) adds schedulable space on the node with the most room. 10% would add about 86 GB.
 - **Right-size `VOLSYNC_CAPACITY` for new apps.** It counts up to three times at bootstrap (app, `-dst-dest`, first backup). Existing PVCs can't be shrunk.
+
+## 6b. End-to-end test in an isolated namespace (2026-11-20 22:10–22:27 UTC)
+
+This test runs the real VolSync component, Longhorn, the Kopia repository and the §6a script through a full app lifecycle, without touching any real app. It runs in a throwaway namespace `volsync-e2e` with app name `volsync-e2e` and a 1 Gi PVC. It was rendered from the unmodified component, exactly as Flux would, with no Flux object involved, and the script ran with `ONLY_NAMESPACE=volsync-e2e`.
+
+### How to run it again
+
+```bash
+# Render the component as Flux would (kustomize refuses absolute component paths, so copy it)
+E=$(mktemp -d); cp -R kubernetes/components/volsync "$E/volsync"
+printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nnamespace: volsync-e2e\ncomponents:\n  - ./volsync\n' > "$E/kustomization.yaml"
+kubectl kustomize "$E" | APP=volsync-e2e VOLSYNC_CAPACITY=1Gi VOLSYNC_SCHEDULE="0 3 1 1 *" flux envsubst > "$E/rendered.yaml"
+grep -c 'namespace: volsync-e2e' "$E/rendered.yaml"     # expect 4 (PVC, ExternalSecret, RD, RS); nothing else
+
+kubectl create namespace volsync-e2e
+kubectl apply -f "$E/rendered.yaml"                       # = bootstrapping a brand-new app
+
+# Test pods: busybox, runAsUser/fsGroup 1000, mounting PVC volsync-e2e
+#   seed:  dd 50 MB of /dev/urandom + date into /data/e2e, save sha256sum output locally
+#   check: sha256sum /data/e2e/* and diff against the saved sums
+# Backups:  kubectl -n volsync-e2e patch replicationsource volsync-e2e --type merge -p '{"spec":{"trigger":{"manual":"<new tag>"}}}'
+# Script:   ONLY_NAMESPACE=volsync-e2e MIN_AGE_SECONDS=60 DRY_RUN=true|false sh cleanup.sh
+
+kubectl delete namespace volsync-e2e                      # teardown
+```
+
+### Results
+
+| Phase | What was done | Observed | Result |
+|---|---|---|---|
+| 1. Bootstrap | Applied the rendered component | 22:10:38 empty restore finished; 22:10:50 app PVC **Bound while the Longhorn clone was still `initiated`**; 22:11:35 clone `completed`; 22:13:18 **first backup ran automatically** (§6a) | ✅ |
+| 2. Seed | Wrote 50 MB of random data plus a timestamp; manual backup | Uploaded 48.3 MB, Kopia snapshot `94382f09…` | ✅ |
+| 3. Script on bootstrap leftovers | Dry run, then live | Deleted snapshot → `-dst-dest` → `-dst-cache`; app PVC and `src-cache` untouched; checksums OK | ✅ |
+| 4. §6 restore with step 4 | Deleted the app PVC and RD; re-applied with `cleanupCachePVC: true`; ran the script every 5 s (dry run, `MIN_AGE_SECONDS=0`) | 22:18:48 mover running → SKIP. 22:19:08 restore done and **`-dst-cache` already deleted by VolSync**, while `-dst-dest` and snapshot were kept. 22:19:10–25 PVC Bound, clone `initiated` / `copy-completed-awaiting-healthy` → SKIP. 22:19:54 clone `completed` → CLEAN at 22:19:56. Restored data **byte-identical** to the seed | ✅ |
+| 4b. Script live after restore | Live run, then data check, then backup | Leftovers removed; data still identical; backup at 22:23:59 `Successful`; second pass found nothing to clean | ✅ |
+| 5. Idle RD after cleanup | Forced a reconcile (annotation change) | RD stayed `WaitingForManual`; no PVC or snapshot recreated | ✅ |
+| 6. Orphan | Deleted the RS and app PVC (simulating app removal) | Report-only: `ORPHAN`; `DELETE_ORPHANS=true` removed the RD; `src-cache` went with the RS (owner reference) | ✅ |
+| Teardown | Deleted the namespace | 0 PVs, Longhorn volumes, snapshot contents, Longhorn orphans or hostpath folders left from the test. All 41 real RSs still `Successful`, all 46 real RDs `WaitingForManual`, 49 Longhorn volumes, 0 degraded | ✅ |
+
+**What remains:** three small Kopia snapshots for source `volsync-e2e@volsync-e2e` (about 48 MB of unique data) in the shared repository. They don't affect real apps' snapshots. Remove them with `kopia snapshot delete` from a pod that mounts the repository, or leave them; nothing applies retention to that source any more.
+
+**Unrelated change during the test window:** karakeep's Deployment was modified at 22:09:41 by a client identifying as `node-fetch` (not kubectl). karakeep rolled to k8s-05, which let the Pending `karakeep-meilisearch` (pod affinity, shared RWO volume) run. Separately, a GitHub Actions runner on k8s-04 (started 22:12) used about 10 GB of `/var`.
 
 ## 7. Useful queries
 
@@ -965,4 +1030,6 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 21:53 | Step 2a passed: homepage snapshot, `-dst-dest` PVC, PV and Longhorn volume gone and not recreated after a Flux reconcile (21:50); RD `WaitingForManual`; manual backup succeeded (2m40s); 94 volumes, 0 degraded; `-dst-dest` 45 / 45 |
 | 2026-11-20 21:58 | Step 2b: remaining 45 `-dst-dest` PVCs and snapshots deleted; 49 Longhorn volumes, 0 degraded; k8s-05 / k8s-06 `/var` free 160 / 151 GB; replicas 26 / 36 / 36 (§4a) |
 | 2026-11-20 22:04 | Step 3: `storageMinimalAvailablePercentage` 5 → 20 live (commit `6562b6b8`, Helm `longhorn.v48`); all disks schedulable. Step 3b skipped by decision |
-| | Step 4: `cleanupCachePVC` test |
+| 2026-11-20 22:08 | §6a script fixed (orphans with no leftovers were skipped) and given `ONLY_NAMESPACE`; re-verified cluster-wide in dry-run mode |
+| 2026-11-20 22:27 | §6b end-to-end test in namespace `volsync-e2e`: all phases passed, including step 4 (`cleanupCachePVC: true`) and the §6a script live; namespace removed, no leftovers, no real app touched |
+| | Step 4: change the component default (optional; validated by §6b) |
