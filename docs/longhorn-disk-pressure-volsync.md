@@ -273,7 +273,28 @@ Prometheus keeps 30 days, so take the script snapshots too; they don't expire.
 | Orphaned ReplicationDestinations | 5 |
 | Setting: minimal available / over-provisioning | 5% / 100% |
 
-**After step 1:** *(paste snapshot)*
+2**After step 1 (2026-11-20 21:45 UTC):** everything matched the expected column. The openebs cleanup pods removed every released hostpath PV within about a minute.
+
+| Node | /var free | Longhorn provisioned / limit | Replicas | Attached vols | dst-cache | src-cache |
+|---|---|---|---|---|---|---|
+| k8s-04 | 391 GB (76%) | 80 / 372 GB (21%) | 26 | 16 | 0 GB | 9.6 GB |
+| k8s-05 | 118 GB (34%) | 255 / 306 GB (83%) | 82 | 16 | 0 GB | 13.5 GB |
+| k8s-06 | 108 GB (31%) | 269 / 306 GB (87%) | 82 | 14 | 0 GB | 6.4 GB |
+
+| Metric | Value |
+|---|---|
+| Longhorn volumes / degraded | 95 / 0 |
+| Longhorn data, one copy (actual) | 148 GB |
+| Longhorn data, all replicas (actual) | 297 GB |
+| …of which `-dst-dest`, all replicas (actual) | 85 GB |
+| Longhorn provisioned, all replicas / limit | 605 / 985 GB (61%) |
+| Bootstrap worst case (3 × app + other) / limit | 858 / 985 GB (87%) |
+| `-dst-dest` PVCs / VolumeSnapshots | 46 / 46 |
+| `-dst-cache` PVCs | 0 |
+| Orphaned ReplicationDestinations | 5 |
+| Setting: minimal available / over-provisioning | 5% / 100% |
+
+If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still deleting folders there; it fails when files vanish mid-scan. Wait until `kubectl get pv` shows no `Released` openebs-hostpath PVs and no `cleanup-pvc-*` pods in `storage`, then re-run the script.
 
 **After step 2:** *(paste snapshot)*
 
@@ -887,7 +908,7 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 21:37 | Longhorn rebuilds complete (95 volumes, 0 degraded); §4a baseline recorded |
 | 2026-11-20 | Step 3 edited in the Longhorn HelmRelease: `storageMinimalAvailablePercentage` 5 → 20 (not yet committed) |
 | 2026-11-20 | §6a cleanup script dry-run against the cluster: 41 to clean, 5 orphans (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr) |
-| | Step 1: restore caches deleted |
+| 2026-11-20 21:45 | Step 1: all 46 restore caches deleted; k8s-05 /var free 99 → 118 GB; src-caches and all 41 backups unaffected (§4a) |
 | | Step 2a: homepage test |
 | | Step 2b: all `-dst-dest` deleted |
 | | Step 3: Longhorn settings changed |
