@@ -2,6 +2,7 @@
 # Deletes the VolSync restore leftovers (latestImage VolumeSnapshot, volsync-<rd>-dest, volsync-dst-<rd>-cache)
 # once the app PVC populated from that ReplicationDestination no longer needs them.
 # Orphaned RDs (app removed: no app PVC, no ReplicationSource) are reported, or removed with DELETE_ORPHANS=true.
+# Every run prints a start line and a summary, even when there is nothing to do.
 set -eu
 DRY_RUN="${DRY_RUN:-true}"
 MIN_AGE_SECONDS="${MIN_AGE_SECONDS:-3600}"
@@ -11,6 +12,11 @@ TMP="${TMPDIR:-/tmp}"
 now=$(date +%s)
 
 run() { if [ "$DRY_RUN" = "true" ]; then echo "  DRY-RUN: $*"; else "$@"; fi; }
+result() { echo "$1" >> "$TMP/results"; }   # one line per RD; tallied in the summary
+count() { grep -cx "$1" "$TMP/results" || true; }
+
+echo "START $(date -u '+%Y-%m-%dT%H:%M:%SZ') DRY_RUN=$DRY_RUN DELETE_ORPHANS=$DELETE_ORPHANS MIN_AGE_SECONDS=$MIN_AGE_SECONDS namespace=${ONLY_NAMESPACE:-<all>}"
+: > "$TMP/results"
 
 kubectl -n storage get volumes.longhorn.io -o json > "$TMP/lh.json"
 if [ -n "$ONLY_NAMESPACE" ]; then
@@ -53,36 +59,43 @@ while IFS="$(printf '\t')" read -r ns rd snap syncing created; do
     orphan=true
   fi
 
-  if [ "$orphan" != "true" ] && [ "$snap" = "-" ] && [ "$have" = "0" ]; then continue; fi
+  if [ "$orphan" != "true" ] && [ "$snap" = "-" ] && [ "$have" = "0" ]; then result clear; continue; fi
 
   # Guard 1: the restore itself is idle
   if [ "$syncing" != "False" ] || kubectl -n "$ns" get job "volsync-dst-${rd}" >/dev/null 2>&1; then
-    echo "SKIP $ns/$rd: restore mover running or RD not idle (Synchronizing=$syncing)"; continue
+    echo "SKIP $ns/$rd: restore mover running or RD not idle (Synchronizing=$syncing)"; result skip; continue
   fi
   # Guard 2: the volume populator is not mid-way (it creates vs-prime-<uid> and labels the snapshot volpop-pvc-<uid>)
   if jq -e '.items[] | select(.metadata.name | startswith("vs-prime-"))' "$TMP/pvc.json" >/dev/null; then
-    echo "SKIP $ns/$rd: volume populator PVC (vs-prime-*) present in namespace"; continue
+    echo "SKIP $ns/$rd: volume populator PVC (vs-prime-*) present in namespace"; result skip; continue
   fi
   if [ "$snap" != "-" ] && kubectl -n "$ns" get volumesnapshot "$snap" -o json \
       | jq -e '.metadata.labels // {} | keys | map(select(startswith("volsync.backube/volpop-pvc-") or . == "volsync.backube/do-not-delete")) | length > 0' >/dev/null; then
-    echo "SKIP $ns/$rd: snapshot $snap in use by the populator or marked do-not-delete"; continue
+    echo "SKIP $ns/$rd: snapshot $snap in use by the populator or marked do-not-delete"; result skip; continue
   fi
 
   if [ "$orphan" = "true" ]; then
     if [ "$DELETE_ORPHANS" != "true" ]; then
-      echo "ORPHAN $ns/$rd: no app PVC and no ReplicationSource '$app' (set DELETE_ORPHANS=true to remove)"; continue
+      echo "ORPHAN $ns/$rd: no app PVC and no ReplicationSource '$app' (set DELETE_ORPHANS=true to remove)"; result orphan; continue
     fi
   elif [ "$verdict" != "ok" ]; then
     # Guard 3 failed (a non-orphan RD with no app PVC lands here too, e.g. mid-restore)
-    echo "SKIP $ns/$rd: $verdict"; continue
+    echo "SKIP $ns/$rd: $verdict"; result skip; continue
   fi
 
   echo "CLEAN $ns/$rd: snapshot=$snap dest=$dest cache=$cache orphan=$orphan"
   # Snapshot first (its data lives inside the dest volume), then the dest PVC, then the cache.
   if [ "$snap" != "-" ]; then
-    run kubectl -n "$ns" delete volumesnapshot "$snap" --wait=true --timeout=10m || { echo "  snapshot delete failed; leaving dest PVC"; continue; }
+    run kubectl -n "$ns" delete volumesnapshot "$snap" --wait=true --timeout=10m || { echo "  snapshot delete failed; leaving dest PVC"; result failed; continue; }
   fi
   run kubectl -n "$ns" delete pvc "$dest" --ignore-not-found --wait=true --timeout=10m
   run kubectl -n "$ns" delete pvc "$cache" --ignore-not-found --wait=false
   if [ "$orphan" = "true" ]; then run kubectl -n "$ns" delete replicationdestination "$rd" --wait=false; fi
+  result clean
 done
+
+checked=$(jq '.items | length' "$TMP/rd.json")
+failed=$(count failed)
+mode=""; [ "$DRY_RUN" = "true" ] && mode=" (dry run: nothing was deleted)"
+echo "SUMMARY checked=$checked clean=$(count clean) skipped=$(count skip) orphans-reported=$(count orphan) nothing-to-clean=$(count clear) failed=$failed$mode"
+[ "$failed" = "0" ]

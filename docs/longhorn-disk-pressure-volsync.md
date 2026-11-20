@@ -12,14 +12,10 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 > - Steps 1–3 (21:45–22:04 UTC). They freed about 61 GB on k8s-05 and 44 GB on k8s-06, and Longhorn now keeps 20% free (§4a). Step 3b was skipped.
 > - Step 4: `cleanupCachePVC: true` in the component, with the 41 live RDs patched in place.
 > - The 5 orphaned RDs were deleted.
-> - The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe were added in Git, starting with `DRY_RUN=true`.
+> - The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe are deployed. The first dry run completed under BusyBox `ash`, and every run now logs a `START` and a `SUMMARY` line.
+> - Step 6 (22:59–23:01 UTC): over-provisioning 120%, default-disk reserved 30%, and 100 GiB Storage Reserved on every disk. Limits are 482 / 280 / 280 GB and the bootstrap worst case is 82% (§4a).
 >
-> **Next:**
->
-> 1. After pushing, review a dry run of the cleanup CronJob and then set `DRY_RUN` to `"false"` (§6a, "Operating it").
-> 2. Step 6: push the HelmRelease change (over-provisioning 120%, default-disk reserved 30%), then set Storage Reserved to 100 GiB on each disk in the Longhorn UI.
->
-> Log progress in §10.
+> **Next:** once a few scheduled runs show the expected `SUMMARY`, set `DRY_RUN` to `"false"` (§6a, "Operating it"). Log progress in §10.
 >
 > **Talos v1.14.6 rollout completed at 21:17 UTC** (tuppr, started about 20:30 UTC). Afterwards Longhorn was still rebuilding replicas that were stopped by the reboots: 69 volumes were degraded at 21:20 UTC and 53 at 21:24 UTC. Step 1 is safe now. Wait until the §4 checks show no degraded volumes before steps 2 and 3.
 
@@ -364,6 +360,33 @@ If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still de
 | `-dst-cache` PVCs | 0 |
 | Orphaned ReplicationDestinations | 5 |
 | Setting: minimal available / over-provisioning | 20% / 100% |
+
+**After step 6 (commit `0a3914b9`; Helm upgrade live 23:00 UTC; Storage Reserved 100 GiB set in the UI; snapshot 2026-11-20 23:01 UTC):** everything matched the expected column.
+
+- Limits are 482 / 280 / 280 GB, with provisioned space at 16 / 54 / 59% of them.
+- The cluster is at 399 / 1,043 GB (38%), and the bootstrap worst case is 82%.
+- All disks are `Schedulable=True`, and the orphans are gone.
+- The fill ratio is 216 / 399 GB = 54%, against a break-even of 61–64%.
+- The UI change was made before Flux had applied 120%. For about 15 minutes the limits were 402 / 233 / 233 GB; that was harmless, with nothing being scheduled at the time.
+
+| Node | /var free | Longhorn provisioned / limit | Replicas | Attached vols | dst-cache | src-cache |
+|---|---|---|---|---|---|---|
+| k8s-04 | 376 GB (73%) | 79 / 482 GB (16%) | 25 | 15 | 0 GB | 9.6 GB |
+| k8s-05 | 156 GB (45%) | 153 / 280 GB (54%) | 37 | 17 | 0 GB | 13.5 GB |
+| k8s-06 | 149 GB (43%) | 166 / 280 GB (59%) | 36 | 14 | 0 GB | 6.4 GB |
+
+| Metric | Value |
+|---|---|
+| Longhorn volumes / degraded | 49 / 0 |
+| Longhorn data, one copy (actual) | 108 GB |
+| Longhorn data, all replicas (actual) | 216 GB |
+| …of which `-dst-dest`, all replicas (actual) | 0 GB |
+| Longhorn provisioned, all replicas / limit | 399 / 1043 GB (38%) |
+| Bootstrap worst case (3 × app + other) / limit | 858 / 1043 GB (82%) |
+| `-dst-dest` PVCs / VolumeSnapshots | 0 / 0 |
+| `-dst-cache` PVCs | 0 |
+| Orphaned ReplicationDestinations | 0 |
+| Setting: minimal available / over-provisioning | 20% / 120% |
 
 ## 5. The plan
 
@@ -813,7 +836,12 @@ just kube volsync-cleanup true             # live, all namespaces
    kubectl -n storage create job --from=cronjob/volsync-restore-cleanup volsync-restore-cleanup-manual-$(date +%s)
    kubectl -n storage logs -l app.kubernetes.io/name=volsync-restore-cleanup --tail=-1
    ```
-   On 2026-11-20 after steps 1–2 and the orphan removal, there is nothing to clean, so the expected output is empty and the job `Complete`. A failed job, an error or any `CLEAN` line is unexpected.
+   Every run prints a `START` line with its settings and a `SUMMARY` line, plus one line for each RD it acts on or skips (`CLEAN`, `SKIP`, `ORPHAN`). On 2026-11-20, after steps 1–2 and the orphan removal, the expected output was:
+   ```text
+   START 2026-11-20T23:00:56Z DRY_RUN=true DELETE_ORPHANS=true MIN_AGE_SECONDS=900 namespace=<all>
+   SUMMARY checked=41 clean=0 skipped=0 orphans-reported=0 nothing-to-clean=41 failed=0 (dry run: nothing was deleted)
+   ```
+   `checked` should equal the number of RDs (41 now). If a snapshot can't be deleted, the run counts it as `failed`, leaves that RD's `-dst-dest` in place and exits non-zero, so the Job shows as `Failed`. A missing `SUMMARY` line means the script stopped early; check the Job's events and log.
 3. **Turn it on:** set `DRY_RUN` to `"false"` in `cronjob.yaml` and commit.
 4. **After any restore** (§6 or a bootstrap), check that the leftovers drain. Expect `SKIP … clone state=…` while the copy runs, then `CLEAN` within one run (≤ 15 min) after the app PVC is 15 minutes old with its clone `completed`. To see what's left at any time, run `just kube volsync-cleanup`.
 5. **Pause it** without removing anything: `kubectl -n storage patch cronjob volsync-restore-cleanup -p '{"spec":{"suspend":true}}'`. Flux reverts this on its next reconcile, so for a longer pause, set `spec.suspend: true` in Git.
@@ -945,6 +973,8 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 | Existing RDs patched in place (`kubectl patch … {"spec":{"kopia":{"cleanupCachePVC":true}}}`): homepage first as a test, then the other 40; the 5 orphans skipped. Flux leaves the patch alone (`IfNotPresent`), and no restore was triggered (all 46 `WaitingForManual`, `lastManualSync` unchanged, 0 restore jobs, 0 controller errors, no PVCs recreated) |
 | 2026-11-20 | 5 orphaned RDs deleted (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr; each checked first: no owned objects, app PVC, RS or Flux inventory entry). Now 41 RDs = 41 RSs |
 | 2026-11-20 | §6a implemented in Git: Flux app `storage/volsync-restore-cleanup` (CronJob `*/15`, `DRY_RUN=true`, `DELETE_ORPHANS=true`, `MIN_AGE_SECONDS=900`) and recipe `just kube volsync-cleanup`, sharing one `cleanup.sh`. Server-side dry run passed; recipe dry run printed nothing (nothing to clean) |
-| | Review a CronJob dry run after Flux deploys it, then set `DRY_RUN: "false"` |
+| 2026-11-20 22:56 | Cleanup CronJob deployed (commit `972a0bf2`); a manual dry-run Job `Complete` in 11 s under BusyBox `ash`. Its log was empty because there was nothing to clean |
 | 2026-11-20 | Step 6 prepared: HelmRelease `storageOverProvisioningPercentage` 100 → 120 and `storageReservedPercentageForDefaultDisk` 15 → 30 (server dry run passed). Chosen from measured fill (53%) and non-Longhorn usage (91–99 GB per node); 150% rejected (break-even below today's fill) |
-| | Step 6: HelmRelease applied (settings show 120 / 30), then Storage Reserved set to 100 GiB on k8s-04, k8s-05 and k8s-06 in the UI; disks still `Schedulable=True` |
+| 2026-11-20 23:01 | Step 6 applied: commit `0a3914b9` live at 23:00 (settings 120 / 30 / 20); Storage Reserved 100 GiB on all three disks via the UI; all `Schedulable=True`; §4a "After step 6" snapshot matches |
+| 2026-11-20 23:01 | `cleanup.sh` now always logs `START` and `SUMMARY` (checked / clean / skipped / orphans-reported / nothing-to-clean / failed) and exits non-zero if a snapshot delete fails. Decision logic unchanged; tested via the recipe, for one namespace, and under `dash` |
+| | After a few scheduled runs show the expected `SUMMARY`, set `DRY_RUN: "false"` in `cronjob.yaml` |
