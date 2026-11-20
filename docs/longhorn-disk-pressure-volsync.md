@@ -5,7 +5,7 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 
 # Longhorn Disk Pressure and VolSync Leftover PVCs
 
-> **Status (2026-11-20, re-validated 21:24 UTC):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves. Nothing has been changed in the cluster yet. The plan is in §5, and steps 1 to 3 are the ones to do. Log progress in §10.
+> **Status (2026-11-20, re-validated 21:24 UTC):** k8s-05 hit DiskPressure at 20:07–20:15 UTC and k8s-06 at 20:15–20:21 UTC; both recovered by themselves. **Steps 1 and 2 are done** (21:45 and 21:58 UTC). They freed about 61 GB on k8s-05 and 44 GB on k8s-06 (§4a). Step 3 (the Longhorn HelmRelease change) is next, then §6a. Log progress in §10.
 >
 > **Talos v1.14.6 rollout completed at 21:17 UTC** (tuppr, started about 20:30 UTC). Afterwards Longhorn was still rebuilding replicas that were stopped by the reboots: 69 volumes were degraded at 21:20 UTC and 53 at 21:24 UTC. Step 1 is safe now. Wait until the §4 checks show no degraded volumes before steps 2 and 3.
 
@@ -296,7 +296,33 @@ Prometheus keeps 30 days, so take the script snapshots too; they don't expire.
 
 If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still deleting folders there; it fails when files vanish mid-scan. Wait until `kubectl get pv` shows no `Released` openebs-hostpath PVs and no `cleanup-pvc-*` pods in `storage`, then re-run the script.
 
-**After step 2:** *(paste snapshot)*
+**After step 2 (2a homepage test 21:53, 2b the remaining 45, snapshot 2026-11-20 21:58 UTC):** everything matched the expected column.
+
+- **Freed:** about 43 GB on each of k8s-05 and k8s-06 (`/var` 117 → 160 GB and 108 → 151 GB). Provisioned space on those two nodes dropped by 103 GB each, and they lost 46 replicas each.
+- **Nothing left behind:** no VolumeSnapshotContents, Longhorn volumes or Longhorn orphans remain for `-dst-dest`, and no PVC is stuck terminating.
+- **No side effects:** all 41 backups `Successful`, all 46 RDs `WaitingForManual`, no DiskPressure.
+- **Unrelated, found during the check:** `karakeep-meilisearch` was Pending on CPU/memory plus pod affinity to karakeep's node since the Talos rollout, and 42 old `cilium-operator` pods sat in `ContainerStatusUnknown`.
+
+| Node | /var free | Longhorn provisioned / limit | Replicas | Attached vols | dst-cache | src-cache |
+|---|---|---|---|---|---|---|
+| k8s-04 | 391 GB (76%) | 80 / 372 GB (21%) | 26 | 16 | 0 GB | 9.6 GB |
+| k8s-05 | 160 GB (47%) | 152 / 306 GB (49%) | 36 | 16 | 0 GB | 13.5 GB |
+| k8s-06 | 151 GB (44%) | 166 / 306 GB (54%) | 36 | 14 | 0 GB | 6.4 GB |
+
+| Metric | Value |
+|---|---|
+| Longhorn volumes / degraded | 49 / 0 |
+| Longhorn data, one copy (actual) | 106 GB |
+| Longhorn data, all replicas (actual) | 212 GB |
+| …of which `-dst-dest`, all replicas (actual) | 0 GB |
+| Longhorn provisioned, all replicas / limit | 399 / 985 GB (40%) |
+| Bootstrap worst case (3 × app + other) / limit | 858 / 985 GB (87%) |
+| `-dst-dest` PVCs / VolumeSnapshots | 0 / 0 |
+| `-dst-cache` PVCs | 0 |
+| Orphaned ReplicationDestinations | 5 |
+| Setting: minimal available / over-provisioning | 5% / 100% |
+
+**Totals since the baseline:** k8s-05 `/var` free 99 → 160 GB (29% → 47%), k8s-06 107 → 151 GB (31% → 44%). Longhorn holds 84 GB less data across all replicas (296 → 212 GB) and 206 GB less provisioned space (605 → 399 GB), and has 46 fewer volumes (95 → 49).
 
 **After step 3:** *(paste snapshot)*
 
@@ -344,7 +370,9 @@ kubectl -n $ns get replicationdestination ${app}-dst -o jsonpath='{.status.condi
 kubectl -n storage logs deploy/volsync --since=15m | grep -i "${app}-dst"
 ```
 
-**Pass condition:** after the next hourly Flux reconcile, the PVC is still gone, the RD shows `WaitingForManual` without errors, and the app keeps running. Its next scheduled backup (Thursday 04:00 UTC for homepage) also succeeds. To speed up that last check, run `just kube snapshot default homepage`.
+**Pass condition:** after the next hourly Flux reconcile, the PVC is still gone, the RD shows `WaitingForManual` without errors, and the app keeps running. Its next scheduled backup (Thursday 09:00 UTC for homepage, `0 9 * * 4`; the README table says 04:00, which is out of date) also succeeds. To speed up that last check, run `just kube snapshot default homepage`.
+
+**Note on `just kube snapshot`:** it patches `spec.trigger.manual`, and VolSync gives a manual trigger precedence over the schedule (`getTrigger`). Until Flux's next reconcile of that app's Kustomization, the backup source shows `WaitingForManual` and has no `nextSyncTime`. Flux then removes the field: kustomize-controller takes over fields owned by managers whose names start with `kubectl` (prefix match in `fluxcd/pkg/ssa` `matchFieldManager`), and that covers `kubectl-patch`. The schedule then applies again. Expected, not a fault.
 
 #### 2b. All the rest
 
@@ -909,7 +937,7 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 | Step 3 edited in the Longhorn HelmRelease: `storageMinimalAvailablePercentage` 5 → 20 (not yet committed) |
 | 2026-11-20 | §6a cleanup script dry-run against the cluster: 41 to clean, 5 orphans (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr) |
 | 2026-11-20 21:45 | Step 1: all 46 restore caches deleted; k8s-05 /var free 99 → 118 GB; src-caches and all 41 backups unaffected (§4a) |
-| | Step 2a: homepage test |
-| | Step 2b: all `-dst-dest` deleted |
+| 2026-11-20 21:53 | Step 2a passed: homepage snapshot, `-dst-dest` PVC, PV and Longhorn volume gone and not recreated after a Flux reconcile (21:50); RD `WaitingForManual`; manual backup succeeded (2m40s); 94 volumes, 0 degraded; `-dst-dest` 45 / 45 |
+| 2026-11-20 21:58 | Step 2b: remaining 45 `-dst-dest` PVCs and snapshots deleted; 49 Longhorn volumes, 0 degraded; k8s-05 / k8s-06 `/var` free 160 / 151 GB; replicas 26 / 36 / 36 (§4a) |
 | | Step 3: Longhorn settings changed |
 | | Step 4: `cleanupCachePVC` test |
