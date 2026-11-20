@@ -29,7 +29,7 @@ spec:
       offlineReplicaRebuilding: "enabled"
       orphanAutoDeletion: "true"
       replicaAutoBalance: "least-effort"
-      storageMinimalAvailablePercentage: "5"
+      storageMinimalAvailablePercentage: "20" # Stay above kubelet's imagefs.available 15% eviction threshold (Longhorn shares EPHEMERAL)
       storageReservedPercentageForDefaultDisk: "15"
     ingress:
       enabled: false
