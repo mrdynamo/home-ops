@@ -324,7 +324,32 @@ If `talosctl usage` prints `n/a` for a node's cache columns, openebs is still de
 
 **Totals since the baseline:** k8s-05 `/var` free 99 → 160 GB (29% → 47%), k8s-06 107 → 151 GB (31% → 44%). Longhorn holds 84 GB less data across all replicas (296 → 212 GB) and 206 GB less provisioned space (605 → 399 GB), and has 46 fewer volumes (95 → 49).
 
-**After step 3:** *(paste snapshot)*
+**After step 3 (commit `6562b6b8`, Helm upgrade `longhorn.v48` succeeded 22:04 UTC):**
+
+- The live setting is `storage-minimal-available-percentage = 20`.
+- All three disks are still `Schedulable=True` (76% / 46% / 44% free).
+- 49 volumes, 0 degraded; no space change, as expected.
+- During the Helm upgrade (about a minute), the HelmRelease showed `Ready=Unknown Progressing` and the snapshot script failed while Longhorn objects were being updated. Wait for `Ready=True` before taking the snapshot.
+- Step 3b was skipped by decision.
+
+| Node | /var free | Longhorn provisioned / limit | Replicas | Attached vols | dst-cache | src-cache |
+|---|---|---|---|---|---|---|
+| k8s-04 | 388 GB (76%) | 80 / 372 GB (21%) | 26 | 16 | 0 GB | 9.6 GB |
+| k8s-05 | 160 GB (46%) | 152 / 306 GB (49%) | 36 | 16 | 0 GB | 13.5 GB |
+| k8s-06 | 150 GB (44%) | 166 / 306 GB (54%) | 36 | 14 | 0 GB | 6.4 GB |
+
+| Metric | Value |
+|---|---|
+| Longhorn volumes / degraded | 49 / 0 |
+| Longhorn data, one copy (actual) | 106 GB |
+| Longhorn data, all replicas (actual) | 212 GB |
+| …of which `-dst-dest`, all replicas (actual) | 0 GB |
+| Longhorn provisioned, all replicas / limit | 399 / 985 GB (40%) |
+| Bootstrap worst case (3 × app + other) / limit | 858 / 985 GB (87%) |
+| `-dst-dest` PVCs / VolumeSnapshots | 0 / 0 |
+| `-dst-cache` PVCs | 0 |
+| Orphaned ReplicationDestinations | 5 |
+| Setting: minimal available / over-provisioning | 20% / 100% |
 
 ## 5. The plan
 
@@ -939,5 +964,5 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 21:45 | Step 1: all 46 restore caches deleted; k8s-05 /var free 99 → 118 GB; src-caches and all 41 backups unaffected (§4a) |
 | 2026-11-20 21:53 | Step 2a passed: homepage snapshot, `-dst-dest` PVC, PV and Longhorn volume gone and not recreated after a Flux reconcile (21:50); RD `WaitingForManual`; manual backup succeeded (2m40s); 94 volumes, 0 degraded; `-dst-dest` 45 / 45 |
 | 2026-11-20 21:58 | Step 2b: remaining 45 `-dst-dest` PVCs and snapshots deleted; 49 Longhorn volumes, 0 degraded; k8s-05 / k8s-06 `/var` free 160 / 151 GB; replicas 26 / 36 / 36 (§4a) |
-| | Step 3: Longhorn settings changed |
+| 2026-11-20 22:04 | Step 3: `storageMinimalAvailablePercentage` 5 → 20 live (commit `6562b6b8`, Helm `longhorn.v48`); all disks schedulable. Step 3b skipped by decision |
 | | Step 4: `cleanupCachePVC` test |
