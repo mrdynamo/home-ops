@@ -1032,4 +1032,4 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 22:04 | Step 3: `storageMinimalAvailablePercentage` 5 → 20 live (commit `6562b6b8`, Helm `longhorn.v48`); all disks schedulable. Step 3b skipped by decision |
 | 2026-11-20 22:08 | §6a script fixed (orphans with no leftovers were skipped) and given `ONLY_NAMESPACE`; re-verified cluster-wide in dry-run mode |
 | 2026-11-20 22:27 | §6b end-to-end test in namespace `volsync-e2e`: all phases passed, including step 4 (`cleanupCachePVC: true`) and the §6a script live; namespace removed, no leftovers, no real app touched |
-| | Step 4: change the component default (optional; validated by §6b) |
+| 2026-11-20 | Step 4: component default changed to `cleanupCachePVC: true` (`cleanupTempPVC` stays `false`). All 46 RDs use openebs-hostpath caches; no app overrides `VOLSYNC_CACHE_STORAGECLASS`. Existing RDs keep `false` until recreated (`ssa: IfNotPresent`) |

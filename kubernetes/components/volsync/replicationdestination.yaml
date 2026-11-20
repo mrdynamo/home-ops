@@ -17,8 +17,8 @@ spec:
     cacheCapacity: ${VOLSYNC_CAPACITY:=2Gi}
     cacheStorageClassName: ${VOLSYNC_CACHE_STORAGECLASS:=openebs-hostpath}
     capacity: ${VOLSYNC_CAPACITY:=2Gi}
-    cleanupCachePVC: false    ## Both need to be false for:
-    cleanupTempPVC: false     ## https://github.com/backube/volsync/issues/1504
+    cleanupCachePVC: true     ## Cache is openebs-hostpath, unaffected by #1504 (tested: docs/longhorn-disk-pressure-volsync.md §6b)
+    cleanupTempPVC: false     ## Must stay false: Longhorn type: snap snapshots die with their PVC (https://github.com/backube/volsync/issues/1504)
     copyMethod: Snapshot
     enableFileDeletion: ${VOLSYNC_ENABLE_FILE_DELETION:=false} ## Also false for above
     moverSecurityContext:
