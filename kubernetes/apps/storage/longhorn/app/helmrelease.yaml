@@ -30,7 +30,11 @@ spec:
       orphanAutoDeletion: "true"
       replicaAutoBalance: "least-effort"
       storageMinimalAvailablePercentage: "20" # Stay above kubelet's imagefs.available 15% eviction threshold (Longhorn shares EPHEMERAL)
-      storageReservedPercentageForDefaultDisk: "15"
+      # PVCs are thin (~53% full on 2026-11-20); 120% keeps promises physically backed up to ~61% average fill.
+      # Pairs with ~100 GiB Storage Reserved per disk (set in the UI). See docs/longhorn-disk-pressure-volsync.md §5 step 6.
+      storageOverProvisioningPercentage: "120"
+      # Only applies when a node's default disk is first created; ~100 GB of each disk is used by images, caches and logs.
+      storageReservedPercentageForDefaultDisk: "30"
     ingress:
       enabled: false
     metrics:

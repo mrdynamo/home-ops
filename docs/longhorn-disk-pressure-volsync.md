@@ -14,7 +14,12 @@ description: Why k8s-05 hit DiskPressure on 2026-11-20, where worker disk space 
 > - The 5 orphaned RDs were deleted.
 > - The §6a cleanup CronJob and the `just kube volsync-cleanup` recipe were added in Git, starting with `DRY_RUN=true`.
 >
-> **Next:** after pushing, review a dry run and then set `DRY_RUN` to `"false"` (§6a, "Operating it"). Log progress in §10.
+> **Next:**
+>
+> 1. After pushing, review a dry run of the cleanup CronJob and then set `DRY_RUN` to `"false"` (§6a, "Operating it").
+> 2. Step 6: push the HelmRelease change (over-provisioning 120%, default-disk reserved 30%), then set Storage Reserved to 100 GiB on each disk in the Longhorn UI.
+>
+> Log progress in §10.
 >
 > **Talos v1.14.6 rollout completed at 21:17 UTC** (tuppr, started about 20:30 UTC). Afterwards Longhorn was still rebuilding replicas that were stopped by the reboots: 69 volumes were degraded at 21:20 UTC and 53 at 21:24 UTC. Step 1 is safe now. Wait until the §4 checks show no degraded volumes before steps 2 and 3.
 
@@ -212,26 +217,26 @@ jq -n -r --slurpfile v "$T/v.json" --slurpfile n "$T/n.json" --slurpfile s "$T/s
 
 Baseline taken 2026-11-20 21:37 UTC, after the Talos rollout and with all rebuilds finished. The expected numbers are the baseline minus what each step removes. `/var` free also moves a few GB with images and logs, so treat it as ± 5 GB.
 
-| Metric | Baseline | After step 1 | After step 2 | After step 3 | Optional: over-provisioning 150% |
+| Metric | Baseline | After step 1 | After step 2 | After step 3 | After step 6 (120%, 100 GiB reserved) |
 |---|---|---|---|---|---|
 | k8s-04 /var free | 391 GB (76%) | ~391 GB | ~391 GB | unchanged | unchanged |
 | k8s-05 /var free | 99 GB (29%) | ~117 GB (34%) | ~160 GB (47%) | unchanged | unchanged |
 | k8s-06 /var free | 107 GB (31%) | ~109 GB (32%) | ~151 GB (44%) | unchanged | unchanged |
-| k8s-04 provisioned / limit | 80 / 372 GB (21%) | same | same | same | 80 / 558 GB (14%) |
-| k8s-05 provisioned / limit | 255 / 306 GB (83%) | same | ~152 / 306 GB (50%) | same | ~152 / 459 GB (33%) |
-| k8s-06 provisioned / limit | 269 / 306 GB (87%) | same | ~166 / 306 GB (54%) | same | ~166 / 459 GB (36%) |
+| k8s-04 provisioned / limit | 80 / 372 GB (21%) | same | same | same | ~79 / 482 GB (16%) |
+| k8s-05 provisioned / limit | 255 / 306 GB (83%) | same | ~152 / 306 GB (50%) | same | ~153 / 280 GB (54%) |
+| k8s-06 provisioned / limit | 269 / 306 GB (87%) | same | ~166 / 306 GB (54%) | same | ~166 / 280 GB (59%) |
 | Replicas k8s-04 / 05 / 06 | 26 / 82 / 82 | same | 26 / 36 / 36 | same | same |
 | dst-cache k8s-04 / 05 / 06 | 0.5 / 18.5 / 1.7 GB | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 |
 | src-cache k8s-04 / 05 / 06 | 9.6 / 13.5 / 6.4 GB | **must not drop** | same | same | same |
 | Longhorn volumes / degraded | 95 / 0 | 95 / 0 | 49 / 0 | 49 / 0 | 49 / 0 |
 | Longhorn data, all replicas | 296 GB | 296 GB | ~211 GB | same | same |
 | …of which `-dst-dest` | 85 GB | 85 GB | 0 | 0 | 0 |
-| Longhorn provisioned / limit | 605 / 985 GB (61%) | same | ~399 / 985 GB (40%) | same | ~399 / 1,477 GB (27%) |
-| Bootstrap worst case / limit | 858 / 985 GB (87%) | same | same | same | 858 / 1,477 GB (58%) |
+| Longhorn provisioned / limit | 605 / 985 GB (61%) | same | ~399 / 985 GB (40%) | same | ~399 / 1,043 GB (38%) |
+| Bootstrap worst case / limit | 858 / 985 GB (87%) | same | same | same | 858 / 1,043 GB (82%) |
 | `-dst-dest` PVCs / VolumeSnapshots | 46 / 46 | 46 / 46 | 0 / 0 | 0 / 0 | 0 / 0 |
 | `-dst-cache` PVCs | 46 | 0 | 0 | 0 | 0 |
-| Orphaned ReplicationDestinations | 5 | 5 | 5 (their PVCs and snapshots are gone; the RD objects remain until deleted, see §6a) | 5 | 5 |
-| Minimal available / over-provisioning | 5% / 100% | same | same | 20% / 100% | 20% / 150% |
+| Orphaned ReplicationDestinations | 5 | 5 | 5 (their PVCs and snapshots are gone; the RD objects remain until deleted, see §6a) | 5 | 0 (deleted 2026-11-20) |
+| Minimal available / over-provisioning | 5% / 100% | same | same | 20% / 100% | 20% / 120% |
 
 **Stop and investigate if:**
 
@@ -572,6 +577,92 @@ This is the permanent fix: if Longhorn isn't on EPHEMERAL, it can't cause kubele
 2. Add a Talos `UserVolumeConfig` (for example, mounted at `/var/mnt/longhorn`). Update the kubelet bind mount in [talos/worker/01-machine-kubelet.yaml](../talos/worker/01-machine-kubelet.yaml) and `defaultDataPath`.
 3. Add the new disk to the Longhorn node. Set the old disk's `allowScheduling: false` and `evictionRequested: true`, wait for its replicas to move, then remove it. Do one node at a time.
 
+If you do this, lower each disk's Storage Reserved (step 6) to a few percent first, since nothing else would use the new disk.
+
+### Step 6: Make Longhorn's scheduling limits match reality (over-provisioning 120%, reserved 100 GiB)
+
+#### How Longhorn decides whether a replica fits
+
+Longhorn volumes are **thin**: a PVC's size is a maximum, and disk space is only used for data actually written. Plex's PVC is 19 GB, for example, with about 12 GB written. Across the cluster, volumes hold 53% of what they provision (212 GB actual against 399 GB provisioned, 2026-11-20).
+
+Before placing a replica on a disk, Longhorn (`IsSchedulableToDisk`) checks two separate things:
+
+1. **Physical check:** after placing it, real free space must stay above **Minimum available** (20%, step 3). It uses actual bytes on disk.
+2. **Promise check:** the *provisioned* sizes of all replicas on the disk, plus the new one, must stay under **(disk − Storage Reserved) × Over-provisioning %**.
+
+| Setting | Question it answers | Where it's set |
+|---|---|---|
+| **Storage Reserved** (per disk) | How much of this disk is used by things other than Longhorn (images, hostpath caches, logs, CI runners)? | Longhorn UI per disk, or `nodes.longhorn.io` `spec.disks.*.storageReserved`. Not in Git |
+| **Over-provisioning %** | On average, how full are PVCs compared with their size? | HelmRelease `storageOverProvisioningPercentage` |
+| **Minimum available %** | How much real free space must always remain? | HelmRelease `storageMinimalAvailablePercentage` |
+| Reserved % for default disk | Storage Reserved for a disk Longhorn creates *later* (node rebuild); never changes existing disks | HelmRelease `storageReservedPercentageForDefaultDisk` |
+
+Over-provisioning works like airline overbooking: at 100%, Longhorn never promises more than exists, as if every PVC could fill up completely at once. At 120%, it promises 1.2 times what exists, on the basis that PVCs average well under their maximum. It doesn't change PVC sizes, move data, let a volume exceed its own size, or weaken the physical check.
+
+**The risk:** if many volumes filled toward their maximum at once, the 20% floor would stop *new* replicas but couldn't stop existing volumes from writing. Free space would keep dropping until kubelet evicted pods at 15%. The safe range depends on the **break-even fill**: the average PVC fill at which a disk's promise limit equals the space physically usable by Longhorn (disk − non-Longhorn usage − 20% floor). Today's fill must stay clearly below it.
+
+#### What was wrong (measured 2026-11-20 22:40 UTC)
+
+| Node | Disk | Used by things other than Longhorn | Storage Reserved | Verdict |
+|---|---|---|---|---|
+| k8s-04 | 509 GB | ~97 GB | 137 GB (27%) | Over-reserved: the node with the most room had the least headroom |
+| k8s-05 | 341 GB | ~99 GB | 34 GB (10%) | Under-reserved: Longhorn could promise 306 GB, but only ~173 GB physically fits before the floor |
+| k8s-06 | 341 GB | ~91 GB | 34 GB (10%) | Under-reserved (~181 GB physically usable) |
+
+Non-Longhorn usage is about the same 91–99 GB on every node, whatever the disk size, so a single percentage can't fit all three disks. Set an **absolute** value per disk.
+
+#### Choosing the values
+
+With Storage Reserved at **100 GiB (107 GB) on every disk** (measured usage plus ~10 GB headroom for CI runners and image growth):
+
+| Over-provisioning | Limits k8s-04 / 05 / 06 (GB) | Cluster limit | Provisioned today | Bootstrap worst case | Break-even fill, k8s-05 / 06 |
+|---|---|---|---|---|---|
+| 100% | 402 / 233 / 233 | 869 GB | 19 / 65 / 71% | 98%, too tight | 74 / 77% |
+| 110% | 442 / 257 / 257 | 956 GB | 17 / 59 / 64% | 89% | 67 / 70% |
+| **120% (chosen)** | **482 / 280 / 280** | **1,043 GB** | **16 / 54 / 59%** | **82%** | **61 / 64%** |
+| 125% | 502 / 292 / 292 | 1,087 GB | 15 / 52 / 56% | 79% | 59 / 62% |
+| 150% | 603 / 350 / 350 | 1,304 GB | 13 / 43 / 47% | 65% | 49 / 51%, **below today's 53%: already over-promised** |
+
+**120% is the sensible middle.**
+
+- **Backed by real space:** promises stay physically backed until PVCs average 61–64% full, which is 8–11 points above today's 53%.
+- **Bootstrap:** the worst case uses 82% of the limit. With the old settings it was 87%, and the §6a job frees each app's `-dst-dest` as its clone finishes.
+- **100%, with accurate reservations, would stall a bootstrap** (98%).
+- **150% would over-promise already.**
+
+The HelmRelease also sets `storageReservedPercentageForDefaultDisk` from 15 to 30, so a rebuilt node's disk starts near the real ~100 GB on a 341 GB disk. A rebuilt k8s-04 would start at 153 GB, which errs on the safe side; set it to 100 GiB in the UI afterwards.
+
+#### Steps
+
+1. **Push the HelmRelease change** (`storageOverProvisioningPercentage: "120"`, `storageReservedPercentageForDefaultDisk: "30"`), then wait for it to apply:
+   ```bash
+   kubectl -n storage get hr longhorn -o jsonpath='{.status.conditions[?(@.type=="Ready")].status} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}'   # True UpgradeSucceeded
+   kubectl -n storage get settings.longhorn.io storage-over-provisioning-percentage storage-reserved-percentage-for-default-disk \
+     -o custom-columns=N:.metadata.name,V:.value --no-headers                                                                   # 120 / 30
+   ```
+   Do this **before** step 2. Raising Storage Reserved while over-provisioning is still 100% briefly cuts the limits to 402 / 233 / 233 GB. That's harmless for running apps (71% at most), but a bootstrap in that window would stall.
+2. **Set Storage Reserved to 100 GiB on each disk** in the Longhorn UI. For each node (k8s-04, k8s-05, k8s-06):
+   1. Open **Node**, and on the node's row open the **Operation** menu (⋮), then **Edit node and disks**.
+   2. On the disk (`default-disk-1030800000000` on k8s-04, `default-disk-080400000000` on k8s-05/06), set **Storage Reserved** to **100** (the field is in Gi).
+   3. **Save.** Leave everything else (scheduling, eviction, tags) unchanged.
+
+   Equivalent from the CLI (100 GiB = 107374182400 bytes):
+   ```bash
+   kubectl -n storage patch nodes.longhorn.io k8s-04 --type merge -p '{"spec":{"disks":{"default-disk-1030800000000":{"storageReserved":107374182400}}}}'
+   for n in k8s-05 k8s-06; do
+     kubectl -n storage patch nodes.longhorn.io $n --type merge -p '{"spec":{"disks":{"default-disk-080400000000":{"storageReserved":107374182400}}}}'
+   done
+   ```
+3. **Verify.** Run the §4a snapshot script and compare with the "After step 6" column. Every disk should still show `Schedulable=True`:
+   ```bash
+   kubectl -n storage get nodes.longhorn.io -o json | jq -r '.items[] | .metadata.name as $n | (.spec.disks|to_entries[0].value.storageReserved/1073741824) as $r
+     | .status.diskStatus|to_entries[0].value | "\($n) reserved=\($r)GiB schedulable=\([.conditions[]|select(.type=="Schedulable")|.status][0])"'
+   ```
+
+No data moves, and nothing is restarted. Only future scheduling decisions change.
+
+**Keep an eye on the fill ratio.** It's the "Longhorn data, all replicas" ÷ "Longhorn provisioned" rows in the §4a snapshot (53% today). If it climbs toward 60%, lower over-provisioning or grow the disks. Re-measure non-Longhorn usage (`/var` used − Longhorn actual) if you add large images or CI workloads.
+
 ## 6. Restoring an app from backup (after step 2)
 
 The populator always uses the RD's `latestImage`, so a restore means recreating the RD to force a fresh restore from Kopia. Before step 2, the same procedure was needed anyway; skipping it restored the 2025-12-13 data.
@@ -729,11 +820,7 @@ just kube volsync-cleanup true             # live, all namespaces
 
 ### Other levers for the bootstrap peak
 
-- **`storageOverProvisioningPercentage: "150"`** (currently 100) in the Longhorn HelmRelease.
-  - *Why:* Longhorn's scheduling check compares *provisioned* sizes against (disk − reserved) × over-provisioning% (`IsSchedulableToDisk`), and VolSync app PVCs use about 50% of what they provision. At 150%, schedulable space goes from 984 to about 1,476 GB, so the worst-case peak drops from 87% to about 58%.
-  - *What still protects you:* the physical floor is now `storageMinimalAvailablePercentage: "20"` (step 3).
-  - *Risk:* thin volumes filling at the same time. The floor stops *new* replicas, not growth of existing ones, so watch actual usage.
-- **k8s-04's reserved space:** its disk reserves 137 GB (27%), while k8s-05 and k8s-06 reserve 34 GB (10%). If that isn't deliberate, lowering it in the Longhorn node's disk settings (UI or `nodes.longhorn.io` `spec.disks.*.storageReserved`) adds schedulable space on the node with the most room. 10% would add about 86 GB.
+- **Over-provisioning and per-disk reserved space:** done as step 6 (§5): over-provisioning 120% and 100 GiB Storage Reserved per disk. That takes the worst case from 87% to 82% while making the limits honest about physical space. An earlier draft suggested 150%; it was rejected because its break-even fill (49–51%) is already below today's 53%.
 - **Right-size `VOLSYNC_CAPACITY` for new apps.** It counts up to three times at bootstrap (app, `-dst-dest`, first backup). Existing PVCs can't be shrunk.
 
 ## 6b. End-to-end test in an isolated namespace (2026-11-20 22:10–22:27 UTC)
@@ -859,3 +946,5 @@ A Longhorn release that keeps CSI snapshots alive after their source volume is d
 | 2026-11-20 | 5 orphaned RDs deleted (calibre-web-downloader, paperless-ai, scriberr, streamflow, tracearr; each checked first: no owned objects, app PVC, RS or Flux inventory entry). Now 41 RDs = 41 RSs |
 | 2026-11-20 | §6a implemented in Git: Flux app `storage/volsync-restore-cleanup` (CronJob `*/15`, `DRY_RUN=true`, `DELETE_ORPHANS=true`, `MIN_AGE_SECONDS=900`) and recipe `just kube volsync-cleanup`, sharing one `cleanup.sh`. Server-side dry run passed; recipe dry run printed nothing (nothing to clean) |
 | | Review a CronJob dry run after Flux deploys it, then set `DRY_RUN: "false"` |
+| 2026-11-20 | Step 6 prepared: HelmRelease `storageOverProvisioningPercentage` 100 → 120 and `storageReservedPercentageForDefaultDisk` 15 → 30 (server dry run passed). Chosen from measured fill (53%) and non-Longhorn usage (91–99 GB per node); 150% rejected (break-even below today's fill) |
+| | Step 6: HelmRelease applied (settings show 120 / 30), then Storage Reserved set to 100 GiB on k8s-04, k8s-05 and k8s-06 in the UI; disks still `Schedulable=True` |
