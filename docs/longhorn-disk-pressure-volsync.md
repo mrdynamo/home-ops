@@ -507,6 +507,31 @@ kubectl -n storage get nodes.longhorn.io -o json | jq -r '.items[] | .metadata.n
   - On an *attached* volume with locality on, it removes the **non-local replica whose name sorts first**, which is effectively random.
   - Otherwise it removes the replica on the disk with the **least free space**.
 
+#### Upstream status (researched 2026-11-20)
+
+| Issue | What it is | Status |
+|---|---|---|
+| [longhorn#10512](https://togithub.com/longhorn/longhorn/issues/10512) | "Replica Auto Balance Across Nodes based on Node Disk Space Consumption". Design: LEP [longhorn#11922](https://togithub.com/longhorn/longhorn/pull/11922), `enhancements/20251001-replica-balance-scheduling.md`. Replaces "pick the disk with the most free space" with a balance-aware choice: simulate each placement, then pick the one that leaves usable storage most even, across nodes first and then across disks | **Shipped in v1.11.0** (closed 2025-11-20), so it's in v1.13.0 as `getDiskWithMostBalanceScore`. **New replicas only.** The design doc says it "only improves the disk selection stage"; it never moves existing replicas |
+| [longhorn#2977](https://togithub.com/longhorn/longhorn/issues/2977) | "Support automatic rebalance the replicas based on disk usage": move *existing* replicas off fuller disks and nodes | Open since 2021, Backlog. A maintainer's only comment: consider it "next time we do a refactor" of the scheduler |
+| [longhorn#11135](https://togithub.com/longhorn/longhorn/issues/11135) | UI / API option to move a specific replica to a chosen node | Open, Backlog; needs a design doc (LEP) first |
+| [longhorn#14415](https://togithub.com/longhorn/longhorn/issues/14415) | "auto balance not working as expected (1.13)" | Open; a user-configuration question still in discussion, not a confirmed gap |
+| *(none found)* | When data locality removes a surplus replica, prefer the one on the fullest disk | **Not filed.** `cleanupDataLocalityReplicas` deletes the non-local replica with the alphabetically smallest name (same on master as in v1.13.0), while `cleanupAutoBalancedReplicas` already sorts by free space (`getSortedReplicasByAscendingStorageAvailable`). Reusing that helper is a small, contained change and a candidate issue to file |
+
+**What this means here:** the only space-aware mechanism Longhorn has, #10512, works on new and rebuilt replicas. With step 6's settings it strongly favors k8s-04. In the placement score (`StorageAvailable − StorageReserved − StorageScheduled`), on 2026-11-20 23:05 UTC:
+
+| Node | Room in the placement score |
+|---|---|
+| k8s-04 | 189 GB (47%) |
+| k8s-05 | 0 GB |
+| k8s-06 | 0 GB |
+
+Every rebuild that is allowed to land on k8s-04 (after a drain or upgrade, a new PVC, a VolSync `-src` clone) goes there, so the imbalance corrects itself as replicas churn. Two exceptions:
+
+- a pod's own local replica, which follows the pod;
+- the name-based deletion above, which can still remove the k8s-04 copy when a pod moves.
+
+To move a replica now, delete it as described below; it's rebuilt on k8s-04.
+
 #### Manual rebalance (after the Talos rollout and step 2)
 
 After step 2, roughly 25 GB of replicas could move off k8s-05 and about 40 GB off k8s-06 (estimated 2026-11-20; the numbers shift as pods move). The largest are the Prometheus DB (21.8 GB on k8s-06), postgres-1 and postgres-2 (about 10.5 GB each), radarr (4.3 GB) and victoria-logs (4.3 GB).
@@ -940,6 +965,10 @@ kubectl -n storage get volumes.longhorn.io -o json | jq -r '.items[] | select(.s
 | [longhorn#13335](https://github.com/longhorn/longhorn/issues/13335) | Clone volume not attaching after copy (VolSync movers) | Closed; only attacher retry capped at 1m (present in v1.13.0) |
 | [longhorn#14599](https://github.com/longhorn/longhorn/issues/14599) | Cloned volumes Bound before usable; ~100 s attach delay | Open |
 | [longhorn#14562](https://github.com/longhorn/longhorn/issues/14562) | Snapshot CRs with names over 63 characters can't be deleted | Fixed for v1.13.1 (not released); no such snapshots in this cluster |
+| [longhorn#10512](https://togithub.com/longhorn/longhorn/issues/10512) | Disk-space-aware placement of new replicas (LEP [#11922](https://togithub.com/longhorn/longhorn/pull/11922)) | Shipped in v1.11.0; in use on v1.13.0. Doesn't move existing replicas (§5 step 3b) |
+| [longhorn#2977](https://togithub.com/longhorn/longhorn/issues/2977) | Automatically rebalance existing replicas by disk usage | Open since 2021, Backlog. Would make §5 step 3b's manual rebalance unnecessary |
+| [longhorn#11135](https://togithub.com/longhorn/longhorn/issues/11135) | Move a specific replica to a chosen node (UI / API) | Open, Backlog; needs a design doc (LEP) |
+| [longhorn#14415](https://togithub.com/longhorn/longhorn/issues/14415) | "auto balance not working as expected (1.13)" | Open; under discussion |
 
 A Longhorn release that keeps CSI snapshots alive after their source volume is deleted would let `cleanupTempPVC: true` work and make §3 moot. Another way would be to configure a backup target and use a `type: bak` VolumeSnapshotClass for the RD. There is no backup target configured today.
 
