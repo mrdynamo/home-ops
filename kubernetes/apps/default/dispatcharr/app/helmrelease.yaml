@@ -23,7 +23,7 @@ spec:
               TZ: America/Chicago
               PUID: 1000
               PGID: 1000
-              DISPATCHARR_TRUSTED_PROXIES: 10.42.0.0/16,192.168.30.21,192.168.30.22,192.168.30.23,192.168.30.24,192.168.30.25,192.168.30.26
+              DISPATCHARR_TRUSTED_PROXIES: 10.42.0.0/16,192.168.30.21,192.168.30.22,192.168.30.23,192.168.30.24,192.168.30.25,192.168.30.26,10.0.0.0/16
               # DISPATCHARR_LOG_LEVEL: DEBUG
               ## Process Priority Configuration (Optional)
               ## Lower values = higher priority. Range: -20 (highest) to 19 (lowest)
