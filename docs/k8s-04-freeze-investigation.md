@@ -5,13 +5,13 @@ description: Why k8s-04 freezes and never recovers, what was put in place to cap
 
 # k8s-04 Freeze Investigation
 
-> **Status (2026-11-08):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe.
+> **Status (2026-11-21):** The first freeze with Phase 1 in place (2026-11-07 09:32 UTC) is triaged as a **whole-machine hard lock while idle** (§2, "Freeze of 2026-11-07"). It was not the network and not the NVMe.
 >
-> **Test in progress (since 2026-11-08 02:02 UTC):** C-states limited to C1 (§7 B2). It started as a runtime change and has been **permanent since the 2026-11-13 18:20 UTC upgrade** (`processor.max_cstate=1` in the schematic), so nothing needs re-applying after reboots. **Pass condition:** no freeze before 2026-11-22. **Next:** test the watchdog (§6) when convenient.
+> **Test in progress (since 2026-11-08 02:02 UTC):** C-states limited to C1 (§7 B2). It started as a runtime change and has been **permanent since the 2026-11-13 18:20 UTC upgrade** (`processor.max_cstate=1` in the schematic), so nothing needs re-applying after reboots. **Pass condition:** no freeze before 2026-11-22. DPTF was also turned off on 2026-11-13 (below), so a freeze-free run tests both changes together. **Next:** test the watchdog (§6) when convenient.
 >
 > **Workaround in place:** Home Assistant power-cycles k8s-04's smart outlet when `HomeAssistantPowercycleK8s04Trigger` fires. Leave it as is: the node never recovers by itself.
 >
-> **Separate problem found (2026-11-13): a kernel memory leak on k8s-04, caused by ACPI GPE 0x24** (§2a). About 5 GiB of kernel memory that can never be reclaimed builds up over a week. It caused the out-of-memory stalls of 2026-11-13 (§2, "Event of 2026-11-13"), which were not a freeze. The cause is confirmed by a controlled test. **Masking the GPE does not work on this machine** (tested at runtime; the GPE keeps firing). **Next step (still open):** turn DPTF off in the BIOS. Follow §2a, "Steps: disable DPTF". Until then, reboot before `SUnreclaim` passes about 4 GiB. Only a reboot returns the memory already lost.
+> **Kernel memory leak on k8s-04 (found and fixed 2026-11-13): ACPI GPE 0x24** (§2a). About 5 GiB of kernel memory that could never be reclaimed built up over a week. It caused the out-of-memory stalls of 2026-11-13 (§2, "Event of 2026-11-13"), which were not a freeze. The cause is confirmed by a controlled test; masking the GPE did not work. **Fixed:** "Intel(R) DPTF Support" was turned off in the BIOS at the 2026-11-13 19:25 UTC reboot. Checked 2026-11-21: the DPTF device is gone, GPE 0x24 doesn't fire, and SUnreclaim has stayed flat at 0.4–0.55 GiB for 8 days. Scheduled reboots are no longer needed. `NodeUnreclaimableKernelMemoryGrowing` and `NodeUnreclaimableKernelMemoryHigh` stay in place to catch a regression, for example after a BIOS reset or update.
 
 ---
 
@@ -164,11 +164,11 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
 
 ### Resolution
 
-1. **Turn DPTF off in the BIOS (recommended next step; needs console access).** `\_SB.IETM._STA` returns present only when the firmware variables `\DPTF == 1 && \IN34 == 1`, and `DPTF` comes from BIOS setup. With it off, the device disappears and the firmware should stop raising the keep-alive.
+1. **Turn DPTF off in the BIOS (done 2026-11-13 19:25 UTC; the fix).** `\_SB.IETM._STA` returns present only when the firmware variables `\DPTF == 1 && \IN34 == 1`, and `DPTF` comes from BIOS setup. With it off, the device disappears and the firmware should stop raising the keep-alive.
 
    **The setting:** `Advanced → Intel(R) DPTF Support → Disabled`. It sits directly on the Advanced page, below "Dust Shield Alert", not in the "CPU Setup" submenu. Its WMI name is `IntelDPTFSupport`; the default is Enabled. Confirmed for this machine: `IntelDPTFSupport` is in the BIOS-settings table in k8s-04's DSDT (ThinkCentre M90q Gen 2, BIOS `M3JKT44A`), listed between `DustShieldAlert` and the Power page's `AfterPowerLoss`. Lenovo documents it in its [ThinkCentre BIOS settings dictionary, Advanced page](https://docs.lenovocdrt.com/ref/bios/settings/thinkcentre/advanced/). If a supervisor password is set, it's needed to change this setting.
 
-   **Current state (2026-11-13 18:20 UTC upgrade):** the permanent C-state limit is applied. Schematic `eae5a814…` is running with `processor.max_cstate=1`, and only `state0` and `state1` exist, so nothing needs re-applying after reboots. **DPTF is still enabled** (`INTC1040` status 15): the BIOS change was not caught during the upgrade, and GPE24 fired 557,746 times in the first 0.8 h after boot.
+   **Current state (checked 2026-11-21):** **DPTF is off.** It was still on after the 2026-11-13 18:20 UTC upgrade (`INTC1040` status 15; GPE24 fired 557,746 times in the first 0.8 h), and was turned off in the BIOS at the 19:25 UTC reboot that day. Now `INTC1040:00` is absent, `gpe24` reads 0, the largest `kmalloc-*-64` cache holds about 18k objects, and SUnreclaim has stayed at 0.4–0.55 GiB through the 2026-11-20 Talos v1.14.6 reboot. The C-state limit is still permanent (schematic `eae5a814…`, `processor.max_cstate=1`). The step 9 load test was not run; the 8 flat days are the evidence instead. The steps below stay as the record of how it was done, and for redoing it after a BIOS reset or update.
 
    **Steps: disable DPTF (one reboot).**
 
@@ -221,18 +221,20 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
    | `NodeCPUTemperatureHigh` | CPU above 88 °C for 10 min | Hottest 10-minute stretch 80 °C; brief peaks 88 °C | warning (Discord) |
    | `NodeCPUTemperatureCritical` | Within 5 °C of TjMax (95 °C) for 2 min | Never | critical (Discord and Pushover) |
    | `NodeCPUThermalThrottling` | More than 20 CPU package throttle events in an hour | 0 per hour with C1 only, apart from rare bursts (+8 during SABnzbd post-processing on 2026-11-13); about 250/h before the C-state limit | warning |
-   | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
+   | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h, on a node up at least 24 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
    | `NodeUnreclaimableKernelMemoryHigh` | SUnreclaim above 3.5 GiB | k8s-04 at 4.9 GiB on 2026-11-13 | warning |
 
+   `NodeUnreclaimableKernelMemoryGrowing` ignores a node's first 24 h after boot. The first sample after a boot is a near-empty slab, and SUnreclaim climbs 250–420 MiB to its normal level within minutes. Without the guard, that warm-up fired the alert on all three workers after the Talos v1.14.6 rollout on 2026-11-20. So a leak only shows up from the second day after a reboot. `NodeUnreclaimableKernelMemoryHigh` is not affected.
+
    NVMe temperature is already covered by `SmartDeviceHighTemperature` (above 65 °C).
-2. **Until then, reboot on a schedule.** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). The C-state limit survives reboots now, so nothing else needs re-applying.
+2. **Until then, reboot on a schedule (no longer needed since the DPTF change).** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). The C-state limit survives reboots now, so nothing else needs re-applying.
 3. **Make the OS answer the keep-alive:** this needs a kernel with `CONFIG_INT340X_THERMAL` and a `thermald` that writes `imok`. Neither is available on Talos today. A kernel-config request to Sidero is the long-term path if the BIOS route doesn't work.
 4. **Override `_L24`:** the kernel has `CONFIG_ACPI_TABLE_UPGRADE=y`, so a patched SSDT1 could be loaded from an early initramfs. Talos doesn't support adding one, so this is a last resort.
 5. **Masking the GPE (tested, doesn't work):** see "Validation" above.
 
 ### Is it connected to the hard freezes?
 
-This isn't established. The leak was present before every freeze with metrics available (3.5 GiB before 2026-11-06, about 0.7 GiB at 2026-11-07), but memory was fine at both. However, it does mean CPU 0 handles bursts of thousands of ACPI interrupts per second and runs an AML interpreter loop full time, sending EC mailbox commands. Firmware interaction at that rate is a plausible platform-level trigger. Turning DPTF off would also remove that activity, so a freeze-free run afterwards can't be credited to the C-state change alone. Record the two changes separately in §9.
+This isn't established. The leak was present before every freeze with metrics available (3.5 GiB before 2026-11-06, about 0.7 GiB at 2026-11-07), but memory was fine at both. However, it does mean CPU 0 handles bursts of thousands of ACPI interrupts per second and runs an AML interpreter loop full time, sending EC mailbox commands. Firmware interaction at that rate is a plausible platform-level trigger. Turning DPTF off removed that activity too (2026-11-13 19:25 UTC, five days after the C-state limit), so a freeze-free run from then on can't be credited to the C-state change alone. Both changes are logged separately in §9.
 
 ---
 
@@ -462,6 +464,9 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-13 17:18–17:21 | Validation: load test unmasked vs. GPE masked at runtime | Leak reproduced 1:1 both times (72,800 / 183,313 firings). **Masking ineffective**; GPE unmasked again. Next: BIOS DPTF off |
 | 2026-11-13 | `processor.max_cstate=1` added to the schematic (permanent form of §7 B2); thermal and kernel-memory alerts added (`prometheusrule-node-thermal.yaml`) | Applied by the 18:20 upgrade below |
 | 2026-11-13 18:20 | `just talos upgrade-node k8s-04`, to schematic `eae5a814…` | Verified: `processor.max_cstate=1`, only `state0` and `state1`; **C-state limit now permanent**. BIOS change missed: DPTF still on (`INTC1040` status 15); GPE24 fired 557,746 times in the first 0.8 h. Next: §2a "Steps: disable DPTF" |
+| 2026-11-13 19:25 | k8s-04 rebooted; **"Intel(R) DPTF Support" set to Disabled in the BIOS** (§2a) | Leak stopped: SUnreclaim stayed flat at 0.36–0.55 GiB from then to 2026-11-20 (it had grown 0.3–1.1 GiB/day). Step 8/9 results weren't recorded at the time; see the 2026-11-21 check |
+| 2026-11-20 20:30–21:17 | Talos v1.14.6 rollout (tuppr) rebooted every node | `NodeUnreclaimableKernelMemoryGrowing` fired on k8s-04/05/06: post-boot slab warm-up, not a leak (all flat within ~30 min of boot) |
+| 2026-11-21 20:18 | Checked k8s-04 (§2a step 8 checks; step 9 load test not run) | **DPTF off:** `INTC1040:00` absent (was status 15), `gpe24` 0 since boot (+0 in 10 s), largest `kmalloc-*-64` cache 18k objects, SUnreclaim 0.54 GiB and flat. Alert now skips nodes up less than 24 h |
 
 ---
 
