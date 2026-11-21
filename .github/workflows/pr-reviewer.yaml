@@ -157,9 +157,15 @@ jobs:
           # semantics and LiteLLM's auth normalization.
           tool-mcp-servers: "konflate=http://litellm.ai.svc:4000/konflate/mcp"
           tool-mcp-token: "Bearer ${{ secrets.LITELLM_API_KEY }}"
-          publish-review-comment: "true"
+          # LiteLLM's MCP endpoint serves the tools as `konflate-get_pr_diff`
+          # etc. (the REST list above shows them unprefixed). The action only
+          # relays tools whose FIRST name segment is a read verb, so without
+          # stripping the prefix every konflate tool is denied and the log
+          # reports "MCP server 'konflate': 0 read-only tool(s) advertised".
+          tool-mcp-name-prefixes: konflate
+          # `publish-review-comment` and `allow-approve` are deprecated no-ops
+          # since v3.9.0; publish-mode alone decides publication.
           publish-mode: review_verdict
-          allow-approve: "true"
           upstream-link-mode: togithub
           system-prompt-file: .github/pr-review-prompt.md
           # Repo conventions + how this cluster actually uses each component,

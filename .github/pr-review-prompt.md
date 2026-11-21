@@ -123,7 +123,9 @@ renders the PR's applied YAML against the cluster state at submission time and p
 caution lints (data-loss, immutable-field, RBAC, suspend/prune), image-tag changes, and
 render failures — signals a raw `git diff` cannot show. Use the following tools on every
 PR that touches Kubernetes manifests, HelmReleases, OCIRepositories, Kustomizations, or
-Flux resources:
+Flux resources (LiteLLM prefixes the server's tool names, so the advertised routes
+may read `mcp__konflate__konflate-get_pr_summary` and so on; call them by the
+advertised name):
 
 - `mcp__konflate__get_pr_summary` — call this first: the cluster-impact summary, caution
   lint list, image changes, and render status for the current PR number.
@@ -334,11 +336,35 @@ Required top-level keys, in this order:
     REQUIRED: one sentence grounded in the actual change explaining why the
     check is N/A here (e.g. "image tag bump; no `kubeVersion` or `resources:`
     field touched in the diff").
+  - `unmet` — you performed the check and confirmed the requirement is NOT
+    satisfied. Rationale REQUIRED. This forces `request_changes` exactly like
+    a blocker finding, so use it only for a confirmed negative, never for
+    "could not check".
   - `unresolved` — could not determine. Use sparingly; this drops the review
     from `approve` to advisory.
 
   Schema: `[{"check": "<verbatim check text>", "status": "satisfied" |
-  "not_applicable" | "unresolved", "rationale": "<one sentence>"}]`.
+  "not_applicable" | "unmet" | "unresolved", "rationale": "<one sentence>"}]`.
+
+  When the user message also carries a "Required Review Evidence" section,
+  emit one entry per listed row too, using its id (`obligation-<n>`,
+  `derived-<n>`, `risk-<n>`) or its exact text as `check`.
+
+  Renovate image and chart bumps carry three upstream-evidence checks (the
+  wording says image or chart to match the bump). Answer each from the evidence
+  you actually gathered, and cite the URL in the rationale:
+  - `establish upstream provenance for the updated image: publisher and
+    canonical source repository` → `satisfied` naming the publisher and the
+    source repository you confirmed.
+  - `inspect the exact old→new upstream release delta for the updated image`
+    → `satisfied` citing the release notes or compare URL you read.
+  - `check upstream security advisories for the updated image version range,
+    or report the advisory check as not performed` → `satisfied` citing the
+    advisories page you checked, or `unresolved` if you did not check.
+  The action checks these three rows against its own record of what the tool
+  calls fetched, so it can still mark them unresolved after you answer
+  `satisfied`. Answer them anyway, and never mark them `not_applicable` to get
+  around that check.
 
   Common cases for this repository's Renovate image/chart bumps:
   - `validate manifest against target cluster version` → almost always
@@ -403,8 +429,12 @@ Required top-level keys, in this order:
   Breaking changes or Deprecations bullet in the body MUST have a matching
   finding. The body and the findings array must agree.
 
-Do not include any other top-level keys (no `summary`, no `sources`, etc. —
-sources belong in the markdown body, not as a JSON sibling). The in-body
+Keys that the action's own verdict schema defines (for example
+`dependency_coverage` and `requirement_coverage`, which the action's
+instructions in the user message describe) are allowed and should be filled in
+when the user message asks for them. Do not invent any other top-level keys
+(no `summary`, no `sources`, etc.: sources belong in the markdown body, not as
+a JSON sibling). The in-body
 `**Verdict**` heading is kept only because it renders cleanly in GitHub;
 under `verdict_policy=strict` the JSON `verdict` field is a hint to the
 model of what it intended, not the published verdict.
