@@ -347,8 +347,10 @@ Required top-level keys, in this order:
   "not_applicable" | "unmet" | "unresolved", "rationale": "<one sentence>"}]`.
 
   When the user message also carries a "Required Review Evidence" section,
-  emit one entry per listed row too, using its id (`obligation-<n>`,
-  `derived-<n>`, `risk-<n>`) or its exact text as `check`.
+  emit one entry per listed row too. A row that repeats a "Required checks"
+  item (source `must_check`) counts ONLY when `check` is the exact check
+  text, and its `obligation-<n>` id is ignored. Other rows may use their id
+  (`obligation-<n>`, `derived-<n>`, `risk-<n>`) or their exact text.
 
   Renovate image and chart bumps carry three upstream-evidence checks (the
   wording says image or chart to match the bump). Answer each from the evidence
