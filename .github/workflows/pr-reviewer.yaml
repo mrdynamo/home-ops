@@ -136,7 +136,7 @@ jobs:
 
       - name: Review PR
         id: ai-review
-        uses: misospace/pr-reviewer-action@25dae600b49c50c18d9b05cc8812943a1f5412ec # v3.9.0
+        uses: misospace/pr-reviewer-action@3d354d4ccf6ccdeaf1ad7a9547775426f25a0216 # v3.10.0
         with:
           github-token: ${{ steps.claude-token.outputs.token }}
           ai-api-format: anthropic
@@ -239,13 +239,26 @@ jobs:
           # model reads a relevant skill on demand (e.g. the CNPG/TimescaleDB
           # upgrade procedure). Grants no tools.
           repository-skills: 'true'
-          # Surface tool-loop failures and provider shortfalls as required-
-          # check `unresolved` so verdict-policy's strict completeness check
-          # has a real signal to grade — matches renovate-review-local.yaml.
+          # TEMPORARY, until this upstream issue is fixed and released:
+          # https://github.com/misospace/pr-reviewer-action/issues/1763
+          # Since v3.9.0, Renovate image/chart bumps carry three upstream-evidence
+          # must_checks (provenance, release delta, advisories) that can
+          # never settle for images or charts: the action has no dependency
+          # scope for them, so even a correct `satisfied` folds to
+          # `unresolved` (receipt-absent). That withholds the native APPROVE
+          # on every clean image/chart bump, and the renovate-pr-reviews
+          # ruleset needs an approval. `false` drops ALL must_check rows
+          # (including the k8s_manifest cluster-version / resource-limit
+          # checks). Blocker/major findings still force request_changes.
+          # Remove this once a release fixes #1763.
+          validate-required-checks: 'false'
+          # A tool-harness failure (or every executed tool call failing, or
+          # fewer than one successful call) forces request_changes. This does
+          # not depend on validate-required-checks.
           tool-failure-enforcement: 'true'
           tool-min-successful-requests: '1'
-          # Same: an evidence-providers-file failure must drop required
-          # checks to `unresolved` rather than silently partial.
+          # An evidence provider reporting blocker severity forces
+          # request_changes. Also independent of validate-required-checks.
           evidence-blocker-enforcement: 'true'
           # Reasoning-model output headroom — the v3 inputs page warns
           # under-sized caps on reasoning models produce finish_reason=length
