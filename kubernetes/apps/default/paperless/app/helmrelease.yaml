@@ -124,7 +124,7 @@ spec:
           app:
             image:
               repository: docker.io/apache/tika
-              tag: 3.3.3.1-full@sha256:36f6f322d5ecf2d0ac12fbdda0fe904625aff73b3363328b35d21bdf9b4c650c
+              tag: 4.2.0-full@sha256:12a6b0332f1c047dc80489f336ca39fb2332e1810e75cc84e7b07a9b502c1cb0
             # securityContext: *sc
             resources:
               requests:
