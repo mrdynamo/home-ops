@@ -114,7 +114,7 @@ spec:
           app:
             image:
               repository: ghcr.io/cloudnative-pg/postgresql
-              tag: 18.6-minimal-trixie@sha256:ec2ed3404e89fff99643901b58a2a34c46a46345fe69a3d96500b82f995c327b
+              tag: 19.0-minimal-trixie@sha256:28f6604b4e142cadd8b0154ae82a5541e321d6f33b27fc5a054ced3dde53e6e8
             command:
               - /bin/sh
               - /app/prune-prompts.sh
