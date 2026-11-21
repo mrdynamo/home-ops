@@ -59,8 +59,8 @@ spec:
     - name: node-kernel-memory
       rules:
         # k8s-04 leaked 0.3-1.1 GiB/day through ACPI GPE 0x24; other nodes stay under 100 MiB/day.
-        # Skips nodes up less than 24 h: the first sample after a boot is a near-empty slab, so the
-        # normal warm-up (+250-420 MiB within minutes) would otherwise fire on every worker.
+        # Skips nodes up less than 25 h: the window must start after the post-boot slab warm-up
+        # (+250-420 MiB over the first 10-25 min), or it fires on every worker the day after a reboot.
         - alert: NodeUnreclaimableKernelMemoryGrowing
           annotations:
             summary: >-
@@ -73,7 +73,7 @@ spec:
           expr: >-
             max by (kubernetes_node, instance) (delta(node_memory_SUnreclaim_bytes[24h])) > 256 * 1024 * 1024
             and on (kubernetes_node, instance)
-            max by (kubernetes_node, instance) (time() - node_boot_time_seconds) > 86400
+            max by (kubernetes_node, instance) (time() - node_boot_time_seconds) > 25 * 3600
           for: 1h
           labels:
             severity: warning

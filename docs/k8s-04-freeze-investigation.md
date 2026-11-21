@@ -221,10 +221,10 @@ The same load test was run twice: 45 s of CPU load on all 12 threads, then 45 s 
    | `NodeCPUTemperatureHigh` | CPU above 88 °C for 10 min | Hottest 10-minute stretch 80 °C; brief peaks 88 °C | warning (Discord) |
    | `NodeCPUTemperatureCritical` | Within 5 °C of TjMax (95 °C) for 2 min | Never | critical (Discord and Pushover) |
    | `NodeCPUThermalThrottling` | More than 20 CPU package throttle events in an hour | 0 per hour with C1 only, apart from rare bursts (+8 during SABnzbd post-processing on 2026-11-13); about 250/h before the C-state limit | warning |
-   | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h, on a node up at least 24 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
+   | `NodeUnreclaimableKernelMemoryGrowing` | SUnreclaim grew more than 256 MiB in 24 h, on a node up at least 25 h | k8s-04 0.3–1.1 GiB/day (the leak); other nodes under 100 MiB/day | warning |
    | `NodeUnreclaimableKernelMemoryHigh` | SUnreclaim above 3.5 GiB | k8s-04 at 4.9 GiB on 2026-11-13 | warning |
 
-   `NodeUnreclaimableKernelMemoryGrowing` ignores a node's first 24 h after boot. The first sample after a boot is a near-empty slab, and SUnreclaim climbs 250–420 MiB to its normal level within minutes. Without the guard, that warm-up fired the alert on all three workers after the Talos v1.14.6 rollout on 2026-11-20. So a leak only shows up from the second day after a reboot. `NodeUnreclaimableKernelMemoryHigh` is not affected.
+   `NodeUnreclaimableKernelMemoryGrowing` ignores a node's first 25 h after boot. The first sample after a boot is a near-empty slab, and SUnreclaim climbs 250–420 MiB to its normal level over the first 10–25 minutes. The 24 h window must start after that warm-up, so a 24 h guard is not enough: with it, k8s-04 fired again at 24 h 7 min of uptime on 2026-11-21. Without the guard, that warm-up fired the alert on all three workers after the Talos v1.14.6 rollout on 2026-11-20. So a leak only shows up from the second day after a reboot. `NodeUnreclaimableKernelMemoryHigh` is not affected.
 
    NVMe temperature is already covered by `SmartDeviceHighTemperature` (above 65 °C).
 2. **Until then, reboot on a schedule (no longer needed since the DPTF change).** A reboot frees everything. Alert on `node_memory_SUnreclaim_bytes{instance="192.168.30.24:9100"} > 3.5 GiB` and reboot k8s-04 when it fires (about every 1–2 weeks at the current rate; faster with heavy load). The C-state limit survives reboots now, so nothing else needs re-applying.
@@ -466,7 +466,7 @@ The I219-LM / `e1000e` "Hardware Unit Hang" is a known failure on these Lenovo T
 | 2026-11-13 18:20 | `just talos upgrade-node k8s-04`, to schematic `eae5a814…` | Verified: `processor.max_cstate=1`, only `state0` and `state1`; **C-state limit now permanent**. BIOS change missed: DPTF still on (`INTC1040` status 15); GPE24 fired 557,746 times in the first 0.8 h. Next: §2a "Steps: disable DPTF" |
 | 2026-11-13 19:25 | k8s-04 rebooted; **"Intel(R) DPTF Support" set to Disabled in the BIOS** (§2a) | Leak stopped: SUnreclaim stayed flat at 0.36–0.55 GiB from then to 2026-11-20 (it had grown 0.3–1.1 GiB/day). Step 8/9 results weren't recorded at the time; see the 2026-11-21 check |
 | 2026-11-20 20:30–21:17 | Talos v1.14.6 rollout (tuppr) rebooted every node | `NodeUnreclaimableKernelMemoryGrowing` fired on k8s-04/05/06: post-boot slab warm-up, not a leak (all flat within ~30 min of boot) |
-| 2026-11-21 20:18 | Checked k8s-04 (§2a step 8 checks; step 9 load test not run) | **DPTF off:** `INTC1040:00` absent (was status 15), `gpe24` 0 since boot (+0 in 10 s), largest `kmalloc-*-64` cache 18k objects, SUnreclaim 0.54 GiB and flat. Alert now skips nodes up less than 24 h |
+| 2026-11-21 20:18 | Checked k8s-04 (§2a step 8 checks; step 9 load test not run) | **DPTF off:** `INTC1040:00` absent (was status 15), `gpe24` 0 since boot (+0 in 10 s), largest `kmalloc-*-64` cache 18k objects, SUnreclaim 0.54 GiB and flat. Alert now skips nodes up less than 25 h (first set to 24 h, which re-fired on k8s-04 at 20:40 because the window still caught the warm-up) |
 
 ---
 
