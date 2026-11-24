@@ -16,3 +16,8 @@ spec:
   #   - name: VAR_REPLICATIONDESTNAME
   #     value: .*-dst
   url: https://grafana.com/api/dashboards/19661/revisions/1/download
+  patch:
+    scripts:
+      # Upstream uses legendFormat __auto on a summed expression, which has no
+      # metric name, so Grafana falls back to printing the full label set.
+      - '(.panels[] | select(.title == "CPU Usage") | .targets[].legendFormat) = "CPU Usage"'
