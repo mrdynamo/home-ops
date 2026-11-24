@@ -10,7 +10,7 @@ metadata:
 spec:
   instances: 2
 
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie@sha256:de572898499fab9406f0da51929da562f96f3be40ca79fafea8ec1a8d5b42065
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-standard-trixie@sha256:1abcfd1cac6d53cda5185706819aab36d66a4ed88e99fc2ae44ab0826aa99f00
 
   priorityClassName: home-prod
 
@@ -90,11 +90,11 @@ spec:
 
       - name: timescaledb
         image:
-          reference: ghcr.io/mrdynamo/timescaledb-bridge:2.32.1@sha256:a7c86423a3b19ac133870954a1d3f64aaf6fda049334fe1a8644f662ffc7577b
+          reference: ghcr.io/mrdynamo/timescaledb-bridge:2.32.1@sha256:72167b290280a1c12259e80963f47ed8199991bff12cd6762bc6e241ab7f4da8
 
       - name: timescaledb_toolkit
         image:
-          reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.28.0@sha256:b50dee09a1b37a55260459d5c7c9205574a8cb97e9d739b7d47e0c3f71989ccf
+          reference: ghcr.io/mrdynamo/timescaledb-toolkit:1.28.0@sha256:55457da85edea68107fa5877b30c482b6b914093965e5fb96f26904d329f5015
 
   managed:
     roles:
