@@ -105,6 +105,10 @@
         "docker.io/apache/tika"
       ],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?-(?<compatibility>[a-z0-9.-]+)$",
+      // Paperless-ngx doesn't support Tika 4.x yet, so skip the 4.x train (3.x updates still flow).
+      // A negated regex, not a "<4.0.0" range: regex versioning has no range support and would
+      // fall back to npm semver.
+      allowedVersions: "!/^4\\./",
     },
     {
       // Handle nginx-unprivileged tags (e.g. 1.27.4-alpine)
