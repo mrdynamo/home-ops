@@ -77,6 +77,16 @@ spec:
         enabled: true
         endpoints:
           - port: http
+            relabelings:
+              # TrueNAS pushes to whichever pod is running, so pod/instance are
+              # scrape-path details, not identity (the metrics carry hostname).
+              # Pin them so a pod restart continues the same series instead of
+              # starting a new one per pod.
+              - action: replace
+                replacement: graphite-exporter
+                targetLabel: instance
+              - action: labeldrop
+                regex: pod
     persistence:
       config-file:
         type: configMap
