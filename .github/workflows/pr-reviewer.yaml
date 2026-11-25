@@ -138,8 +138,31 @@ jobs:
       # every changed OCIRepository that has a `verify` block, so an unsigned
       # upstream release (e.g. spegel chart 0.8.2) becomes a blocker instead
       # of a post-merge Flux VerificationError.
+      #
+      # cosign-installer pipes its `install-dir` input through `envsubst`
+      # (only to expand `$HOME`), and the ARC runner image
+      # (ghcr.io/home-operations/actions-runner) does not ship gettext:
+      # https://github.com/sigstore/cosign-installer/issues/222.
+      # Rather than pull an unpinned apt package, pass an install-dir that
+      # Actions has already expanded and stand in a pass-through `envsubst`,
+      # which is exactly what envsubst does to a string with no `$` in it.
+      # The installer still sha256-verifies the cosign binary it downloads.
+      # Skipped if a future image ships a real envsubst.
+      - name: Stub envsubst for cosign-installer
+        run: |
+          set -euo pipefail
+          command -v envsubst >/dev/null && exit 0
+          shim_dir="${RUNNER_TEMP}/envsubst-shim"
+          mkdir -p "${shim_dir}"
+          printf '#!/bin/sh\nexec cat\n' > "${shim_dir}/envsubst"
+          chmod +x "${shim_dir}/envsubst"
+          echo "${shim_dir}" >> "${GITHUB_PATH}"
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          # Literal path (no `$VAR`) so the envsubst stub above is a no-op.
+          install-dir: ${{ runner.temp }}/cosign
 
       - name: Review PR
         id: ai-review
