@@ -121,3 +121,10 @@ them, trust the files and say so in the review.
 - For CRD-shipping charts (cert-manager, CNPG, external-secrets, Gateway API,
   Prometheus Operator, Longhorn, VolSync), check for removed API versions still
   referenced anywhere under `kubernetes/`.
+- **CRD install paths**: every HelmRelease is patched cluster-wide
+  (`kubernetes/flux/cluster/ks.yaml`) with `install.crds` / `upgrade.crds:
+  CreateReplace`, so CRDs in a chart's top-level `crds/` directory are updated on every
+  upgrade. Some charts (e.g. renovate-operator) instead install CRDs from a
+  `pre-install,pre-upgrade` hook Job with `hook-delete-policy:
+  before-hook-creation,hook-succeeded`. Helm recreates that Job on every upgrade, so a
+  changed image tag or pod template on it is not an immutable-field blocker.

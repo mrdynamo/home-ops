@@ -140,8 +140,19 @@ advertised name):
 Cross-reference the upstream-vs-repo findings above with Konflate's caution lints:
 
 - **Data-loss, immutable-field, RBAC, suspend/prune** cautions from Konflate → `blocker`
-  unless the operator has confirmed otherwise in the PR thread. Always emit a matching
-  structured `finding` with `category: "compatibility"`.
+  unless the operator has confirmed otherwise in the PR thread, or the resource is a
+  Helm hook (see below). Always emit a matching structured `finding` with
+  `category: "compatibility"`.
+- **Helm hook exception**: before promoting an immutable-field caution, read the
+  resource's template in the chart (via `get_pr_diff` or the chart source at the new
+  tag). If it carries a `helm.sh/hook` annotation, Helm never patches it: it creates
+  the hook fresh on each install/upgrade and, with `helm.sh/hook-delete-policy`
+  `before-hook-creation` (or `hook-succeeded`), deletes the old copy first. An
+  immutable-field change on such a resource (typically a CRD-install or migration
+  Job whose image tag moved) cannot fail the apply. Report it as `info` at most and
+  name the hook annotation as the reason. Only keep it as a `blocker` if the hook has
+  no delete policy that removes the previous copy, since Helm then fails creating a
+  Job whose name already exists.
 - **Image changes** from Konflate that you did not surface from the upstream release
   notes → `major` (the lockfile diff told you about the bump; the summary told you
   about a side-car or init container you missed). Cross-check by reading the relevant
