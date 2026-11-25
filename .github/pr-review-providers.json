@@ -8,6 +8,15 @@
         "python3",
         ".github/scripts/pr_review_upstream_releases.py"
       ]
+    },
+    {
+      "id": "cosign-signatures",
+      "timeout_sec": 60,
+      "max_output_bytes": 20000,
+      "command": [
+        "python3",
+        ".github/scripts/pr_review_cosign_signatures.py"
+      ]
     }
   ]
 }

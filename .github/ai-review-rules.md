@@ -20,7 +20,11 @@ them, trust the files and say so in the review.
   `VOLSYNC_*`, …) and shared Kustomize components in `kubernetes/components/`.
 - **Chart delivery**: Helm charts come from `OCIRepository` sources pinned by tag
   **and** digest, many with cosign `verify` blocks. A tag bump that leaves the old
-  digest, or a changed signing identity upstream, breaks reconciliation.
+  digest, or a changed signing identity upstream, breaks reconciliation. So does an
+  upstream release that was published **unsigned** (its signing step failed): the
+  `cosign-signatures` evidence provider runs `cosign verify` on the new digest with
+  the OCIRepository's own `matchOIDCIdentity`. Treat its `blocker` as authoritative.
+  Never infer a signature exists from the upstream workflow file or identity regex.
 - **Most apps use bjw-s `app-template`** (`oci://ghcr.io/bjw-s-labs/helm/app-template`).
   For an app-template chart bump, the relevant changelog is bjw-s-labs/helm-charts
   `app-template-<version>` / `common-<version>`, and every HelmRelease using it is in
