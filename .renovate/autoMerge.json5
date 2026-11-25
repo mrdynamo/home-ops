@@ -50,6 +50,22 @@
       ignoreTests: false,
     },
     {
+      // CalVer (YYYY.M.P): "patch" is a bugfix within the same monthly release.
+      description: "Auto-merge authentik chart patch releases",
+      matchDatasources: [
+        "docker"
+      ],
+      automerge: true,
+      automergeType: "pr",
+      matchUpdateTypes: [
+        "patch"
+      ],
+      matchPackageNames: [
+        "ghcr.io/goauthentik/helm-charts/authentik"
+      ],
+      ignoreTests: false,
+    },
+    {
       description: "Auto-merge GitHub Actions",
       matchManagers: [
         "github-actions"
