@@ -218,7 +218,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mariadb/mariadb
-              tag: 13.1.2@sha256:075e0cef023d93ae2dc12b2da23e1f5cd91b84afa991f48d159b6bc3736eb9d1
+              tag: 13.1.2@sha256:84047067773d9128cfcf380eaba7033544afdefa3c5004017e91f99ad236f1b7
             ports:
               - name: mysql
                 containerPort: *dbport
