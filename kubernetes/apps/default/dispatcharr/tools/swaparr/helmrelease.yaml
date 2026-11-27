@@ -26,7 +26,7 @@ spec:
           init-tmp:
             image: &image
               repository: ghcr.io/mckenna654/swaparr
-              tag: 1.2.1@sha256:12e695660b804d4f33362be31929a6a01a8a4ab4bea2098eadbbf34481a7ce46
+              tag: 1.3.0@sha256:7c06a7c3b301d310a0fe4607d241549063892e73c08f9885b2967ba9e63441bb
             command:
               - /bin/sh
               - -c
